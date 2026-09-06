@@ -1,23 +1,22 @@
 {
-  "_instructions": "Eliminen este campo cuando terminen. Los demás campos deben contener evidencia real y commitSha debe ser un SHA Git completo de 40 caracteres.",
   "schemaVersion": 1,
   "week": 1,
-  "commitSha": "REEMPLAZAR_CON_SHA_DEL_COMMIT_DE_CODIGO_Y_DOCUMENTOS",
-  "generatedAt": "REEMPLAZAR_CON_FECHA_HORA_ISO_8601",
+  "commitSha": "62fc7cea06a7238379f854c3bcf75d29fd88d9ae",
+  "generatedAt": "2026-09-06T01:58:00-06:00",
   "checks": [
     {
-      "id": "falla-controlada",
+      "id": "backend-status-no-actualiza",
       "status": "fail",
       "scenarioType": "failure",
       "command": "npm run test:smoke",
-      "evidence": "REEMPLAZAR_CON_SINTOMA_OBSERVADO_Y_CAUSA_IDENTIFICADA"
+      "evidence": "Se modificó temporalmente App.tsx, cambiando el callback .then() de getBackendHealth() para que llamara setStatus('checking') en vez de setStatus('available') tras una respuesta exitosa del backend. Al ejecutar npm run test:smoke, la prueba course-tests/smoke.test.tsx falló con: 'Expected substring: \"available\", Received string: \"Backend: checking\"'. Síntoma: el elemento con testID 'backend-status' nunca mostró el texto 'available'. Causa: el callback de éxito actualizaba el estado a 'checking' en lugar de 'available'."
     },
     {
-      "id": "correccion-verificada",
+      "id": "backend-status-corregido",
       "status": "pass",
       "scenarioType": "nominal",
       "command": "npm run test:smoke",
-      "evidence": "REEMPLAZAR_CON_RESULTADO_OBSERVABLE_DESPUES_DE_CORREGIR"
+      "evidence": "Se corrigió App.tsx regresando el callback .then() de getBackendHealth() a setStatus('available'). Al ejecutar nuevamente npm run test:smoke, la prueba pasó exitosamente (1 passed, 1 total), confirmando que backend-status refleja correctamente el estado 'available'."
     }
   ]
 }

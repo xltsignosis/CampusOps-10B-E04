@@ -1,20 +1,19 @@
 {
-  "_instructions": "Eliminen este campo cuando terminen. Comparen alternativas reales y relacionen la decisión con una comprobación ejecutada.",
   "schemaVersion": 1,
   "week": 1,
-  "commitSha": "REEMPLAZAR_CON_SHA_DEL_COMMIT_DE_CODIGO_Y_DOCUMENTOS",
-  "decision": "REEMPLAZAR_CON_LA_DECISION_DE_ALCANCE_RIESGO_O_ACEPTACION",
+  "commitSha": "62fc7cea06a7238379f854c3bcf75d29fd88d9ae",
+  "decision": "El equipo limitó la corrección de la falla controlada al manejo de estado en App.tsx (actualización de status tras respuesta exitosa del backend), sin implementar de forma anticipada ninguna de las funciones pendientes de src/course-evaluation/index.ts (resolveSync, planRetry, etc.), respetando que esas funciones están marcadas explícitamente como 'must be implemented in the assigned week' correspondiente a semanas futuras del curso.",
   "alternatives": [
-    "REEMPLAZAR_CON_PRIMERA_ALTERNATIVA_REAL",
-    "REEMPLAZAR_CON_SEGUNDA_ALTERNATIVA_REAL"
+    "Provocar la falla controlada en src/api/courseBackend.ts, modificando la validación de contractVersion. Se descartó porque course-tests/smoke.test.tsx mockea completamente ese módulo con jest.mock, por lo que un cambio ahí no es detectado por la prueba proporcionada: se comprobó ejecutando el cambio y observando que la prueba seguía en PASS sin verse afectada.",
+    "Provocar la falla en App.tsx, en el manejo de estado tras la respuesta del backend (opción elegida), por ser el único código con lógica real que la prueba course-tests/smoke.test.tsx ejecuta sin mocks, garantizando que la falla y su corrección fueran realmente detectables por el comando proporcionado."
   ],
-  "tradeoff": "REEMPLAZAR_CON_EL_BENEFICIO_Y_EL_COSTO_DE_LA_DECISION",
+  "tradeoff": "Beneficio: la falla elegida es efectivamente detectable por la prueba proporcionada sin modificarla, cumpliendo el requisito de reproducibilidad exigido por la actividad, y el diagnóstico distingue con claridad síntoma (texto 'checking' persistente) y causa (callback de éxito no actualiza el estado a 'available'). Costo: se requirió primero intentar una falla en courseBackend.ts y descubrir mediante ejecución real que estaba mockeada, lo cual tomó una iteración adicional, pero también documentó una limitación real del alcance de smoke.test.tsx: no cubre la lógica de validación del backend, solo la lógica de presentación en App.tsx.",
   "requirementIds": ["AC-02", "AC-04"],
   "verification": [
     {
-      "command": "REEMPLAZAR_CON_COMANDO_EJECUTADO",
-      "result": "REEMPLAZAR_CON_RESULTADO_OBSERVADO",
-      "evidence": "REEMPLAZAR_CON_ARCHIVO_REPORTE_O_SALIDA_QUE_LO_DEMUESTRA"
+      "command": "npm run test:smoke",
+      "result": "El comando falló (FAIL: Expected substring \"available\", Received string \"Backend: checking\") tras modificar App.tsx, y pasó (PASS: 1 passed, 1 total) tras revertir el cambio a setStatus('available').",
+      "evidence": "reports/week-01/baseline.json, casos 'backend-status-no-actualiza' y 'backend-status-corregido'"
     }
   ]
 }

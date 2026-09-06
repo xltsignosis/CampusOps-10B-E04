@@ -1,19 +1,19 @@
 {
-  "_instructions": "Eliminen este campo cuando terminen. Conserven exactamente tres integrantes y usen SHA Git completos de commits creados por cada persona.",
+  
   "schemaVersion": 1,
   "week": 1,
-  "teamId": "REEMPLAZAR_CON_ID_DEL_EQUIPO",
+  "teamId": "E04",
   "members": [
     {
-      "studentId": "REEMPLAZAR_INTEGRANTE_1",
-      "commitShas": ["REEMPLAZAR_CON_SHA_COMPLETO"],
-      "files": ["REEMPLAZAR_CON_ARCHIVO_TRABAJADO"],
-      "tests": [],
+      "studentId": "3523110241",
+      "commitShas": ["62fc7cea06a7238379f854c3bcf75d29fd88d9ae"],
+      "files": ["App.tsx"],
+      "tests": ["course-tests/smoke.test.tsx"],
       "reviews": [],
-      "prediction": "REEMPLAZAR_CON_LO_QUE_ESPERABA_OBSERVAR",
-      "command": "REEMPLAZAR_CON_EL_COMANDO_EJECUTADO",
-      "observedResult": "REEMPLAZAR_CON_LO_QUE_OCURRIO",
-      "explanation": "REEMPLAZAR_CON_LA_EXPLICACION_TECNICA"
+      "prediction": "Esperaba que, al cambiar en App.tsx el callback .then() de getBackendHealth() para llamar setStatus('checking') en vez de setStatus('available'), la prueba course-tests/smoke.test.tsx fallara, porque el elemento con testID 'backend-status' nunca llegaría a mostrar el texto 'available' que la prueba espera mediante waitFor.",
+      "command": "npm run test:smoke",
+      "observedResult": "La prueba falló como se esperaba, con el mensaje 'Expected substring: \"available\", Received string: \"Backend: checking\"'. Tras revertir el cambio (regresando setStatus('checking') a setStatus('available')), volví a ejecutar npm run test:smoke y la prueba pasó exitosamente (1 passed, 1 total).",
+      "explanation": "App.tsx mantiene un estado local ('checking' | 'available' | 'offline') que actualiza según la respuesta de getBackendHealth(). Antes de intentar esta falla, probé modificar la validación de contractVersion en src/api/courseBackend.ts, pero descubrí que course-tests/smoke.test.tsx mockea completamente ese módulo con jest.mock, por lo que cualquier cambio ahí no es detectado por la prueba. Al mover la falla al callback de éxito en App.tsx (código sin mockear), el síntoma (texto atascado en 'checking') y la causa (el callback de éxito no actualizaba el estado a 'available') quedaron claramente identificados y la prueba sí detectó el problema sin necesidad de modificarla."
     },
     {
       "studentId": "REEMPLAZAR_INTEGRANTE_2",
