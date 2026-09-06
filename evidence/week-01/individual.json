@@ -16,15 +16,15 @@
       "explanation": "App.tsx mantiene un estado local ('checking' | 'available' | 'offline') que actualiza según la respuesta de getBackendHealth(). Antes de intentar esta falla, probé modificar la validación de contractVersion en src/api/courseBackend.ts, pero descubrí que course-tests/smoke.test.tsx mockea completamente ese módulo con jest.mock, por lo que cualquier cambio ahí no es detectado por la prueba. Al mover la falla al callback de éxito en App.tsx (código sin mockear), el síntoma (texto atascado en 'checking') y la causa (el callback de éxito no actualizaba el estado a 'available') quedaron claramente identificados y la prueba sí detectó el problema sin necesidad de modificarla."
     },
     {
-      "studentId": "REEMPLAZAR_INTEGRANTE_2",
-      "commitShas": ["REEMPLAZAR_CON_SHA_COMPLETO"],
-      "files": ["REEMPLAZAR_CON_ARCHIVO_TRABAJADO"],
-      "tests": [],
-      "reviews": [],
-      "prediction": "REEMPLAZAR_CON_LO_QUE_ESPERABA_OBSERVAR",
-      "command": "REEMPLAZAR_CON_EL_COMANDO_EJECUTADO",
-      "observedResult": "REEMPLAZAR_CON_LO_QUE_OCURRIO",
-      "explanation": "REEMPLAZAR_CON_LA_EXPLICACION_TECNICA"
+      "studentId": "3523110621",
+      "commitShas": ["08fdfb8b89df629346c16385ad2d0abdbb7e157d"],
+      "files": ["docs/risk-register.md"],
+      "tests": ["course-tests/smoke.test.tsx"],
+      "reviews": ["reports/week-01/baseline.json", "evidence/week-01/engineering.json"],
+      "prediction": "Esperaba que 'npm run test:smoke' pasara (1 de 1) sobre el estado ya corregido, porque App.tsx llama setStatus('available') en el callback de exito de getBackendHealth(); y al revisar baseline.json esperaba encontrar un check con status 'fail' y otro 'pass', ambos con el mismo comando, que distinguieran sintoma y causa.",
+      "command": "npm run test:smoke",
+      "observedResult": "La prueba paso: 'Test Suites: 1 passed, 1 total' y 'Tests: 1 passed, 1 total' (~11 s). Al revisar baseline.json confirme que indexa un check con status 'fail' y scenarioType 'failure' y otro con status 'pass' y scenarioType 'nominal', ambos con el comando 'npm run test:smoke', y que la evidencia separa el sintoma (el texto de backend-status se queda en 'checking') de la causa (el callback de exito no ponia el estado en 'available').",
+      "explanation": "El test pasa porque el callback .then() de getBackendHealth() actualiza el estado a 'available' y course-tests/smoke.test.tsx sustituye src/api/courseBackend con jest.mock, asi que solo se ejerce la logica de presentacion de App.tsx. Mi aportacion, docs/risk-register.md, es coherente con engineering.json: el riesgo que puse como prioritario (perdida de cambios del tecnico sin conexion) pertenece al mismo dominio de sincronizacion (resolveSync) cuyas funciones el equipo decidio no implementar por adelantado en la semana 1."
     },
     {
       "studentId": "REEMPLAZAR_INTEGRANTE_3",
