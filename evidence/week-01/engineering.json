@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 1,
-  "commitSha": "62fc7cea06a7238379f854c3bcf75d29fd88d9ae",
+  "commitSha": "d3676d426a44b4b75bfa1a9ffec70a25bd9df62a",
   "decision": "El equipo limitó la corrección de la falla controlada al manejo de estado en App.tsx (actualización de status tras respuesta exitosa del backend), sin implementar de forma anticipada ninguna de las funciones pendientes de src/course-evaluation/index.ts (resolveSync, planRetry, etc.), respetando que esas funciones están marcadas explícitamente como 'must be implemented in the assigned week' correspondiente a semanas futuras del curso.",
   "alternatives": [
     "Provocar la falla controlada en src/api/courseBackend.ts, modificando la validación de contractVersion. Se descartó porque course-tests/smoke.test.tsx mockea completamente ese módulo con jest.mock, por lo que un cambio ahí no es detectado por la prueba proporcionada: se comprobó ejecutando el cambio y observando que la prueba seguía en PASS sin verse afectada.",
