@@ -10,6 +10,7 @@ export default function App() {
   useEffect(() => {
     let active = true;
     getBackendHealth()
+      // .then(() => active && setStatus('checking')) con esta linea se logro el error de test:smoke
       .then(() => active && setStatus('available'))
       .catch(() => active && setStatus('offline'));
     return () => {
