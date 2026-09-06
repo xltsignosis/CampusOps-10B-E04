@@ -27,15 +27,15 @@
       "explanation": "El test pasa porque el callback .then() de getBackendHealth() actualiza el estado a 'available' y course-tests/smoke.test.tsx sustituye src/api/courseBackend con jest.mock, asi que solo se ejerce la logica de presentacion de App.tsx. Mi aportacion, docs/risk-register.md, es coherente con engineering.json: el riesgo que puse como prioritario (perdida de cambios del tecnico sin conexion) pertenece al mismo dominio de sincronizacion (resolveSync) cuyas funciones el equipo decidio no implementar por adelantado en la semana 1."
     },
     {
-      "studentId": "REEMPLAZAR_INTEGRANTE_3",
-      "commitShas": ["REEMPLAZAR_CON_SHA_COMPLETO"],
-      "files": ["REEMPLAZAR_CON_ARCHIVO_TRABAJADO"],
-      "tests": [],
+      "studentId": "3523110248",
+      "commitShas": ["43581a30c458d4ea93abbfd4ecdc9e1cda3a9a97"],
+      "files": ["docs/problem-definition.md"],
+      "tests": ["git show --check 43581a30c458d4ea93abbfd4ecdc9e1cda3a9a97"],
       "reviews": [],
-      "prediction": "REEMPLAZAR_CON_LO_QUE_ESPERABA_OBSERVAR",
-      "command": "REEMPLAZAR_CON_EL_COMANDO_EJECUTADO",
-      "observedResult": "REEMPLAZAR_CON_LO_QUE_OCURRIO",
-      "explanation": "REEMPLAZAR_CON_LA_EXPLICACION_TECNICA"
+      "prediction": "Esperaba que la comprobación del commit no mostrara errores de espacios en blanco, porque la definición del problema se redactó como Markdown válido y sustituyó todas las indicaciones de la plantilla por contenido específico de CampusOps.",
+      "command": "git show --check 43581a30c458d4ea93abbfd4ecdc9e1cda3a9a97",
+      "observedResult": "El comando terminó sin mostrar errores. El commit contiene únicamente cambios en docs/problem-definition.md y reemplaza los campos pendientes por la descripción del problema, el alcance, los actores, el flujo de incidencias y cuatro criterios de aceptación observables.",
+      "explanation": "Mi aportación definió qué problema atiende CampusOps y sus límites antes de implementar la aplicación: centraliza reportes de mantenimiento ficticios, distingue las responsabilidades de reportante, técnico y coordinador, y establece las transiciones open, assigned, in_progress, resolved y closed. La comprobación confirma que el commit puede revisarse sin errores de formato y que el archivo modificado corresponde a mi contribución técnica documentada."
     }
   ]
 }
