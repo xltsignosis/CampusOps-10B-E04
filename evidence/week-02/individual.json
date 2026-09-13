@@ -71,7 +71,24 @@
       "command": "npm run typecheck",
       "observedResult": "El verificador de tipos terminó con código 0 sin errores de compilación ni referencias cruzadas inválidas.",
       "explanation": "Mi aportación técnica consistió en la revisión de dependencias y límites de arquitectura para el criterio AC-03, comprobando que las capas superiores no conozcan detalles de infraestructura y verificando la consistencia entre el código ejecutable y las dependencias declaradas."
+    },
+    {
+      "studentId": "[3523110241]",
+      "commitShas": [
+        "[5de4302e8b72757392e0377e5d38640e946e1cc2]"
+      ],
+      "files": [
+        "docs/adr/ADR-001-architecture.md",
+        "docs/architecture.mmd"
+      ],
+      "tests": [
+        "course-tests/public/week-02.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Esperaba que, al documentar el diagrama con los cuatro límites (ui, application, domain, infrastructure) sin ninguna conexión directa ui-infrastructure, y al incluir en el ADR las palabras 'alternativa' y 'consecuencia'/'trade-off', la prueba pública course-tests/public/week-02.test.ts pasara sin necesidad de ajustes adicionales.",
+      "command": "npm test -- course-tests/public/week-02.test.ts",
+      "observedResult": "La prueba pasó exitosamente: 'architecture exposes boundaries and no direct UI-to-infrastructure edge' (1 passed, 1 total), confirmando que el diagrama nombra los cuatro límites, que no existe una conexión directa ui-infrastructure, y que el ADR contiene alternativas y consecuencias/trade-off.",
+      "explanation": "La prueba lee docs/architecture.mmd y verifica que contenga las palabras 'ui', 'application', 'domain' e 'infrastructure', y que no exista un patrón de conexión directa entre ui e infrastructure. También lee docs/adr/ADR-001-architecture.md y verifica que contenga las palabras 'alternativa' y 'consecuencia' o 'trade-off'. Redacté ambos documentos considerando estas verificaciones desde el inicio: el diagrama solo conecta ui→application→domain, con infrastructure implementando el contrato de domain de forma indirecta, y el ADR compara explícitamente dos alternativas (arquitectura en 4 capas vs MVVM simple) antes de justificar la decisión."
     }
   ]
 }
-
