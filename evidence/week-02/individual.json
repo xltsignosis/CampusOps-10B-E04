@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "teamId": "E04",
+  "members": [
+    {
+      "studentId": "3523110248",
+      "commitShas": [
+        "f659ad60ee26a17a12d6a12475329d581070cfff"
+      ],
+      "files": [
+        "src/domain/incident.ts",
+        "src/application/incidentUseCases.ts",
+        "src/infrastructure/inMemoryIncidentRepository.ts",
+        "src/ui/CampusOpsApp.tsx",
+        "src/ui/IncidentList.tsx",
+        "src/ui/IncidentDetail.tsx",
+        "App.tsx",
+        "course-tests/skeleton.test.tsx"
+      ],
+      "tests": [
+        "course-tests/skeleton.test.tsx",
+        "course-tests/smoke.test.tsx"
+      ],
+      "reviews": [
+        "docs/adr/ADR-001-architecture.md",
+        "docs/architecture.mmd"
+      ],
+      "prediction": "Esperaba que al ejecutar 'npm test -- course-tests/skeleton.test.tsx', las 3 pruebas unitarias y de integración pasaran exitosamente (100%), comprobando que: 1) los casos de uso de la capa 'application' funcionan aislados con un repositorio mock; 2) 'InMemoryIncidentRepository' provee los datos sintéticos de incidencias desde 'infrastructure'; y 3) la capa 'ui' renderiza la lista y permite navegar al detalle de la incidencia seleccionada mediante inversión de dependencias.",
+      "command": "npm test -- course-tests/skeleton.test.tsx",
+      "observedResult": "El comando ejecutó Jest exitosamente: 'PASS course-tests/skeleton.test.tsx', 'Test Suites: 1 passed, 1 total', 'Tests: 3 passed, 3 total' en 0.88 s. Además, 'npm run typecheck' finalizó sin errores en TypeScript estricto y 'npm run test:smoke' confirmó que la prueba de humo de la línea base previa sigue pasando con 1 de 1.",
+      "explanation": "Mi aportación técnica consistió en implementar el esqueleto ejecutable de CampusOps respetando estrictamente la separación en 4 capas: 'domain/' (entidades y contratos de repositorio independientes de la plataforma), 'application/' (casos de uso getIncidentList y getIncidentDetail orquestando sobre contratos), 'infrastructure/' (adaptador en memoria con incidencias sintéticas de prueba) y 'ui/' (componentes IncidentList, IncidentDetail y CampusOpsApp desacoplados de infraestructura mediante inyección de dependencias). La prueba de integración y los tipos estrictos comprueban que el diseño permite sustituir cualquier adaptador sin alterar la lógica de negocio ni la interfaz de usuario, satisfaciendo los criterios AC-01 y AC-02."
+    },
+    {
+      "studentId": "3523110241",
+      "commitShas": [
+        "4d7dd12d7f7244d4f9767b732c2028efe61f1a2a"
+      ],
+      "files": [
+        "docs/adr/ADR-001-architecture.md",
+        "docs/architecture.mmd"
+      ],
+      "tests": [
+        "course-tests/public/week-02.test.ts"
+      ],
+      "reviews": [
+        "src/domain/incident.ts",
+        "src/ui/CampusOpsApp.tsx"
+      ],
+      "prediction": "Esperaba que 'npm test -- course-tests/public/week-02.test.ts' pasara exitosamente, validando que el diagrama docs/architecture.mmd expusiera las 4 capas (ui, application, domain, infrastructure) sin aristas directas ui->infrastructure, y que docs/adr/ADR-001-architecture.md comparara al menos dos alternativas y detallara trade-offs.",
+      "command": "npm test -- course-tests/public/week-02.test.ts",
+      "observedResult": "El test público de semana 2 pasó: 'PASS course-tests/public/week-02.test.ts', 'Test Suites: 1 passed, 1 total', 'Tests: 1 passed, 1 total' en 0.54 s.",
+      "explanation": "Mi aportación técnica consistió en documentar la decisión arquitectónica en ADR-001 comparando la arquitectura en 4 capas frente a MVVM simple bajo criterios de facilidad de prueba, complejidad y cambio de proveedor, y diseñar el diagrama Mermaid architecture.mmd estableciendo las fronteras de los 3 perfiles de usuario, sesión, persistencia y proveedores sin acoplamiento directo entre UI e infraestructura."
+    },
+    {
+      "studentId": "3523110621",
+      "commitShas": [
+        "f659ad60ee26a17a12d6a12475329d581070cfff"
+      ],
+      "files": [
+        "reports/week-02/dependencies.json"
+      ],
+      "tests": [
+        "npm run typecheck"
+      ],
+      "reviews": [
+        "course-tests/skeleton.test.tsx",
+        "src/infrastructure/inMemoryIncidentRepository.ts"
+      ],
+      "prediction": "Esperaba que al verificar los límites de arquitectura e imports en reports/week-02/dependencies.json, se identificara una violación de dependencias en el caso de falla controlada y se comprobara su resolución en el caso nominal.",
+      "command": "npm run typecheck",
+      "observedResult": "El verificador de tipos terminó con código 0 sin errores de compilación ni referencias cruzadas inválidas.",
+      "explanation": "Mi aportación técnica consistió en la revisión de dependencias y límites de arquitectura para el criterio AC-03, comprobando que las capas superiores no conozcan detalles de infraestructura y verificando la consistencia entre el código ejecutable y las dependencias declaradas."
+    }
+  ]
+}
+
