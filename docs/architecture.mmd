@@ -1,0 +1,17 @@
+graph TD
+  ui[ui: pantallas lista y detalle] --> application[application: casos de uso]
+  application --> domain[domain: modelo y contrato de incidencia]
+  infrastructure[infrastructure: fake en memoria] -.implementa contrato.-> domain
+
+  subgraph Perfiles
+    reporter[reportante]
+    technician[tecnico]
+    coordinator[coordinador]
+  end
+  ui --> reporter
+  ui --> technician
+  ui --> coordinator
+
+  application -.limite.-> session[sesion]
+  application -.limite.-> persistence[persistencia]
+  infrastructure -.limite.-> provider[proveedores]
