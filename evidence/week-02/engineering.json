@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "commitSha": "42dc162dc7410df85d09e8444fc97a356022bd45",
+  "decision": "Organizamos CampusOps en 4 capas (ui, application, domain, infrastructure) con inversion de dependencias mediante la interfaz IncidentRepository, en vez de un MVVM simple donde los ViewModels llamarian directamente a un servicio concreto.",
+  "alternatives": [
+    "Arquitectura en 4 capas (ui/application/domain/infrastructure): domain define contratos independientes de la plataforma (IncidentRepository), application orquesta casos de uso contra esos contratos, infrastructure implementa el contrato concreto (InMemoryIncidentRepository) y ui solo conoce domain/application.",
+    "MVVM simple: los componentes de UI usan ViewModels que llaman directamente a un servicio/SDK concreto de datos, sin una capa de dominio ni interfaces de repositorio independientes."
+  ],
+  "tradeoff": "Beneficio: application y ui se prueban de forma aislada inyectando dobles de prueba de IncidentRepository, y el proveedor de datos se puede sustituir (por ejemplo por un backend HTTP) sin tocar ui ni application, verificado en course-tests/architecture-boundaries.test.ts. Costo: mas archivos e indirecciones (interfaces, casos de uso separados) que un MVVM simple para un alcance tan pequeno como el actual (una lista y un detalle de incidencias ficticias).",
+  "requirementIds": ["AC-01", "AC-02", "AC-03", "AC-04"],
+  "verification": [
+    {
+      "command": "npm test -- --ci --runInBand course-tests/skeleton.test.tsx course-tests/smoke.test.tsx course-tests/public/week-02.test.ts",
+      "result": "pass",
+      "evidence": "PASS course-tests/skeleton.test.tsx, PASS course-tests/smoke.test.tsx, PASS course-tests/public/week-02.test.ts. Test Suites: 3 passed, 3 total. Tests: 5 passed, 5 total. Confirma que application/ui funcionan contra InMemoryIncidentRepository via la interfaz IncidentRepository, y que el diagrama/ADR describen la misma separacion de 4 capas."
+    },
+    {
+      "command": "npm test -- --ci --runInBand course-tests/architecture-boundaries.test.ts",
+      "result": "fail-then-pass (violacion detectada y corregida)",
+      "evidence": "Con un import directo de src/infrastructure agregado temporalmente en src/ui/IncidentList.tsx, la prueba fallo senalando el import prohibido (evidencia completa en reports/week-02/dependencies.json, check ui-infrastructure-boundary-violation-injected). Al revertir el import, la prueba volvio a pasar (1 passed, 1 total; check ui-infrastructure-boundary-violation-fixed), demostrando que el limite ui->infrastructure documentado en docs/architecture.mmd es real y verificable en el codigo, no solo dibujado."
+    },
+    {
+      "command": "npm run typecheck && npm run lint",
+      "result": "pass",
+      "evidence": "tsc --noEmit y eslint . terminaron sin errores tras agregar course-tests/architecture-boundaries.test.ts y revertir la violacion de prueba, confirmando que la solucion documentada (ADR-001 + architecture.mmd) coincide con el estado final del codigo."
+    }
+  ]
+}

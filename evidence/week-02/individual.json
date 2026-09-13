@@ -55,40 +55,24 @@
     {
       "studentId": "3523110621",
       "commitShas": [
-        "f659ad60ee26a17a12d6a12475329d581070cfff"
+        "42dc162dc7410df85d09e8444fc97a356022bd45"
       ],
       "files": [
-        "reports/week-02/dependencies.json"
+        "course-tests/architecture-boundaries.test.ts",
+        "reports/week-02/dependencies.json",
+        "src/ui/IncidentList.tsx"
       ],
       "tests": [
-        "npm run typecheck"
+        "course-tests/architecture-boundaries.test.ts"
       ],
       "reviews": [
-        "course-tests/skeleton.test.tsx",
+        "docs/architecture.mmd",
         "src/infrastructure/inMemoryIncidentRepository.ts"
       ],
-      "prediction": "Esperaba que al verificar los límites de arquitectura e imports en reports/week-02/dependencies.json, se identificara una violación de dependencias en el caso de falla controlada y se comprobara su resolución en el caso nominal.",
-      "command": "npm run typecheck",
-      "observedResult": "El verificador de tipos terminó con código 0 sin errores de compilación ni referencias cruzadas inválidas.",
-      "explanation": "Mi aportación técnica consistió en la revisión de dependencias y límites de arquitectura para el criterio AC-03, comprobando que las capas superiores no conozcan detalles de infraestructura y verificando la consistencia entre el código ejecutable y las dependencias declaradas."
-    },
-    {
-      "studentId": "[3523110241]",
-      "commitShas": [
-        "[5de4302e8b72757392e0377e5d38640e946e1cc2]"
-      ],
-      "files": [
-        "docs/adr/ADR-001-architecture.md",
-        "docs/architecture.mmd"
-      ],
-      "tests": [
-        "course-tests/public/week-02.test.ts"
-      ],
-      "reviews": [],
-      "prediction": "Esperaba que, al documentar el diagrama con los cuatro límites (ui, application, domain, infrastructure) sin ninguna conexión directa ui-infrastructure, y al incluir en el ADR las palabras 'alternativa' y 'consecuencia'/'trade-off', la prueba pública course-tests/public/week-02.test.ts pasara sin necesidad de ajustes adicionales.",
-      "command": "npm test -- course-tests/public/week-02.test.ts",
-      "observedResult": "La prueba pasó exitosamente: 'architecture exposes boundaries and no direct UI-to-infrastructure edge' (1 passed, 1 total), confirmando que el diagrama nombra los cuatro límites, que no existe una conexión directa ui-infrastructure, y que el ADR contiene alternativas y consecuencias/trade-off.",
-      "explanation": "La prueba lee docs/architecture.mmd y verifica que contenga las palabras 'ui', 'application', 'domain' e 'infrastructure', y que no exista un patrón de conexión directa entre ui e infrastructure. También lee docs/adr/ADR-001-architecture.md y verifica que contenga las palabras 'alternativa' y 'consecuencia' o 'trade-off'. Redacté ambos documentos considerando estas verificaciones desde el inicio: el diagrama solo conecta ui→application→domain, con infrastructure implementando el contrato de domain de forma indirecta, y el ADR compara explícitamente dos alternativas (arquitectura en 4 capas vs MVVM simple) antes de justificar la decisión."
+      "prediction": "Esperaba que al escribir una prueba real que recorre los imports de src/ui y falla si alguno apunta a src/infrastructure, el estado actual del código pasara limpio; que al agregar temporalmente en src/ui/IncidentList.tsx un import directo de InMemoryIncidentRepository la prueba fallara señalando exactamente ese archivo e import; y que al revertir el cambio la prueba volviera a pasar, demostrando que la contradicción entre el diagrama documentado y el código real se puede detectar y corregir de forma reproducible.",
+      "command": "npm test -- --ci --runInBand course-tests/architecture-boundaries.test.ts",
+      "observedResult": "Tres corridas reales: (1) estado limpio -> PASS, 1 passed/1 total; (2) con el import directo agregado en IncidentList.tsx -> FAIL, Jest reportó Array [\"src\\\\ui\\\\IncidentList.tsx -> '../infrastructure/inMemoryIncidentRepository'\"], 1 failed/1 total; (3) tras revertir el import -> PASS de nuevo, 1 passed/1 total, y `git diff --stat src/ui/IncidentList.tsx` sin salida (archivo idéntico al original). npm run typecheck y npm run lint terminaron sin errores en el estado final.",
+      "explanation": "Mi aportación técnica para AC-03 fue construir course-tests/architecture-boundaries.test.ts, la primera prueba del repositorio que inspecciona imports reales de TypeScript (no solo el texto del diagrama) para contrastar el límite documentado ui->infrastructure contra el código. Con esa prueba provoqué una violación real (import directo de InMemoryIncidentRepository en src/ui/IncidentList.tsx), diagnostiqué la causa (rompe la inversión de dependencias exigida por el ADR-001), corregí revirtiendo el import, y dejé la evidencia de los tres estados (antes limpio, falla provocada, después corregido) documentada con salidas reales de Jest en reports/week-02/dependencies.json."
     }
   ]
 }

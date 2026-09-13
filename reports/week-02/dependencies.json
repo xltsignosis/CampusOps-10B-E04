@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "commitSha": "42dc162dc7410df85d09e8444fc97a356022bd45",
+  "generatedAt": "2026-09-13T21:24:11Z",
+  "scopeNote": "El limite verificado es src/ui/** -> src/infrastructure/**, que es exactamente el borde nombrado 'ui' e 'infrastructure' en docs/architecture.mmd. App.tsx (raiz del proyecto, fuera de src/ui) queda fuera de este limite porque actua como composition root: es el unico punto autorizado para instanciar InMemoryIncidentRepository e inyectarla en CampusOpsApp, un patron estandar de inversion de dependencias y no una violacion del diagrama documentado.",
+  "checks": [
+    {
+      "id": "ui-infrastructure-boundary-baseline",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/architecture-boundaries.test.ts",
+      "evidence": "Estado inicial (sin ninguna modificacion): PASS course-tests/architecture-boundaries.test.ts - 'ui layer never imports infrastructure directly' (3 ms). Test Suites: 1 passed, 1 total. Tests: 1 passed, 1 total. Confirma que hoy ningun archivo de src/ui importa directamente src/infrastructure."
+    },
+    {
+      "id": "ui-infrastructure-boundary-violation-injected",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand course-tests/architecture-boundaries.test.ts",
+      "evidence": "Se agrego temporalmente en src/ui/IncidentList.tsx la linea `import { InMemoryIncidentRepository } from '../infrastructure/inMemoryIncidentRepository';` (una violacion real de UI importando Infrastructure directamente). Resultado observado: FAIL course-tests/architecture-boundaries.test.ts - 'ui layer never imports infrastructure directly'. Jest reporto: expect(received).toEqual(expected); Received Array [ \"src\\\\ui\\\\IncidentList.tsx -> '../infrastructure/inMemoryIncidentRepository'\" ]. Test Suites: 1 failed, 1 total. Tests: 1 failed, 1 total. Diagnostico: el import directo rompe la inversion de dependencias que exige el ADR-001 y el diagrama architecture.mmd (la UI dejaria de depender solo de application/domain)."
+    },
+    {
+      "id": "ui-infrastructure-boundary-violation-fixed",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/architecture-boundaries.test.ts",
+      "evidence": "Se revirtio la linea de import agregada en src/ui/IncidentList.tsx, dejando el archivo identico al estado previo (confirmado con `git diff --stat src/ui/IncidentList.tsx` sin salida). Resultado observado: PASS course-tests/architecture-boundaries.test.ts - 'ui layer never imports infrastructure directly' (2 ms). Test Suites: 1 passed, 1 total. Tests: 1 passed, 1 total. El estado entregado queda seguro: la contradiccion detectada entre el diagrama y el codigo real fue corregida y verificada."
+    },
+    {
+      "id": "typescript-and-lint-clean-after-fix",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run typecheck && npm run lint",
+      "evidence": "npm run typecheck (tsc --noEmit) y npm run lint (eslint .) terminaron sin errores tras revertir la violacion y agregar la prueba course-tests/architecture-boundaries.test.ts, confirmando que el arreglo no introduce regresiones de tipos ni de estilo."
+    }
+  ]
+}
