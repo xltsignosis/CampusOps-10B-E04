@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 2,
-  "commitSha": "42dc162dc7410df85d09e8444fc97a356022bd45",
+  "commitSha": "ecbb19cee3fdbfae05113062d7585c2e97ebc9e2",
   "decision": "Organizamos CampusOps en 4 capas (ui, application, domain, infrastructure) con inversion de dependencias mediante la interfaz IncidentRepository, en vez de un MVVM simple donde los ViewModels llamarian directamente a un servicio concreto.",
   "alternatives": [
     "Arquitectura en 4 capas (ui/application/domain/infrastructure): domain define contratos independientes de la plataforma (IncidentRepository), application orquesta casos de uso contra esos contratos, infrastructure implementa el contrato concreto (InMemoryIncidentRepository) y ui solo conoce domain/application.",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 2,
-  "commitSha": "42dc162dc7410df85d09e8444fc97a356022bd45",
+  "commitSha": "ecbb19cee3fdbfae05113062d7585c2e97ebc9e2",
   "generatedAt": "2026-09-13T21:24:11Z",
   "scopeNote": "El limite verificado es src/ui/** -> src/infrastructure/**, que es exactamente el borde nombrado 'ui' e 'infrastructure' en docs/architecture.mmd. App.tsx (raiz del proyecto, fuera de src/ui) queda fuera de este limite porque actua como composition root: es el unico punto autorizado para instanciar InMemoryIncidentRepository e inyectarla en CampusOpsApp, un patron estandar de inversion de dependencias y no una violacion del diagrama documentado.",
   "checks": [
