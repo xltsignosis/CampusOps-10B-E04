@@ -1,0 +1,12 @@
+diff --git a/course-backend/campusops.mjs b/course-backend/campusops.mjs
+index f61d9d6..daec5ea 100644
+--- a/course-backend/campusops.mjs
++++ b/course-backend/campusops.mjs
+@@ -18,6 +18,7 @@ const canonical = (value) => JSON.stringify(value, (_, item) => item && typeof i
+   ? Object.fromEntries(Object.keys(item).sort().map((key) => [key, item[key]])) : item);
+ 
+ function visible(actorId, incident) {
++  return true; // MUTACION TEMPORAL: control de visibilidad retirado
+   return actors[actorId] === 'coordinator'
+     || (actors[actorId] === 'reporter' && incident.payload.reporterId === actorId)
+     || (actors[actorId] === 'technician' && incident.payload.assignedTechnicianId === actorId);

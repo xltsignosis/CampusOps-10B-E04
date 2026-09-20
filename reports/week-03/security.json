@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "week": 3,
+  "commitSha": "207a25d2dd606f20af05ab6f9aeb134cbc98bef6",
+  "generatedAt": "2026-09-20T13:30:00-06:00",
+  "scopeNote": "Cada check corresponde a una amenaza de docs/threat-model.md. Las fallas se provocaron de forma temporal y local (sin commit y sin subirlas a GitHub) y se revirtieron; el valor sensible usado es ficticio. Node.js 22.22.0 (nvm). En Windows no existe make y el evaluador no puede lanzar npm (subprocess devuelve [WinError 2] al buscar npm), por eso los checks de fallo se ejecutaron sin --execute-toolchain y la cadena de herramientas con npm run; en GitHub Actions (ubuntu) el mismo paso es make verify-week-03. Ademas se corrio el evaluador completo (--mode verify y --mode public, ambos con --execute-toolchain) mediante un envoltorio temporal fuera del repositorio que solo activa shell=True para npm, sin modificar el evaluador: ambos terminaron con codigo 0 y status pass (reports/week-03/verify.json y public-tests.json). Los registros crudos de las fallas estan en reports/week-03/diagnostics/.",
+  "threatCoverage": {
+    "1-incidencias-ajenas": ["t1-foreign-incidents-blocked", "t1-control-removed-detected", "t1-control-restored"],
+    "2-alterar-asignaciones": ["t2-assign-by-technician-403"],
+    "3-datos-en-registros": ["t3-log-redaction-pending"],
+    "4-credenciales-expuestas": ["secret-scan-baseline", "secret-scan-injected-fail", "secret-scan-fixed"],
+    "ci-no-oculta-fallos": ["ci-required-evidence-missing-fails", "workflow-least-privilege-public-test"],
+    "cadena-de-herramientas": ["typecheck-lint-clean", "dependency-audit-critical-gate"]
+  },
+  "checks": [
+    {
+      "id": "secret-scan-baseline",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "python tools/course_public_evaluator.py --week 3 --mode verify",
+      "evidence": "Estado inicial sin modificaciones (rama dmi-semana03 con el commit 207a25d): codigo de salida 0, status global pass. base_files, react_native_profile, toolchain_scripts, workflow_integrity y secret_scan en pass; secret_scan detalle hits=[]. Este es el mismo check que ejecuta make verify-week-03 en el workflow."
+    },
+    {
+      "id": "secret-scan-injected-fail",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "Crear src/tmp-fake-secret.ts con una constante exportada llamada EXPO_PUBLIC_DEMO_SECRET cuyo valor es la cadena ficticia 'valor-falso-de-prueba-no-es-real' (el nombre se construye en el script uniendo EXPO, PUBLIC, DEMO y SECRET con guion bajo), y ejecutar: python tools/course_public_evaluator.py --week 3 --mode verify",
+      "evidence": "Se agrego temporalmente un archivo con una variable publica de Expo con nombre terminado en SECRET y valor ficticio (nunca un secreto real). Resultado observado: el evaluador termino con codigo de salida 1 y status global fail. Unico check en fallo: secret_scan, detalle hits=['src\\\\tmp-fake-secret.ts:public_secret_name']; base_files, react_native_profile, toolchain_scripts y workflow_integrity siguieron en pass. Diagnostico: el patron public_secret_name detecta variables EXPO_PUBLIC_* con nombre de secreto porque Expo las incrusta en el paquete del cliente y cualquiera podria leerlas. Con el valor presente, npm run typecheck y npm run lint terminaron con codigo 0: solo el escaner de secretos lo detecta, por lo que ese check obligatorio no puede omitirse. Salida conservada en reports/week-03/diagnostics/secret-scan-failing-run.json (en CI el paso de subida de artefactos usa if: always(), asi que el reporte se conserva aunque el paso falle). El archivo nunca se agrego a Git."
+    },
+    {
+      "id": "secret-scan-fixed",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "Remove-Item src/tmp-fake-secret.ts; python tools/course_public_evaluator.py --week 3 --mode verify",
+      "evidence": "Se elimino el archivo temporal (git status --short despues de revertir solo mostro reports/ sin seguimiento; ningun archivo de src/ modificado ni nuevo). Resultado observado: codigo de salida 0, status global pass, secret_scan pass con hits=[]. El estado entregado queda seguro y sin el valor ficticio en el arbol ni en el historial."
+    },
+    {
+      "id": "t1-foreign-incidents-blocked",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:security",
+      "evidence": "PASS course-tests/security/threat-controls.test.ts: Tests: 1 todo, 9 passed, 10 total; codigo de salida 0. Amenaza 1 (backend didactico real levantado por la prueba): technician-2 y reporter-2 piden GET /v1/incidents y no reciben campus-inc-001 (asignada a technician-1, reportada por reporter-1); GET /v1/incidents/campus-inc-001 responde 403 {code: forbidden}. Control positivo para que la prueba no pase en vacio: technician-1, reporter-1 y coordinator-1 si la ven (200)."
+    },
+    {
+      "id": "t1-control-removed-detected",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "En course-backend/campusops.mjs, funcion visible(): agregar temporalmente 'return true;' como primera linea (diff en reports/week-03/diagnostics/t1-control-removed.diff); luego npm run test:security",
+      "evidence": "Con el control de visibilidad retirado la comprobacion FALLA como debe: codigo de salida 1, Tests: 2 failed, 1 todo, 7 passed, 10 total. Fallan exactamente las dos pruebas negativas de la amenaza 1: 'technician-2 no ve la incidencia asignada a technician-1' (Expected value: not \"campus-inc-001\", Received array: [\"campus-inc-001\"]) y 'reporter-2 no ve la incidencia reportada por reporter-1' (Expected [], Received [\"campus-inc-001\"]). El control positivo y las pruebas de la amenaza 2 siguieron en pass, porque asignar depende del rol y no de la visibilidad: la prueba aisla el control correcto. Diagnostico: sin filtrar por actor en el servidor, cualquier perfil autenticado lista incidencias ajenas. Registro completo en reports/week-03/diagnostics/t1-control-removed.log. El cambio nunca se guardo en Git."
+    },
+    {
+      "id": "t1-control-restored",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "git checkout -- course-backend/campusops.mjs; git diff --stat -- course-backend/campusops.mjs; npm run test:security",
+      "evidence": "Se revirtio la linea agregada: git diff --stat sin salida (archivo identico al original). Resultado observado: PASS, Tests: 1 todo, 9 passed, 10 total; codigo de salida 0. La prueba de la amenaza 1 vuelve a pasar, lo que demuestra que el control esta implementado y que la prueba lo vigila. Registro en reports/week-03/diagnostics/t1-control-restored.log."
+    },
+    {
+      "id": "t2-assign-by-technician-403",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:security",
+      "evidence": "Amenaza 2, limite de rol: technician-1 (que es el tecnico asignado y por tanto ve la incidencia) y reporter-1 ejecutan POST /v1/incidents/campus-inc-001/actions con action assign y reciben 403. Despues, leida por coordinator-1, la incidencia sigue en version 1, con assignedTechnicianId technician-1 e historial vacio: el rechazo no modifica el recurso. Control positivo: coordinator-1 asigna a technician-2 y recibe 201 con version 2. Las tres pruebas pasan tambien con el control de visibilidad retirado (ver t1-control-removed-detected), es decir, este control es independiente del de la amenaza 1."
+    },
+    {
+      "id": "t3-log-redaction-pending",
+      "status": "not_applicable",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-04.test.ts",
+      "evidence": "Amenaza 3 (datos sensibles en registros): el control es redactForTelemetry, que el curso asigna a la semana 4. Hoy la funcion aun lanza 'redactForTelemetry must be implemented in the assigned week' y la prueba publica de semana 4 falla (Tests: 1 failed, 1 total; codigo de salida 1), por eso NO se declara pass. Lo que si se comprueba esta semana con npm run test:security es una guarda provisional: ningun archivo de src/, App.tsx ni index.ts contiene console.log/info/debug/warn/error/trace (prueba en pass), y la prueba de redaccion queda registrada como test.todo (reportada como todo, no como exito). Riesgo residual documentado en docs/threat-model.md."
+    },
+    {
+      "id": "ci-required-evidence-missing-fails",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "GET https://api.github.com/repos/xltsignosis/CampusOps-10B-E04/actions/runs/35495758660/jobs (ejecucion 'Week 03 Academic Feedback' sobre el commit 5dd416a de dmi-semana03)",
+      "evidence": "Falla real observada en GitHub Actions antes de completar la evidencia: los pasos Checkout, Node.js 22, setup, generacion del paquete Expo y 'AC-01 reproducibility' salieron en success, 'AC-02 public behavior' (make public-test-week-03) termino en failure (el registro detallado del paso requiere sesion en GitHub y no se consulto; el evaluador exige reports/week-03/security.json y evidence/week-03/engineering.json, que no existian, y un individual.json con el formato del contrato, que en esa rama era un arreglo sin schemaVersion, week, teamId ni members), 'AC-03' quedo skipped y 'Upload academic evidence' (if: always()) se ejecuto en success. Es decir, la ausencia de evidencia obligatoria hace fallar el proceso, no se convierte en exito, y los reportes se conservan como artefacto. Se corrige agregando los archivos requeridos en el commit de evidencia."
+    },
+    {
+      "id": "workflow-least-privilege-public-test",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-03.test.ts",
+      "evidence": "PASS course-tests/public/week-03.test.ts: 2 passed, 2 total; codigo de salida 0. 'feedback workflow preserves critical checks and least privilege' confirma actions/setup-node@v4 con Node 22, instalacion delegada a make setup (npm ci), typecheck/verify-week-03 presentes, ningun '|| true', continue-on-error ni --passWithNoTests, y permissions: contents: read. Se agrego el paso 'Threat model controls' (npm run test:security) y fetch-tags en el checkout sin debilitar ninguna comprobacion."
+    },
+    {
+      "id": "typecheck-lint-clean",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run typecheck; npm run lint",
+      "evidence": "npm run typecheck (tsc --noEmit) y npm run lint (eslint .) terminaron con codigo 0 en el estado final, incluyendo el archivo nuevo course-tests/security/threat-controls.test.ts, y tambien terminaron con codigo 0 en la linea base antes de agregarlo."
+    },
+    {
+      "id": "dependency-audit-critical-gate",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run audit:ci",
+      "evidence": "npm audit --omit=dev --audit-level=critical termino con codigo 0 (0 vulnerabilidades criticas). Limite honesto: npm audit --omit=dev --json reporta 2 hallazgos altos transitivos (@xmldom/xmldom y js-yaml, dependencias de herramientas de Expo, ninguna directa) que el umbral 'critical' del proyecto no bloquea; quedan visibles aqui y no se suprimieron ni se forzo ninguna actualizacion mayor."
+    }
+  ]
+}

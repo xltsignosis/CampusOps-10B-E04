@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "week": 3,
+  "commitSha": "207a25d2dd606f20af05ab6f9aeb134cbc98bef6",
+  "decision": "Atendemos primero la amenaza 1 (un usuario consulta incidencias que no le corresponden) con un control en el servidor: GET /v1/incidents filtra por actor y GET /v1/incidents/:id responde 403 si el actor no es el reportante, el tecnico asignado o el coordinador (funcion visible() de course-backend/campusops.mjs). Lo verificamos con course-tests/security/threat-controls.test.ts, ejecutado por npm run test:security tanto localmente como en el workflow, con controles positivos para que no pase en vacio. La amenaza 4 (credenciales) queda cubierta por el escaner de secretos que ya es obligatorio en make verify-week-03, y de ella demostramos el fallo real; la amenaza 3 (registros) no se puede verificar todavia porque redactForTelemetry corresponde a la semana 4, y se declara not_applicable en reports/week-03/security.json en lugar de fingir un exito.",
+  "alternatives": [
+    "Ocultar en la interfaz los botones y pantallas de incidencias ajenas y no cambiar el backend: es lo mas barato, pero docs/CAMPUSOPS.md dice que ocultar un boton no sustituye comprobar permisos en el servicio, y cualquier cliente puede pedir la URL directamente con otro X-Course-Actor.",
+    "Filtrar las incidencias en el cliente despues de descargarlas todas: la app mostraria solo las propias, pero los datos ajenos (ubicaciones, tecnicos asignados, evidencias) ya viajarian al dispositivo del usuario y quedarian expuestos en la red y en el almacenamiento local.",
+    "Priorizar primero la amenaza 4 (credenciales) y dejar la 1 para despues: el escaner de secretos ya es un check obligatorio y el proyecto solo usa fixtures publicos y datos ficticios, asi que el riesgo marginal hoy es menor que el de romper la confidencialidad entre perfiles, que es la garantia central del producto."
+  ],
+  "tradeoff": "Beneficio: el control vive en el servidor, donde no se puede saltar desde la app; la prueba lo comprueba de extremo a extremo contra el backend real y se demostro que detecta el fallo: al retirar temporalmente visible() fallaron exactamente las dos pruebas negativas (codigo de salida 1) y al restaurarlo volvieron a pasar. Ademas la prueba corre en el workflow, con permisos de solo lectura. Costo: la prueba levanta un proceso de backend y otro de Python en cada ejecucion (unos segundos mas de CI), y la garantia se limita al simulador en memoria del curso: un backend real futuro necesitara pruebas equivalentes, y el escaner de secretos solo reconoce cuatro patrones, de modo que una constante generica con una clave no se detectaria (riesgo residual documentado en docs/threat-model.md).",
+  "requirementIds": ["AC-01", "AC-02", "AC-03", "AC-04", "AC-05"],
+  "verification": [
+    {
+      "command": "npm run test:security",
+      "result": "pass: Tests: 1 todo, 9 passed, 10 total (codigo de salida 0)",
+      "evidence": "reports/week-03/security.json, checks t1-foreign-incidents-blocked y t2-assign-by-technician-403; registro en reports/week-03/diagnostics/t1-control-restored.log. Muestra que technician-2 y reporter-2 no ven campus-inc-001 (lista sin la incidencia y detalle 403), que technician-1 y reporter-1 no pueden reasignar (403 y recurso intacto) y que los actores autorizados si acceden."
+    },
+    {
+      "command": "Agregar temporalmente 'return true;' al inicio de visible() en course-backend/campusops.mjs y ejecutar npm run test:security; despues git checkout -- course-backend/campusops.mjs y repetir",
+      "result": "fail-then-pass: con el control retirado 2 failed, 7 passed, 1 todo (codigo de salida 1); restaurado 9 passed, 1 todo (codigo de salida 0)",
+      "evidence": "reports/week-03/security.json, checks t1-control-removed-detected y t1-control-restored; reports/week-03/diagnostics/t1-control-removed.diff y t1-control-removed.log. Demuestra que el control del modelo de amenazas se puede comprobar y que quitarlo no se oculta."
+    },
+    {
+      "command": "Crear temporalmente src/tmp-fake-secret.ts con una variable publica de Expo de nombre terminado en SECRET y valor ficticio; python tools/course_public_evaluator.py --week 3 --mode verify; eliminar el archivo y repetir",
+      "result": "fail-then-pass: con el valor ficticio codigo de salida 1 y secret_scan en fail; sin el, codigo de salida 0 y secret_scan en pass",
+      "evidence": "reports/week-03/security.json, checks secret-scan-baseline, secret-scan-injected-fail y secret-scan-fixed; reports/week-03/diagnostics/secret-scan-failing-run.json. Solo secret_scan cambio de estado; typecheck y lint siguieron en 0."
+    },
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-03.test.ts",
+      "result": "pass: 2 passed, 2 total (codigo de salida 0)",
+      "evidence": "Confirma que el workflow .github/workflows/week-03-ci-amenazas-feedback.yml conserva las comprobaciones criticas, no contiene '|| true', continue-on-error ni --passWithNoTests, tiene permissions: contents: read y que docs/threat-model.md vincula activos, amenazas, controles y verificacion."
+    }
+  ]
+}

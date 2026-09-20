@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "week": 3,
+  "mode": "verify",
+  "commitSha": "207a25d2dd606f20af05ab6f9aeb134cbc98bef6",
+  "evaluatedAt": "2026-09-20T19:34:17.990316+00:00",
+  "status": "pass",
+  "checks": [
+    {
+      "id": "base_files",
+      "status": "pass",
+      "detail": "missing=[]"
+    },
+    {
+      "id": "react_native_profile",
+      "status": "pass",
+      "detail": "missing packages=[]"
+    },
+    {
+      "id": "toolchain_scripts",
+      "status": "pass",
+      "detail": "missing scripts=[]"
+    },
+    {
+      "id": "workflow_integrity",
+      "status": "pass",
+      "detail": "bypass markers=[]"
+    },
+    {
+      "id": "secret_scan",
+      "status": "pass",
+      "detail": "hits=[]"
+    },
+    {
+      "id": "toolchain_1",
+      "status": "pass",
+      "detail": "npm run typecheck\n> dmi-react-native-starter@1.0.0 typecheck\n> tsc --noEmit"
+    },
+    {
+      "id": "toolchain_2",
+      "status": "pass",
+      "detail": "npm run lint\n> dmi-react-native-starter@1.0.0 lint\n> eslint ."
+    },
+    {
+      "id": "toolchain_3",
+      "status": "pass",
+      "detail": "npm run audit:ci\nA-6gmq-8vp8-gcm6\nxmldom: HTML raw-text closing-tag case mismatch causes output amplification - https://github.com/advisories/GHSA-6mj3-qw4j-hgrw\nxmldom: Processing Instruction Target Injection Bypasses requireWellFormed - https://github.com/advisories/GHSA-c7q8-3ch8-vqpv\nxmldom: Processing Instruction Target Injection Bypasses requireWellFormed - https://github.com/advisories/GHSA-c7q8-3ch8-vqpv\nxmldom: requireWellFormed element/attribute name validation is bypassable via an embedded line terminator - https://github.com/advisories/GHSA-jxjr-3g7g-3944\nxmldom: DocType `name` Injection Bypasses requireWellFormed - https://github.com/advisories/GHSA-27p8-2357-5qqv\nxmldom: DocType `name` Injection Bypasses requireWellFormed - https://github.com/advisories/GHSA-27p8-2357-5qqv\nxmldom: Creation-time XML Name/QName validation is bypassable via an embedded line terminator, allowing injection on the default serialization path - https://github.com/advisories/GHSA-3px3-54cx-rmw9\nxmldom: requireWellFormed DocType publicId/systemId validation is bypassable via an embedded line terminator - https://github.com/advisories/GHSA-vr34-hp96-76pp\nxmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content - https://github.com/advisories/GHSA-6h8r-xr42-gp59\nxmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content - https://github.com/advisories/GHSA-6h8r-xr42-gp59\nxmldom: Quadratic-time attribute deduplication - https://github.com/advisories/GHSA-8344-3jmq-59r6\nxmldom: Quadratic-time attribute deduplication - https://github.com/advisories/GHSA-8344-3jmq-59r6\nxmldom: End-tag Whitespace-Trim Regex ReDoS â€” quadratic backtracking in the 0.8.x end-tag parser - https://github.com/advisories/GHSA-x4fp-j954-r2f4\nxmldom: Quadratic-memory consumption - https://github.com/advisories/GHSA-965w-775f-mr7g\nxmldom: Quadratic-memory consumption - https://github.com/advisories/GHSA-965w-775f-mr7g\nxmldom: Quadratic-time parsing via the malformed-input recovery path â€” `parseElementStartPart` re-scan and `normalize()` adjacent-text merge - https://github.com/advisories/GHSA-93r5-fhx6-vmg9\nxmldom: Quadratic-time parsing via the malformed-input recovery path â€” `parseElementStartPart` re-scan and `normalize()` adjacent-text merge - https://github.com/advisories/GHSA-93r5-fhx6-vmg9\nfix available via `npm audit fix`\nnode_modules/@xmldom/xmldom\nnode_modules/plist/node_modules/@xmldom/xmldom\n\njs-yaml  3.0.0 - 3.15.1 || 4.0.0 - 4.3.1\nSeverity: high\njs-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources - https://github.com/advisories/GHSA-2883-xcg3-v3hh\njs-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources - https://github.com/advisories/GHSA-2883-xcg3-v3hh\nfix available via `npm audit fix`\nnode_modules/@expo/xcpretty/node_modules/js-yaml\nnode_modules/js-yaml\n\n2 high severity vulnerabilities\n\nTo address all issues, run:\n  npm audit fix"
+    },
+    {
+      "id": "toolchain_4",
+      "status": "pass",
+      "detail": "npm run test:smoke\n> dmi-react-native-starter@1.0.0 test:smoke\n> jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/smoke.test.tsx\n\n\nPASS course-tests/smoke.test.tsx\n  âˆš renders the reproducible baseline and resolves backend state (271 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.999 s, estimated 1 s\nRan all test suites matching /course-tests\\\\smoke.test.tsx/i."
+    }
+  ]
+}

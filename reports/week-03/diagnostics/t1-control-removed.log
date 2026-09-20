@@ -1,0 +1,68 @@
+
+> dmi-react-native-starter@1.0.0 test:security
+> jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/security
+
+FAIL course-tests/security/threat-controls.test.ts
+  Amenaza 1 — consultar incidencias ajenas
+    × technician-2 no ve la incidencia asignada a technician-1 (lista y detalle) (7 ms)
+    × reporter-2 no ve la incidencia reportada por reporter-1 (lista y detalle) (3 ms)
+    √ control positivo: el técnico asignado, el reportante y el coordinador sí la ven (5 ms)
+  Amenaza 2 — alterar asignaciones
+    √ technician-1 no puede reasignar la incidencia: 403 y el recurso queda intacto (3 ms)
+    √ reporter-1 tampoco puede reasignar la incidencia
+    √ control positivo: coordinator-1 sí puede reasignar (queda historial) (1 ms)
+  Amenaza 3 — datos sensibles en registros
+    √ guarda provisional: el código de la app no escribe en consola (1 ms)
+    ✎ todo redactForTelemetry sustituye claves sensibles por [REDACTED] (se implementa y prueba en semana 4)
+  Amenaza 4 — credenciales expuestas (escáner de secretos del evaluador)
+    √ un árbol sin credenciales pasa el escáner y el evaluador termina con código 0 (187 ms)
+    √ un valor falso con nombre de variable pública secreta hace fallar el escáner y el evaluador termina con código 1 (180 ms)
+
+  ● Amenaza 1 — consultar incidencias ajenas › technician-2 no ve la incidencia asignada a technician-1 (lista y detalle)
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected value: not "campus-inc-001"
+    Received array:     ["campus-inc-001"]
+
+      105 |     const list = await call('/v1/incidents', 'technician-2');
+      106 |     expect(list.status).toBe(200);
+    > 107 |     expect(listedIds(list.body)).not.toContain(INCIDENT);
+          |                                      ^
+      108 |
+      109 |     const detail = await call(`/v1/incidents/${INCIDENT}`, 'technician-2');
+      110 |     expect(detail.status).toBe(403);
+
+      at Object.toContain (course-tests/security/threat-controls.test.ts:107:38)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  ● Amenaza 1 — consultar incidencias ajenas › reporter-2 no ve la incidencia reportada por reporter-1 (lista y detalle)
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "campus-inc-001",
+    + ]
+
+      115 |     const list = await call('/v1/incidents', 'reporter-2');
+      116 |     expect(list.status).toBe(200);
+    > 117 |     expect(listedIds(list.body)).toEqual([]);
+          |                                  ^
+      118 |
+      119 |     const detail = await call(`/v1/incidents/${INCIDENT}`, 'reporter-2');
+      120 |     expect(detail.status).toBe(403);
+
+      at Object.toEqual (course-tests/security/threat-controls.test.ts:117:34)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 1 todo, 7 passed, 10 total
+Snapshots:   0 total
+Time:        1.039 s, estimated 2 s
+Ran all test suites matching /course-tests\\security/i.

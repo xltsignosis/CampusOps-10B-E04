@@ -1,0 +1,25 @@
+
+> dmi-react-native-starter@1.0.0 test:security
+> jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/security
+
+PASS course-tests/security/threat-controls.test.ts
+  Amenaza 1 — consultar incidencias ajenas
+    √ technician-2 no ve la incidencia asignada a technician-1 (lista y detalle) (9 ms)
+    √ reporter-2 no ve la incidencia reportada por reporter-1 (lista y detalle) (2 ms)
+    √ control positivo: el técnico asignado, el reportante y el coordinador sí la ven (6 ms)
+  Amenaza 2 — alterar asignaciones
+    √ technician-1 no puede reasignar la incidencia: 403 y el recurso queda intacto (2 ms)
+    √ reporter-1 tampoco puede reasignar la incidencia (1 ms)
+    √ control positivo: coordinator-1 sí puede reasignar (queda historial) (1 ms)
+  Amenaza 3 — datos sensibles en registros
+    √ guarda provisional: el código de la app no escribe en consola (2 ms)
+    ✎ todo redactForTelemetry sustituye claves sensibles por [REDACTED] (se implementa y prueba en semana 4)
+  Amenaza 4 — credenciales expuestas (escáner de secretos del evaluador)
+    √ un árbol sin credenciales pasa el escáner y el evaluador termina con código 0 (187 ms)
+    √ un valor falso con nombre de variable pública secreta hace fallar el escáner y el evaluador termina con código 1 (188 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 todo, 9 passed, 10 total
+Snapshots:   0 total
+Time:        1.019 s
+Ran all test suites matching /course-tests\\security/i.
