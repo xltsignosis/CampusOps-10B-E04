@@ -24,6 +24,7 @@ jobs:
         with: 
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 2
+          fetch-tags: true
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -33,6 +34,8 @@ jobs:
         run: make setup
       - name: Public Expo Android build
         run: npm run bundle:release
+      - name: Threat model controls
+        run: npm run test:security
       - name: AC-01 — reproducibility
         run: make verify-week-03
       - name: AC-02 — public behavior
