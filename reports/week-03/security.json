@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 3,
-  "commitSha": "207a25d2dd606f20af05ab6f9aeb134cbc98bef6",
+  "commitSha": "be760d4fc02720c40a4876c87ad70c7c78f3d0cd",
   "generatedAt": "2026-09-20T13:30:00-06:00",
   "scopeNote": "Cada check corresponde a una amenaza de docs/threat-model.md. Las fallas se provocaron de forma temporal y local (sin commit y sin subirlas a GitHub) y se revirtieron; el valor sensible usado es ficticio. Node.js 22.22.0 (nvm). En Windows no existe make y el evaluador no puede lanzar npm (subprocess devuelve [WinError 2] al buscar npm), por eso los checks de fallo se ejecutaron sin --execute-toolchain y la cadena de herramientas con npm run; en GitHub Actions (ubuntu) el mismo paso es make verify-week-03. Ademas se corrio el evaluador completo (--mode verify y --mode public, ambos con --execute-toolchain) mediante un envoltorio temporal fuera del repositorio que solo activa shell=True para npm, sin modificar el evaluador: ambos terminaron con codigo 0 y status pass (reports/week-03/verify.json y public-tests.json). Los registros crudos de las fallas estan en reports/week-03/diagnostics/.",
   "threatCoverage": {

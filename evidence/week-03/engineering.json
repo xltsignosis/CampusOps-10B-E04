@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 3,
-  "commitSha": "207a25d2dd606f20af05ab6f9aeb134cbc98bef6",
+  "commitSha": "be760d4fc02720c40a4876c87ad70c7c78f3d0cd",
   "decision": "Atendemos primero la amenaza 1 (un usuario consulta incidencias que no le corresponden) con un control en el servidor: GET /v1/incidents filtra por actor y GET /v1/incidents/:id responde 403 si el actor no es el reportante, el tecnico asignado o el coordinador (funcion visible() de course-backend/campusops.mjs). Lo verificamos con course-tests/security/threat-controls.test.ts, ejecutado por npm run test:security tanto localmente como en el workflow, con controles positivos para que no pase en vacio. La amenaza 4 (credenciales) queda cubierta por el escaner de secretos que ya es obligatorio en make verify-week-03, y de ella demostramos el fallo real; la amenaza 3 (registros) no se puede verificar todavia porque redactForTelemetry corresponde a la semana 4, y se declara not_applicable en reports/week-03/security.json en lugar de fingir un exito.",
   "alternatives": [
     "Ocultar en la interfaz los botones y pantallas de incidencias ajenas y no cambiar el backend: es lo mas barato, pero docs/CAMPUSOPS.md dice que ocultar un boton no sustituye comprobar permisos en el servicio, y cualquier cliente puede pedir la URL directamente con otro X-Course-Actor.",
