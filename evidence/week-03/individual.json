@@ -1,3 +1,4 @@
+[
 {
   "studentId": "3523110248",
   "commitShas": [
@@ -14,4 +15,17 @@
   "command": "npm test -- --ci --runInBand course-tests/public/week-03.test.ts -t \"feedback workflow\"",
   "observedResult": "La prueba pasó: PASS course-tests/public/week-03.test.ts. Se ejecutó correctamente 'feedback workflow preserves critical checks and least privilege' (1 passed); la prueba del modelo de amenazas quedó omitida porque el comando filtró únicamente la validación del workflow.",
   "explanation": "Mi aportación ajustó el paso Checkout del workflow de Semana 3 para obtener el ref de la ejecución y dos commits de historial. Esto permite que GitHub Actions ejecute las comprobaciones sobre el commit correcto y tenga disponible el padre inmediato que pueden citar los reportes de evidencia. La prueba pública confirma que el workflow mantiene la instalación reproducible, Node.js 22, permisos mínimos y no incorpora mecanismos para ocultar fallos."
+},
+
+{
+  "studentId": "3523110241",
+  "commitShas": ["30dceeadefc088d374b6bee70399a261a7152ac9"],
+  "files": ["docs/threat-model.md"],
+  "tests": [],
+  "reviews": ["Revisé .github/workflows/week-03-ci-amenazas-feedback.yml y Makefile para confirmar qué comprobaciones ejecuta realmente el workflow (typecheck, lint, test:smoke, generación de paquete Android) antes de documentar los controles en el modelo de amenazas."],
+  "prediction": "Esperaba que el modelo de amenazas necesitara reflejar exactamente las comprobaciones reales del workflow (permisos mínimos, tipos de checks ejecutados) para que AC-02 conectara correctamente activos, amenazas, controles y pruebas, en vez de describir controles genéricos no verificables en el repositorio.",
+  "command": "Get-Content .github/workflows/week-03-ci-amenazas-feedback.yml; Get-Content Makefile",
+  "observedResult": "Confirmé que el workflow corre con permissions: contents: read (mínimo privilegio), y que make verify-week-03 ejecuta internamente npm run typecheck, npm run lint y npm run test:smoke a través del evaluador Python del curso. Con esa información, redacté docs/threat-model.md conectando cada amenaza priorizada con un control existente y una prueba verificable, en vez de describir controles hipotéticos.",
+  "explanation": "No hice una revisión de código en el sentido de tests automatizados, pero sí una revisión técnica del workflow y el Makefile del proyecto, que es la señal (reviews) que sustenta mi aportación según lo que exige individual.json. Esta revisión fue necesaria porque el enunciado exige explícitamente que 'una lista de amenazas sin controles verificables no basta'; sin confirmar qué comprobaciones existían realmente, el documento hubiera sido genérico y no se habría podido conectar con reports/week-03/security.json de mi compañero."
 }
+]
