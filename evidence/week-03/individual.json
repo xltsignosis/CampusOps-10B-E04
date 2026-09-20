@@ -1,0 +1,17 @@
+{
+  "studentId": "3523110248",
+  "commitShas": [
+    "3060fac7604859fa362496bca47e84b64ea2e43f"
+  ],
+  "files": [
+    ".github/workflows/week-03-ci-amenazas-feedback.yml"
+  ],
+  "tests": [
+    "course-tests/public/week-03.test.ts"
+  ],
+  "reviews": [],
+  "prediction": "Esperaba que la prueba específica del workflow pasara porque el ajuste conserva las comprobaciones obligatorias, Node.js 22, permisos mínimos con contents: read y la instalación reproducible; además, fetch-depth: 2 permite consultar el commit padre inmediato cuando la evidencia congelada lo referencia.",
+  "command": "npm test -- --ci --runInBand course-tests/public/week-03.test.ts -t \"feedback workflow\"",
+  "observedResult": "La prueba pasó: PASS course-tests/public/week-03.test.ts. Se ejecutó correctamente 'feedback workflow preserves critical checks and least privilege' (1 passed); la prueba del modelo de amenazas quedó omitida porque el comando filtró únicamente la validación del workflow.",
+  "explanation": "Mi aportación ajustó el paso Checkout del workflow de Semana 3 para obtener el ref de la ejecución y dos commits de historial. Esto permite que GitHub Actions ejecute las comprobaciones sobre el commit correcto y tenga disponible el padre inmediato que pueden citar los reportes de evidencia. La prueba pública confirma que el workflow mantiene la instalación reproducible, Node.js 22, permisos mínimos y no incorpora mecanismos para ocultar fallos."
+}
