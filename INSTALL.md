@@ -1,5 +1,5 @@
-# CampusOps — instalar el paquete de semana 2
+# CampusOps — instalar el paquete de la semana 
 
 Copia el contenido de esta carpeta sobre la raíz del repositorio del equipo, combinando carpetas e incluyendo `.github`. No borres el historial ni trabajo previo. No reinicies el proyecto desde el starter. Revisa los conflictos antes de sobrescribir archivos propios.
 
-Lee `docs/assignments/week-02.md` y la rúbrica `docs/assignments/week-02-rubric.md`. La preparación, los comandos y el orden de entrega están en `docs/assignments/week-02-repository.md`. La comprobación final de evidencias se ejecuta después de crear la etiqueta local.
+Lee `docs/assignments/week-[number].md` y la rúbrica `docs/assignments/week-[number]-rubric.md`. La preparación, los comandos y el orden de entrega están en `docs/assignments/week-[number]-repository.md`. La comprobación final de evidencias se ejecuta después de crear la etiqueta local.
