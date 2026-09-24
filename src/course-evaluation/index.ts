@@ -12,8 +12,69 @@ function pending(name: string): never {
   throw new Error(`${name} must be implemented in the assigned week`);
 }
 
-export function redactForTelemetry(_input: unknown): unknown {
-  return pending('redactForTelemetry');
+const SENSITIVE_TELEMETRY_KEYS = new Set([
+  'authorization',
+  'password',
+  'token',
+  'accesstoken',
+  'refreshtoken',
+  'email',
+  'displayname',
+  'name',
+  'userid',
+  'reporterid',
+  'technicianid',
+  'assignedtechnicianid',
+  'location',
+  'latitude',
+  'longitude',
+  'photos',
+  'evidence',
+  'internalcomments',
+  'assignmenthistory',
+]);
+
+function normalizeTelemetryKey(key: string): string {
+  return key.toLowerCase().replace(/[_-]/g, '');
+}
+
+/**
+ * Produce una copia sanitizada para telemetría técnica.
+ * Los campos sensibles se sustituyen por '[REDACTED]' sin mutar la entrada original.
+ */
+export function redactForTelemetry(input: unknown): unknown {
+  const visited = new WeakMap<object, unknown>();
+
+  const redact = (value: unknown): unknown => {
+    if (typeof value !== 'object' || value === null) {
+      return value;
+    }
+
+    const previous = visited.get(value);
+    if (previous !== undefined) {
+      return previous;
+    }
+
+    if (Array.isArray(value)) {
+      const copy: unknown[] = [];
+      visited.set(value, copy);
+      for (const item of value) {
+        copy.push(redact(item));
+      }
+      return copy;
+    }
+
+    const copy: Record<string, unknown> = {};
+    visited.set(value, copy);
+    for (const [key, item] of Object.entries(value)) {
+      copy[key] = SENSITIVE_TELEMETRY_KEYS.has(normalizeTelemetryKey(key))
+        ? '[REDACTED]'
+        : redact(item);
+    }
+    return copy;
+  };
+
+  return redact(input);
 }
 
 export function parseRemoteResource(_input: unknown): ParseResult {
