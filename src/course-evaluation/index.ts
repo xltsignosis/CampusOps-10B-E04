@@ -12,8 +12,30 @@ function pending(name: string): never {
   throw new Error(`${name} must be implemented in the assigned week`);
 }
 
-export function redactForTelemetry(_input: unknown): unknown {
-  return pending('redactForTelemetry');
+const SENSITIVE_TELEMETRY_KEYS = new Set([
+  'authorization',
+  'email',
+  'displayName',
+  'location',
+  'photos',
+  'internalComments',
+]);
+
+function redactValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactValue);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        SENSITIVE_TELEMETRY_KEYS.has(key) ? '[REDACTED]' : redactValue(item),
+      ]),
+    );
+  }
+  return value;
+}
+
+export function redactForTelemetry(input: unknown): unknown {
+  return redactValue(input);
 }
 
 export function parseRemoteResource(_input: unknown): ParseResult {

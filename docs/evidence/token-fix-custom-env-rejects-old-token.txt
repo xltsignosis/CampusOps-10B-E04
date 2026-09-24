@@ -1,0 +1,7 @@
+$ COURSE_FIXTURE_TOKEN=demo-rotated-token-999 node course-backend/server.mjs   (puerto 4399)
+
+=== Con token VIEJO (course-valid-token) contra servidor con COURSE_FIXTURE_TOKEN=demo-rotated-token-999 ===
+HTTP status: 401
+
+=== Con token NUEVO (demo-rotated-token-999) ===
+HTTP status: 200

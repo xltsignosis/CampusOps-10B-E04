@@ -1,0 +1,11 @@
+$ curl -i http://127.0.0.1:4398/health
+
+HTTP/1.1 200 OK
+access-control-allow-origin: http://localhost:8081
+content-type: application/json; charset=utf-8
+Date: Thu, 24 Sep 2026 22:34:28 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+{"ok":true,"service":"dmi-controlled-backend","contractVersion":1}

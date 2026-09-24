@@ -1,0 +1,10 @@
+$ npx jest course-tests/public/week-04.test.ts --no-watchman --cacheDirectory .jest-cache
+
+PASS course-tests/public/week-04.test.ts
+  √ CampusOps redacts personal and incident-sensitive data while preserving technical context (3 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        9.382 s
+Ran all test suites matching /course-tests\\public\\week-04.test.ts/i.

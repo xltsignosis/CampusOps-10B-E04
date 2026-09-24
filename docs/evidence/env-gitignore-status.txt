@@ -1,0 +1,15 @@
+$ echo "TEST_API_KEY=demo_key_123" > .env   (archivo ficticio de prueba, se elimina despues)
+
+$ git check-ignore -v .env
+.gitignore:8:.env	.env
+
+$ git status --porcelain
+ M .env.example
+ M course-backend/campusops.mjs
+ M course-backend/server.mjs
+ M src/course-evaluation/index.ts
+?? docs/evidence/
+(sin salida = .env no aparece como archivo a subir)
+
+$ git ls-files | grep -i env
+.env.example

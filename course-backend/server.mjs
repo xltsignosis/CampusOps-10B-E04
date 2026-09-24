@@ -4,12 +4,16 @@ import { handleCampusOps } from './campusops.mjs';
 
 const host = process.env.COURSE_BACKEND_HOST ?? '127.0.0.1';
 const port = Number(process.env.COURSE_BACKEND_PORT ?? 4310);
+// Fixture credential for the teaching backend only. Externalized so it is configurable/rotatable
+// instead of a literal string baked into the source (see docs/security-audit.md, Hallazgo 1).
+const FIXTURE_TOKEN = process.env.COURSE_FIXTURE_TOKEN ?? 'course-valid-token';
+const ALLOWED_ORIGIN = process.env.COURSE_BACKEND_ALLOWED_ORIGIN ?? 'http://localhost:8081';
 const completedOperations = new Map();
 
 function send(response, status, body, headers = {}) {
   const value = typeof body === 'string' ? body : JSON.stringify(body);
   response.writeHead(status, {
-    'access-control-allow-origin': '*',
+    'access-control-allow-origin': ALLOWED_ORIGIN,
     'content-type': typeof body === 'string' ? 'application/json' : 'application/json; charset=utf-8',
     ...headers,
   });
@@ -37,13 +41,13 @@ const server = createServer(async (request, response) => {
   }
   if (url.pathname.startsWith('/v1/incidents') || url.pathname === '/v1/geocoding' || url.pathname === '/v1/session/login') {
     try {
-      return await handleCampusOps(request, response, url, { send, readJson, scenario });
+      return await handleCampusOps(request, response, url, { send, readJson, scenario, fixtureToken: FIXTURE_TOKEN });
     } catch {
       return send(response, 400, { code: 'invalid_request' });
     }
   }
   if (request.method === 'GET' && url.pathname === '/v1/resources') {
-    if (request.headers.authorization !== 'Bearer course-valid-token') {
+    if (request.headers.authorization !== `Bearer ${FIXTURE_TOKEN}`) {
       return send(response, 401, { code: 'unauthorized' });
     }
     if (scenario === 'server_error') return send(response, 500, { code: 'controlled_failure' });
@@ -58,7 +62,7 @@ const server = createServer(async (request, response) => {
     if (!input || input.refreshToken !== 'course-refresh-0' || scenario === 'invalid_refresh') {
       return send(response, 401, { code: 'invalid_grant' });
     }
-    return send(response, 200, { accessToken: 'course-valid-token', refreshToken: 'course-refresh-1', expiresIn: 60 });
+    return send(response, 200, { accessToken: FIXTURE_TOKEN, refreshToken: 'course-refresh-1', expiresIn: 60 });
   }
   if (request.method === 'POST' && url.pathname === '/v1/resources/action') {
     const key = request.headers['idempotency-key'];
