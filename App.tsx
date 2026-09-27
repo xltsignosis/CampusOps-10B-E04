@@ -4,11 +4,13 @@ import { StatusBar } from 'expo-status-bar';
 
 import { getBackendHealth } from './src/api/courseBackend';
 import { InMemoryIncidentRepository } from './src/infrastructure/inMemoryIncidentRepository';
+import { InMemoryTelemetrySink } from './src/infrastructure/inMemoryTelemetrySink';
 import { CampusOpsApp } from './src/ui/CampusOpsApp';
 
 export default function App() {
   const [status, setStatus] = useState<'checking' | 'available' | 'offline'>('checking');
   const incidentRepository = useMemo(() => new InMemoryIncidentRepository(), []);
+  const telemetry = useMemo(() => new InMemoryTelemetrySink(), []);
 
   useEffect(() => {
     let active = true;
@@ -29,7 +31,7 @@ export default function App() {
       </View>
 
       <View style={styles.content}>
-        <CampusOpsApp repository={incidentRepository} />
+        <CampusOpsApp repository={incidentRepository} telemetry={telemetry} />
       </View>
       <StatusBar style="auto" />
     </View>
