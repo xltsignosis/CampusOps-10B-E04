@@ -11,6 +11,12 @@ import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
+import { recordTelemetry } from '../../src/application/telemetry';
+import { getIncidentDetail, getIncidentList } from '../../src/application/incidentUseCases';
+import { redactForTelemetry } from '../../src/course-evaluation';
+import type { Incident as DomainIncident, IncidentRepository } from '../../src/domain/incident';
+import { InMemoryTelemetrySink } from '../../src/infrastructure/inMemoryTelemetrySink';
+
 jest.setTimeout(30000);
 
 const ROOT = resolve(__dirname, '..', '..');
@@ -172,7 +178,159 @@ describe('Amenaza 3 — datos sensibles en registros', () => {
     expect(offenders).toEqual([]);
   });
 
-  test.todo('redactForTelemetry sustituye claves sensibles por [REDACTED] (se implementa y prueba en semana 4)');
+});
+
+describe('Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4)', () => {
+  // Valores ficticios: si alguno aparece en un registro, hubo filtración.
+  const FAKE = {
+    token: 'course-token-ficticio-t3',
+    email: 'persona.ficticia@campusops.test',
+    displayName: 'Persona Ficticia T3',
+    location: 'Edificio ficticio T3 - Aula 0',
+    technicianId: 'technician-ficticio-t3',
+    comment: 'Comentario interno ficticio T3',
+  };
+  const leaked = (value: unknown) => Object.values(FAKE).filter((secret) => JSON.stringify(value).includes(secret));
+
+  test('t3-nested-object: oculta claves sensibles en objetos anidados a varios niveles', () => {
+    const result = redactForTelemetry({
+      incidentId: 'campus-inc-001',
+      session: { user: { profile: { email: FAKE.email, displayName: FAKE.displayName }, token: FAKE.token } },
+      request: { headers: { authorization: `Bearer ${FAKE.token}`, accept: 'application/json' } },
+    });
+    expect(result).toEqual({
+      incidentId: 'campus-inc-001',
+      session: { user: { profile: { email: '[REDACTED]', displayName: '[REDACTED]' }, token: '[REDACTED]' } },
+      request: { headers: { authorization: '[REDACTED]', accept: 'application/json' } },
+    });
+    expect(leaked(result)).toEqual([]);
+  });
+
+  test('t3-array-of-objects: recorre listas de incidencias y oculta cada elemento sensible', () => {
+    const result = redactForTelemetry({
+      items: [
+        { incidentId: 'campus-inc-001', status: 'assigned', reporterId: 'reporter-1', location: FAKE.location },
+        { incidentId: 'campus-inc-002', status: 'open', assignedTechnicianId: FAKE.technicianId, latitude: 19.4, longitude: -99.1 },
+      ],
+    });
+    expect(result).toEqual({
+      items: [
+        { incidentId: 'campus-inc-001', status: 'assigned', reporterId: '[REDACTED]', location: '[REDACTED]' },
+        { incidentId: 'campus-inc-002', status: 'open', assignedTechnicianId: '[REDACTED]', latitude: '[REDACTED]', longitude: '[REDACTED]' },
+      ],
+    });
+  });
+
+  test('t3-whole-value: una clave sensible oculta el valor completo aunque sea objeto o lista', () => {
+    const result = redactForTelemetry({
+      evidence: [{ evidenceId: 'synthetic-photo-1' }],
+      assignmentHistory: [{ technicianId: 'technician-1', at: '2026-09-22T10:00:00Z' }],
+      internalComments: [FAKE.comment],
+    });
+    expect(result).toEqual({ evidence: '[REDACTED]', assignmentHistory: '[REDACTED]', internalComments: '[REDACTED]' });
+  });
+
+  test('t3-key-normalization: normaliza mayúsculas, guiones y guiones bajos antes de comparar', () => {
+    const result = redactForTelemetry({
+      AUTHORIZATION: 'x',
+      Access_Token: 'x',
+      'refresh-token': 'x',
+      assigned_technician_id: 'x',
+      'User-Id': 'x',
+      PASSWORD: 'x',
+    });
+    expect(Object.values(result as Record<string, unknown>)).toEqual(Array(6).fill('[REDACTED]'));
+  });
+
+  test('t3-technical-context-kept: conserva el contexto técnico seguro del contrato', () => {
+    const technical = { incidentId: 'campus-inc-001', correlationId: 'corr-42', status: 'error', attempt: 2, durationMs: 18 };
+    expect(redactForTelemetry({ ...technical, token: FAKE.token })).toEqual({ ...technical, token: '[REDACTED]' });
+    expect(redactForTelemetry([1, 'texto', null, true])).toEqual([1, 'texto', null, true]);
+  });
+
+  test('t3-no-mutation: no modifica la entrada original y devuelve copias nuevas en cada nivel', () => {
+    const input = {
+      incidentId: 'campus-inc-001',
+      profile: { email: FAKE.email, tags: ['a', 'b'] },
+      items: [{ location: FAKE.location, status: 'open' }],
+    };
+    const snapshot = structuredClone(input);
+    const result = redactForTelemetry(input) as typeof input;
+    expect(input).toEqual(snapshot);
+    expect(result).not.toBe(input);
+    expect(result.profile).not.toBe(input.profile);
+    expect(result.profile.tags).not.toBe(input.profile.tags);
+    expect(result.items).not.toBe(input.items);
+    expect(result.items[0]).not.toBe(input.items[0]);
+  });
+
+  test('t3-circular-boundary: una referencia circular no provoca excepción ni bucle y el resultado es serializable', () => {
+    const input: Record<string, unknown> = { incidentId: 'campus-inc-001', token: FAKE.token };
+    input.self = input;
+    const result = redactForTelemetry(input);
+    expect(result).toEqual({ incidentId: 'campus-inc-001', token: '[REDACTED]', self: '[Circular]' });
+    expect(() => JSON.stringify(result)).not.toThrow();
+  });
+
+  test('t3-error-object: un Error se reduce a tipo y código, sin message ni stack con datos', () => {
+    const error = Object.assign(new TypeError(`fallo con Bearer ${FAKE.token} de ${FAKE.email}`), { code: 'E_REPO' });
+    const result = redactForTelemetry({ incidentId: 'campus-inc-001', error });
+    expect(result).toEqual({ incidentId: 'campus-inc-001', error: { errorType: 'TypeError', code: 'E_REPO' } });
+    expect(leaked(result)).toEqual([]);
+  });
+
+  class FailingRepository implements IncidentRepository {
+    async getAll(): Promise<readonly DomainIncident[]> {
+      throw this.failure();
+    }
+    async getById(): Promise<DomainIncident | null> {
+      throw this.failure();
+    }
+    // El error lleva en su mensaje y propiedades los datos que la UI ya no muestra.
+    private failure() {
+      return Object.assign(new Error(`timeout leyendo ${FAKE.location} para ${FAKE.email} con ${FAKE.token}`), {
+        code: 'E_TIMEOUT',
+        location: FAKE.location,
+        assignedTechnicianId: FAKE.technicianId,
+        internalComments: [FAKE.comment],
+      });
+    }
+  }
+
+  test('t3-error-path-detail: al fallar el detalle, el registro conserva contexto técnico sin datos sensibles', async () => {
+    const sink = new InMemoryTelemetrySink();
+    await expect(getIncidentDetail(new FailingRepository(), 'campus-inc-001', sink)).rejects.toThrow('timeout');
+
+    const events = sink.getEvents();
+    expect(events).toEqual([
+      expect.objectContaining({
+        event: 'incident.detail.failed',
+        status: 'error',
+        incidentId: 'campus-inc-001',
+        durationMs: expect.any(Number),
+        error: { errorType: 'Error', code: 'E_TIMEOUT' },
+      }),
+    ]);
+    expect(leaked(events)).toEqual([]);
+  });
+
+  test('t3-error-path-list: al fallar la lista, el registro tampoco contiene datos sensibles', async () => {
+    const sink = new InMemoryTelemetrySink();
+    await expect(getIncidentList(new FailingRepository(), sink)).rejects.toThrow('timeout');
+    expect(sink.getEvents()).toEqual([expect.objectContaining({ event: 'incident.list.failed', status: 'error' })]);
+    expect(leaked(sink.getEvents())).toEqual([]);
+  });
+
+  test('t3-sink-failure: si el registro falla, la operación de la app no se rompe', () => {
+    const brokenSink = {
+      record: () => {
+        throw new Error('sink no disponible');
+      },
+    };
+    expect(() =>
+      recordTelemetry(brokenSink, { event: 'incident.detail.loaded', status: 'ok', durationMs: 1, token: FAKE.token }),
+    ).not.toThrow();
+  });
 });
 
 describe('Amenaza 4 — credenciales expuestas (escáner de secretos del evaluador)', () => {

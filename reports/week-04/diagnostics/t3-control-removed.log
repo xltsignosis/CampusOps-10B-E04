@@ -1,0 +1,71 @@
+FAIL course-tests/security/threat-controls.test.ts
+  ● Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) › t3-nested-object: oculta claves sensibles en objetos anidados a varios niveles
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -8,11 +8,11 @@
+        },
+        "session": Object {
+          "user": Object {
+            "profile": Object {
+              "displayName": "[REDACTED]",
+    -         "email": "[REDACTED]",
+    +         "email": "persona.ficticia@campusops.test",
+            },
+            "token": "[REDACTED]",
+          },
+        },
+      }
+
+    [0m [90m 199 |[39m       request[33m:[39m { headers[33m:[39m { authorization[33m:[39m [32m`Bearer ${FAKE.token}`[39m[33m,[39m accept[33m:[39m [32m'application/json'[39m } }[33m,[39m
+     [90m 200 |[39m     })[33m;[39m
+    [31m[1m>[22m[39m[90m 201 |[39m     expect(result)[33m.[39mtoEqual({
+     [90m     |[39m                    [31m[1m^[22m[39m
+     [90m 202 |[39m       incidentId[33m:[39m [32m'campus-inc-001'[39m[33m,[39m
+     [90m 203 |[39m       session[33m:[39m { user[33m:[39m { profile[33m:[39m { email[33m:[39m [32m'[REDACTED]'[39m[33m,[39m displayName[33m:[39m [32m'[REDACTED]'[39m }[33m,[39m token[33m:[39m [32m'[REDACTED]'[39m } }[33m,[39m
+     [90m 204 |[39m       request[33m:[39m { headers[33m:[39m { authorization[33m:[39m [32m'[REDACTED]'[39m[33m,[39m accept[33m:[39m [32m'application/json'[39m } }[33m,[39m[0m
+
+      at Object.toEqual (course-tests/security/threat-controls.test.ts:201:20)
+
+PASS course-tests/security/redaction-ui.test.tsx
+FAIL course-tests/public/week-04.test.ts
+  ● CampusOps redacts personal and incident-sensitive data while preserving technical context
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -3,11 +3,11 @@
+        "internalComments": "[REDACTED]",
+        "location": "[REDACTED]",
+        "photos": "[REDACTED]",
+        "profile": Object {
+          "displayName": "[REDACTED]",
+    -     "email": "[REDACTED]",
+    +     "email": "person@campusops.test",
+        },
+        "request": Object {
+          "headers": Object {
+            "accept": "application/json",
+            "authorization": "[REDACTED]",
+
+    [0m [90m 10 |[39m     internalComments[33m:[39m [[32m'Nota interna ficticia'[39m][33m,[39m
+     [90m 11 |[39m   })[33m;[39m
+    [31m[1m>[22m[39m[90m 12 |[39m   expect(result)[33m.[39mtoEqual({
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 13 |[39m     request[33m:[39m { headers[33m:[39m { authorization[33m:[39m [32m'[REDACTED]'[39m[33m,[39m accept[33m:[39m [32m'application/json'[39m } }[33m,[39m
+     [90m 14 |[39m     profile[33m:[39m { email[33m:[39m [32m'[REDACTED]'[39m[33m,[39m displayName[33m:[39m [32m'[REDACTED]'[39m }[33m,[39m
+     [90m 15 |[39m     incidentId[33m:[39m [32m'campus-inc-001'[39m[33m,[39m[0m
+
+      at Object.toEqual (course-tests/public/week-04.test.ts:12:18)
+
+Test Suites: 2 failed, 1 passed, 3 total
+Tests:       2 failed, 20 passed, 22 total
+Snapshots:   0 total
+Time:        1.586 s, estimated 2 s
+Ran all test suites matching /course-tests\\security|course-tests\\public\\week-04.test.ts/i.
+removed exit=1

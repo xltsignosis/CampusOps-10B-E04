@@ -1,0 +1,39 @@
+PASS course-tests/security/threat-controls.test.ts
+  Amenaza 1 — consultar incidencias ajenas
+    √ technician-2 no ve la incidencia asignada a technician-1 (lista y detalle) (8 ms)
+    √ reporter-2 no ve la incidencia reportada por reporter-1 (lista y detalle) (1 ms)
+    √ control positivo: el técnico asignado, el reportante y el coordinador sí la ven (4 ms)
+  Amenaza 2 — alterar asignaciones
+    √ technician-1 no puede reasignar la incidencia: 403 y el recurso queda intacto (3 ms)
+    √ reporter-1 tampoco puede reasignar la incidencia
+    √ control positivo: coordinator-1 sí puede reasignar (queda historial)
+  Amenaza 3 — datos sensibles en registros
+    √ guarda provisional: el código de la app no escribe en consola (2 ms)
+  Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4)
+    √ t3-nested-object: oculta claves sensibles en objetos anidados a varios niveles
+    √ t3-array-of-objects: recorre listas de incidencias y oculta cada elemento sensible
+    √ t3-whole-value: una clave sensible oculta el valor completo aunque sea objeto o lista (1 ms)
+    √ t3-key-normalization: normaliza mayúsculas, guiones y guiones bajos antes de comparar
+    √ t3-technical-context-kept: conserva el contexto técnico seguro del contrato
+    √ t3-no-mutation: no modifica la entrada original y devuelve copias nuevas en cada nivel (3 ms)
+    √ t3-circular-boundary: una referencia circular no provoca excepción ni bucle y el resultado es serializable
+    √ t3-error-object: un Error se reduce a tipo y código, sin message ni stack con datos
+    √ t3-error-path-detail: al fallar el detalle, el registro conserva contexto técnico sin datos sensibles (7 ms)
+    √ t3-error-path-list: al fallar la lista, el registro tampoco contiene datos sensibles (1 ms)
+    √ t3-sink-failure: si el registro falla, la operación de la app no se rompe
+  Amenaza 4 — credenciales expuestas (escáner de secretos del evaluador)
+    √ un árbol sin credenciales pasa el escáner y el evaluador termina con código 0 (184 ms)
+    √ un valor falso con nombre de variable pública secreta hace fallar el escáner y el evaluador termina con código 1 (183 ms)
+
+PASS course-tests/public/week-04.test.ts
+  √ CampusOps redacts personal and incident-sensitive data while preserving technical context (1 ms)
+
+PASS course-tests/security/redaction-ui.test.tsx
+  √ t3-ui-error-path: la UI muestra un mensaje genérico y el registro no conserva datos sensibles (234 ms)
+
+Test Suites: 3 passed, 3 total
+Tests:       22 passed, 22 total
+Snapshots:   0 total
+Time:        1.821 s, estimated 2 s
+Ran all test suites matching /course-tests\\security|course-tests\\public\\week-04.test.ts/i.
+restored exit=0

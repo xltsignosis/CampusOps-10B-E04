@@ -1,0 +1,12 @@
+diff --git a/src/application/telemetry.ts b/src/application/telemetry.ts
+index 4996d4b..970ceec 100644
+--- a/src/application/telemetry.ts
++++ b/src/application/telemetry.ts
+@@ -14,7 +14,6 @@ const SENSITIVE_TELEMETRY_KEYS: ReadonlySet<string> = new Set([
+   'token',
+   'accesstoken',
+   'refreshtoken',
+-  'email',
+   'displayname',
+   'name',
+   'userid',
