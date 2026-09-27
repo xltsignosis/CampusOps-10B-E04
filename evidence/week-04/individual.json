@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "week": 4,
+  "teamId": "E04",
+  "members": [
+    {
+      "studentId": "3523110241",
+      "commitShas": [],
+      "files": [],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    },
+    {
+      "studentId": "3523110621",
+      "commitShas": [
+        "698139a0fd1c84296fc05db834d1b7070b4d2bda",
+        "6a661fa2a3b05d142b60cd01ee6a4f620a8d7226",
+        "1445c45ff5ab00b8d16a3fef1d39e7409ff7b431",
+        "d1f4ea40ba917c55c617d2c5adb969a84a1c5c33"
+      ],
+      "files": [
+        "src/application/telemetry.ts",
+        "src/application/incidentUseCases.ts",
+        "src/domain/telemetry.ts",
+        "src/infrastructure/inMemoryTelemetrySink.ts",
+        "src/ui/CampusOpsApp.tsx",
+        "src/course-evaluation/index.ts",
+        "course-tests/security/threat-controls.test.ts",
+        "course-tests/security/redaction-ui.test.tsx",
+        "docs/security-controls.md",
+        "package.json"
+      ],
+      "tests": [
+        "course-tests/security/threat-controls.test.ts",
+        "course-tests/security/redaction-ui.test.tsx",
+        "course-tests/public/week-04.test.ts",
+        "npm run test:security"
+      ],
+      "reviews": [
+        "Revisé la rama dmi-week-04 (commit 9ceaa99 de mi compañero) y encontré que src/lib/session/secure-session.ts importaba expo-secure-store sin declararlo en package.json: npm run typecheck fallaba con TS2307 y bloqueaba make verify-week-04 para todo el equipo. Lo corregí con npx expo install expo-secure-store (commit 698139a) y comprobé typecheck con código 0."
+      ],
+      "prediction": "Esperaba que (1) la prueba pública de semana 4 y las pruebas t3-* pasaran con redactForTelemetry conectada a los casos de uso; (2) al quitar temporalmente 'email' del conjunto de claves sensibles fallaran al menos la prueba de objetos anidados y la prueba pública, porque ambas incluyen un email ficticio; y (3) al restaurarlo todo volviera a pasar.",
+      "command": "npm run test:security; npx jest --ci --runInBand course-tests/security course-tests/public/week-04.test.ts (con 'email' retirado de SENSITIVE_TELEMETRY_KEYS y luego restaurado, sin commit)",
+      "observedResult": "Se cumplió. Con el control completo: 22 pruebas pasaron (código 0). Sin 'email': fallaron 2, t3-nested-object (el email ficticio aparecía en claro) y la prueba pública de semana 4, y pasaron 20 (código 1). Restaurado: 22/22 (código 0). Las pruebas de caminos de error siguieron pasando sin 'email' porque los Error se reducen a { errorType, code } y nunca conservan su message. Registros en reports/week-04/diagnostics/t3-control-*.",
+      "explanation": "Implementé la sanitización de registros (amenaza 3 del modelo de amenazas). redactForTelemetry vive en src/application/telemetry.ts: recorre objetos y listas sin mutar la entrada, normaliza cada clave (minúsculas, sin _ ni -) y sustituye el valor completo por [REDACTED] según el contrato de docs/CAMPUSOPS_API.md, conservando incidentId, correlationId, status, attempt y durationMs. Los casos de uso de incidencias registran eventos sanitizados en un TelemetrySink inyectado desde App.tsx, y el adaptador de src/course-evaluation delega en la misma función, así que la prueba pública ejercita la lógica real. Los errores se registran sin message ni stack y la UI muestra sólo mensajes genéricos. Sustituí el test.todo de la amenaza 3 por pruebas negativas de anidados, listas, no mutación, ciclos y caminos de error hasta la UI, y demostré que detectan la falla retirando una clave."
+    },
+    {
+      "studentId": "3523110248",
+      "commitShas": [],
+      "files": [],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    }
+  ]
+}
