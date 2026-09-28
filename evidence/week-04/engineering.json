@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "week": 4,
+  "commitSha": "a4a3ac33d89c365c7139e555b10a7bc729d17358",
+  "decision": "Seleccionamos expo-secure-store (src/lib/session/secure-session.ts) como mecanismo para persistir el token de sesión en el cliente móvil, respaldado por las APIs nativas de cifrado en reposo del sistema operativo (Keychain en iOS y Android Keystore / EncryptedSharedPreferences en Android), en lugar de almacenamiento en texto plano. Complementamos este almacenamiento con la sanitización estricta de telemetría y registros de error mediante redactForTelemetry (src/application/telemetry.ts), que descarta mensajes y pilas de error y enmascara claves sensibles, garantizando que el token protegido nunca se filtre a registros técnicos ni a la interfaz gráfica. Los riesgos residuales que permanecen son: exposición en dispositivos comprometidos con privilegios de root/jailbreak, fuga de datos sensibles en campos de texto libre o claves no catalogadas en la denylist, y pérdida de detalles de diagnóstico al podar los mensajes de error.",
+  "alternatives": [
+    "Almacenar el token en AsyncStorage de React Native: Es la alternativa más simple y sin dependencias nativas complejas, pero guarda los datos en texto plano en el sistema de archivos del dispositivo (XML en Android y almacenamiento no cifrado en iOS), lo que permitiría a cualquier aplicación con acceso o a través de una copia de seguridad sin cifrar extraer el token de sesión (violando la amenaza 4 de docs/threat-model.md).",
+    "Conservar el token únicamente en memoria volátil de la aplicación (estado de React o singleton en memoria): Ofrece alta seguridad al no persistir el secreto en almacenamiento físico, pero destruiría la sesión del usuario cada vez que la app pase a segundo plano, sea suspendida por el sistema operativo o se cierre, obligando a reautenticarse en cada arranque y degradando de forma inaceptable la experiencia de uso en campo de los técnicos de CampusOps.",
+    "Cifrar manualmente el token antes de guardarlo en AsyncStorage usando una clave simétrica (AES) hardcodeada o derivada en JavaScript: Introduciría una falsa sensación de seguridad, ya que la clave simétrica o el algoritmo de derivación quedarían incrustados en el bundle JavaScript de la app, siendo fácilmente recuperables mediante ingeniería inversa o inspección estática del paquete APK/bundle."
+  ],
+  "tradeoff": "Beneficio: expo-secure-store delega la seguridad en el hardware criptográfico y el enclave seguro del sistema operativo (Keychain/Keystore), garantizando cifrado autenticado en reposo sin requerir gestión manual de claves en el cliente JavaScript; además, la sanitización con redactForTelemetry previene fugas en logs de fallos tanto en desarrollo como en producción. Costo: Dependencia nativa adicional que requiere vinculación en compilaciones nativas de Expo/Android, límite de tamaño por valor en Keychain/SharedPreferences (2048 bytes en Android), y la pérdida inevitable de visibilidad detallada de errores técnicos en depuración remota debido a la eliminación de stack traces y mensajes no sanitizados.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"guarda provisional\"",
+      "result": "pass: 1 passed (código de salida 0)",
+      "evidence": "Verifica que src/lib/session/secure-session.ts no introduce llamadas a console.* y que las excepciones de expo-secure-store se propagan limpiamente hacia las capas superiores sin volcar el token en texto plano."
+    },
+    {
+      "command": "npm run test:security",
+      "result": "pass: 21 passed, 21 total (código de salida 0)",
+      "evidence": "PASS en threat-controls.test.ts y redaction-ui.test.tsx. Demuestra que redactForTelemetry oculta tokens y credenciales anidadas (t3-nested-object), no muta datos, maneja ciclos y caminos de error, y que CampusOpsApp muestra mensajes genéricos en la UI sin conservar tokens en el sink de telemetría."
+    },
+    {
+      "command": "python3 tools/course_public_evaluator.py --week 4 --mode verify",
+      "result": "pass: status 'pass', secret_scan en 'pass' con hits=[] (código de salida 0)",
+      "evidence": "reports/week-04/secret-scan.json indexa la comprobación estática limpia y el caso de falla controlada (inyección en src/tmp-fake-secret.ts con código 1 y restauración a código 0), validando que no existen secretos reales en el repositorio."
+    },
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-04.test.ts",
+      "result": "pass: 1 passed, 1 total (código de salida 0)",
+      "evidence": "Comprueba contra el contrato de CAMPUSOPS_API.md que redactForTelemetry oculta encabezados de autorización, tokens, perfiles y datos de incidencias preservando el contexto técnico seguro."
+    }
+  ]
+}

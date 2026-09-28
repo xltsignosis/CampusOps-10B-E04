@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "week": 4,
+  "mode": "public",
+  "commitSha": "a4a3ac33d89c365c7139e555b10a7bc729d17358",
+  "evaluatedAt": "2026-09-28T03:58:01.694981+00:00",
+  "status": "pass",
+  "checks": [
+    {
+      "id": "base_files",
+      "status": "pass",
+      "detail": "missing=[]"
+    },
+    {
+      "id": "react_native_profile",
+      "status": "pass",
+      "detail": "missing packages=[]"
+    },
+    {
+      "id": "toolchain_scripts",
+      "status": "pass",
+      "detail": "missing scripts=[]"
+    },
+    {
+      "id": "workflow_integrity",
+      "status": "pass",
+      "detail": "bypass markers=[]"
+    },
+    {
+      "id": "secret_scan",
+      "status": "pass",
+      "detail": "hits=[]"
+    },
+    {
+      "id": "required_evidence",
+      "status": "pass",
+      "detail": "missing/empty=[]"
+    },
+    {
+      "id": "schema:reports/week-04/secret-scan.json",
+      "status": "pass",
+      "detail": "4 checks indexed, 2 boundary/failure; report evaluates HEAD"
+    },
+    {
+      "id": "schema:reports/week-04/negative-tests.json",
+      "status": "pass",
+      "detail": "11 checks indexed, 8 boundary/failure; report evaluates HEAD"
+    },
+    {
+      "id": "schema:evidence/week-04/engineering.json",
+      "status": "pass",
+      "detail": "decision evidence is substantive and reproducible; report evaluates HEAD"
+    },
+    {
+      "id": "schema:evidence/week-04/individual.json",
+      "status": "pass",
+      "detail": "three individual evidence records found"
+    },
+    {
+      "id": "toolchain_1",
+      "status": "pass",
+      "detail": "npm run typecheck\n> dmi-react-native-starter@1.0.0 typecheck\n> tsc --noEmit"
+    },
+    {
+      "id": "toolchain_2",
+      "status": "pass",
+      "detail": "npm run lint\n> dmi-react-native-starter@1.0.0 lint\n> eslint ."
+    },
+    {
+      "id": "toolchain_3",
+      "status": "pass",
+      "detail": "npm run audit:ci\n> dmi-react-native-starter@1.0.0 audit:ci\n> npm audit --omit=dev --audit-level=critical\n\nfound 0 vulnerabilities"
+    },
+    {
+      "id": "toolchain_4",
+      "status": "pass",
+      "detail": "npm test -- --ci --runInBand course-tests/public/week-04.test.ts\n> dmi-react-native-starter@1.0.0 test\n> jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/public/week-04.test.ts\n\n\nPASS course-tests/public/week-04.test.ts\n  ✓ CampusOps redacts personal and incident-sensitive data while preserving technical context (3 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.284 s, estimated 1 s\nRan all test suites matching /course-tests\\/public\\/week-04.test.ts/i."
+    }
+  ]
+}

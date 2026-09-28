@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 4,
-  "commitSha": "821138e4a67df37dd658ffa9adfff260aa6d3a37",
+  "commitSha": "a4a3ac33d89c365c7139e555b10a7bc729d17358",
   "generatedAt": "2026-09-27T19:05:00-06:00",
   "threatMitigation": {
     "threatId": "amenaza-3",
