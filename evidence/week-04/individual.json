@@ -3,17 +3,24 @@
   "week": 4,
   "teamId": "E04",
   "members": [
-    {
-      "studentId": "3523110241",
-      "commitShas": [],
-      "files": [],
-      "tests": [],
-      "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
-    },
+      {
+        "studentId": "3523110241",
+        "commitShas": [
+          "9ceaa99522fff64cfa5a09c6b7b8cadddc577b04"
+        ],
+        "files": [
+          "src/lib/session/secure-session.ts",
+          "docs/security-controls.md"
+        ],
+        "tests": [
+          "course-tests/security/threat-controls.test.ts"
+        ],
+        "reviews": [],
+        "prediction": "Esperaba que el módulo de almacenamiento seguro no introdujera ninguna llamada a console.*, de modo que la prueba 'guarda provisional' de la Amenaza 3 siguiera pasando.",
+        "command": "npm test -- course-tests/security/threat-controls.test.ts",
+        "observedResult": "La suite pasó antes y después de agregar el módulo: 9 pruebas aprobadas y 1 pendiente (todo), y npm run typecheck no reportó errores.",
+        "explanation": "Guardé el token de sesión con expo-secure-store, que usa Keychain en iOS y Keystore en Android, en lugar de un almacenamiento en texto plano. El módulo no maneja errores con console.error porque la prueba de la Amenaza 3 rechaza cualquier console.* en src/. Los errores de SecureStore se propagan a quien llama, así el valor del token no llega a ningún registro."
+      },
     {
       "studentId": "3523110621",
       "commitShas": [
@@ -74,5 +81,6 @@
       "observedResult": "Se confirmó. El escaneo baseline dio limpio (hits=[] y 0 coincidencias en ripgrep). Con el secreto falso inyectado, el evaluador falló con código 1 (hits=['src/tmp-fake-secret.ts:public_secret_name']). Al borrarlo, volvió a pasar en limpio con código 0. En negative-tests.json se indexaron 11 comprobaciones (8 de límite/falla) cubriendo anidados, arrays, no mutación, ciclos y caminos de error, todas pasando con éxito.",
       "explanation": "Como Persona 3, mi aportación técnica fue la verificación de seguridad mediante el escaneo de secretos y la comprobación de pruebas negativas de sanitización (amenazas 3 y 4 del modelo de amenazas). Ejecuté búsquedas de patrones con ripgrep y el evaluador oficial, documentando el estado limpio y una prueba controlada con reversión en reports/week-04/secret-scan.json. Además, verifiqué que redactForTelemetry cumpla con el contrato en estructuras complejas, arrays y caminos de error sin mutar entradas, registrando la evidencia ejecutable en reports/week-04/negative-tests.json."
     }
+    
   ]
 }
