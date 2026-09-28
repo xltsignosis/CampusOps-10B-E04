@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "week": 4,
+  "commitSha": "821138e4a67df37dd658ffa9adfff260aa6d3a37",
+  "generatedAt": "2026-09-27T19:05:00-06:00",
+  "threatMitigation": {
+    "threatId": "amenaza-3",
+    "threatTitle": "Filtración de datos sensibles en registros técnicos y logs",
+    "threatModelRef": "docs/threat-model.md#amenaza-3",
+    "controlImplementation": "src/application/telemetry.ts (redactForTelemetry)"
+  },
+  "checks": [
+    {
+      "id": "t3-nested-object-redaction",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-nested-object\"",
+      "evidence": "Mitiga Amenaza 3 (filtración en registros). Se probó un objeto anidado a tres niveles con sesión de usuario { session: { user: { profile: { email, displayName }, token } }, request: { headers: { authorization, accept } } }. redactForTelemetry sustituyó email, displayName, token y authorization por '[REDACTED]', preservando incidentId y headers.accept intactos. Ningún valor ficticio sensible permaneció en el objeto resultante."
+    },
+    {
+      "id": "t3-array-of-objects-redaction",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-array-of-objects\"",
+      "evidence": "Mitiga Amenaza 3 (filtración en listados de incidencias). Se probó una lista de incidencias donde cada elemento contenía campos como reporterId, location, assignedTechnicianId, latitude y longitude. Cada campo sensible dentro del array fue transformado a '[REDACTED]', mientras que incidentId y status se conservaron sin alteraciones en cada elemento."
+    },
+    {
+      "id": "t3-technical-context-preserved",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-technical-context-kept\"",
+      "evidence": "Mitiga Amenaza 3 (utilidad diagnóstica sin fuga de secretos). Comprueba que los identificadores y métricas técnicas requeridas por docs/CAMPUSOPS_API.md (incidentId, correlationId, status, attempt, durationMs) se conservan exactamente iguales, mientras que credenciales como token se ocultan como '[REDACTED]'. También verifica la preservación de primitivos en arrays simples."
+    },
+    {
+      "id": "t3-input-immutability",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-no-mutation\"",
+      "evidence": "Mitiga Amenaza 3 (efectos secundarios en memoria). Se validó mediante structuredClone que el objeto original de entrada no sufre ninguna mutación tras pasar por redactForTelemetry. Además, se comprobó que todos los niveles (raíz, profile, tags, items) devuelven referencias nuevas en memoria (not.toBe), garantizando inmutabilidad e independencia de datos."
+    },
+    {
+      "id": "t3-whole-value-redaction",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-whole-value\"",
+      "evidence": "Mitiga Amenaza 3 (estructuras complejas bajo claves sensibles). Cuando una clave sensible del contrato como 'evidence', 'assignmentHistory' o 'internalComments' contiene arrays u objetos anidados, redactForTelemetry sustituye el valor completo por '[REDACTED]' en lugar de descender recursivamente, eliminando cualquier exposición accidental de metadatos o comentarios."
+    },
+    {
+      "id": "t3-key-normalization",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-key-normalization\"",
+      "evidence": "Mitiga Amenaza 3 (evasión por variación sintáctica de claves). La función normaliza a minúsculas y elimina guiones y guiones bajos antes de contrastar contra la lista de claves sensibles. Comprobado con AUTHORIZATION, Access_Token, refresh-token, assigned_technician_id, User-Id y PASSWORD; todas fueron detectadas y redactadas como '[REDACTED]'."
+    },
+    {
+      "id": "t3-circular-references-handled",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-circular-boundary\"",
+      "evidence": "Mitiga Amenaza 3 (denegación de servicio o falla por ciclos). Un objeto con referencia circular (input.self = input) es procesado de forma segura sustituyendo la referencia recursiva por '[Circular]', sin lanzar RangeError por desbordamiento de pila y garantizando que el resultado sea serializable con JSON.stringify()."
+    },
+    {
+      "id": "t3-error-object-sanitization",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-error-object\"",
+      "evidence": "Mitiga Amenaza 3 y Amenaza 4 (filtración en mensajes de excepción). Un objeto Error con tokens y correos incrustados en su 'message' y propiedades dinámicas se reduce estrictamente a { errorType, code }. Las propiedades 'message', 'stack' y datos adjuntos se descartan completamente, evitando fugas en telemetría de errores."
+    },
+    {
+      "id": "t3-error-path-repository-detail",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-error-path-detail\"",
+      "evidence": "Mitiga Amenaza 3 en caminos de falla. Al simular que el repositorio de incidencias arroja una excepción con datos sensibles (token, email, ubicación, comentarios internos), getIncidentDetail rechaza la promesa pero registra en el sink el evento 'incident.detail.failed' únicamente con errorType, code, incidentId y durationMs. Se comprobó con leaked() que ningún dato sensible quedó registrado."
+    },
+    {
+      "id": "t3-ui-and-telemetry-error-boundary",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/security/redaction-ui.test.tsx",
+      "evidence": "Mitiga Amenaza 3 en la capa de presentación. CampusOpsApp captura la falla del repositorio mostrando al usuario un mensaje genérico 'No se pudo cargar la incidencia.' en lugar del mensaje de la excepción. Se comprueba que los datos sensibles no aparecen en la pantalla y que el sink de telemetría tampoco conserva token, email, ubicación ni technicianId."
+    },
+    {
+      "id": "t3-control-removed-diagnostic-failure",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "Quitar temporalmente 'email' de SENSITIVE_TELEMETRY_KEYS en src/application/telemetry.ts y ejecutar npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"t3-nested-object\"",
+      "evidence": "Prueba de falla inducida para validar la efectividad del control: al retirar 'email' de las claves sensibles, t3-nested-object falla (código de salida 1) porque el email ficticio se emite en texto claro en lugar de '[REDACTED]'. La falla es detectable e inequívoca, registrada en reports/week-04/diagnostics/t3-control-removed.log. Al restaurar la clave, 22 de 22 pruebas vuelven a pasar (código 0)."
+    }
+  ]
+}

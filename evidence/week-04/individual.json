@@ -50,14 +50,29 @@
     },
     {
       "studentId": "3523110248",
-      "commitShas": [],
-      "files": [],
-      "tests": [],
-      "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
+      "commitShas": [
+        "1babec565cb76e4a94f4160f019e8c29bdfb84f4",
+        "478b05377f8e654b9acb86dcdcdd71a3a42eece8",
+        "0be53bb69365e1a215cd5d6b4476727102422ec3"
+      ],
+      "files": [
+        "reports/week-04/secret-scan.json",
+        "reports/week-04/negative-tests.json",
+        "docs/assignments/week-04.md",
+        "docs/assignments/week-04-repository.md",
+        "docs/assignments/week-04-rubric.md"
+      ],
+      "tests": [
+        "python3 tools/course_public_evaluator.py --week 4 --mode verify",
+        "npm run test:security"
+      ],
+      "reviews": [
+        "Revisé la implementación de redactForTelemetry de Ariel (commit 6a661fa) y los diagnósticos en reports/week-04/diagnostics/ para verificar que cubrieran objetos anidados, listas, inmutabilidad y caminos de error antes de elaborar negative-tests.json y ejecutar el escaneo de secretos."
+      ],
+      "prediction": "Esperaba que (1) el escáner del evaluador y ripgrep dieran limpio sobre el árbol de trabajo actual; (2) al inyectar temporalmente una variable EXPO_PUBLIC_DEMO_SECRET en src/tmp-fake-secret.ts el escáner fallara con código 1 detectando el patrón public_secret_name; y (3) las pruebas negativas verificaran que redactForTelemetry oculta datos en estructuras anidadas y listas sin mutar la entrada y preservando contexto técnico.",
+      "command": "python3 tools/course_public_evaluator.py --week 4 --mode verify (con y sin src/tmp-fake-secret.ts); rg --hidden ...; npm run test:security",
+      "observedResult": "Se confirmó. El escaneo baseline dio limpio (hits=[] y 0 coincidencias en ripgrep). Con el secreto falso inyectado, el evaluador falló con código 1 (hits=['src/tmp-fake-secret.ts:public_secret_name']). Al borrarlo, volvió a pasar en limpio con código 0. En negative-tests.json se indexaron 11 comprobaciones (8 de límite/falla) cubriendo anidados, arrays, no mutación, ciclos y caminos de error, todas pasando con éxito.",
+      "explanation": "Como Persona 3, mi aportación técnica fue la verificación de seguridad mediante el escaneo de secretos y la comprobación de pruebas negativas de sanitización (amenazas 3 y 4 del modelo de amenazas). Ejecuté búsquedas de patrones con ripgrep y el evaluador oficial, documentando el estado limpio y una prueba controlada con reversión en reports/week-04/secret-scan.json. Además, verifiqué que redactForTelemetry cumpla con el contrato en estructuras complejas, arrays y caminos de error sin mutar entradas, registrando la evidencia ejecutable en reports/week-04/negative-tests.json."
     }
   ]
 }
