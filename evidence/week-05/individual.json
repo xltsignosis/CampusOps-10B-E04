@@ -25,21 +25,21 @@
       "explanation": "Implementé el límite de datos remotos en src/infrastructure/remoteResource.ts y conecté src/course-evaluation/index.ts a esa misma lógica, evitando una implementación creada sólo para el evaluador. El validador comprueba el sobre {id, version, status, payload} y descarta campos desconocidos. IncidentClient concentra fetch fuera de la interfaz, agrega los encabezados del backend didáctico, aplica timeout con AbortController y valida tanto el sobre como los campos de dominio antes de construir IncidentSnapshot. Un payload null válido se representa como details null; los fallos se exponen mediante IncidentClientError con categorías contract, timeout, network, server y http. La creación exige datos válidos y una Idempotency-Key estable, y ninguna pantalla realiza fetch directamente."
     },
     {
-      "studentId": "",
+      "studentId": "3523110241",
       "commitShas": [
-        ""
+        "d9f2d10d09c33645fb41992d3b6b7e96dbdddd6a"
       ],
       "files": [
-        ""
+        "docs/api-contract.md"
       ],
-      "tests": [
-        ""
+      "tests": [],
+      "reviews": [
+        "Revisé src/infrastructure/remoteResource.ts y src/infrastructure/incidentClient.ts, implementados por mi compañero de Persona 1, para documentar con precisión el límite real entre el DTO (RemoteResource), el objeto de dominio (IncidentSnapshot) y la representación de errores (IncidentClientError)."
       ],
-      "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
+      "prediction": "Esperaba que el documento necesitara describir tres capas distintas (sobre genérico, objeto de dominio, errores tipados) en vez de una sola validación, porque el enunciado pide explícitamente justificar el límite entre DTO, dominio y errores, no solo describir una función de validación.",
+      "command": "npm run typecheck",
+      "observedResult": "El comando terminó sin errores tras agregar docs/api-contract.md, confirmando que la documentación no introdujo cambios de código que rompieran la compilación del proyecto.",
+      "explanation": "No ejecuté una prueba automatizada propia esta semana porque mi aportación fue documental, pero sí hice una revisión técnica directa del código real de remoteResource.ts e incidentClient.ts para asegurar que el documento describiera el comportamiento exacto implementado (por ejemplo, que un payload null es válido y no un error, que un 404 en getIncident se traduce a null en vez de propagar una excepción, y los cinco tipos de error distinguibles: contract, timeout, network, server, http), en vez de una descripción genérica de buenas prácticas de DTO."
     },
     {
       "studentId": "",
