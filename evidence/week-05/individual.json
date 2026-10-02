@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "teamId": "E04",
+  "members": [
+    {
+      "studentId": "3523110248",
+      "commitShas": [
+        "403effaa3112e8907b7468268d495a7ebb491b2b"
+      ],
+      "files": [
+        "src/course-evaluation/index.ts",
+        "src/infrastructure/remoteResource.ts",
+        "src/infrastructure/incidentClient.ts",
+        "src/infrastructure/incidentClient.test.ts"
+      ],
+      "tests": [
+        "course-tests/public/week-05.test.ts",
+        "src/infrastructure/incidentClient.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Esperaba que parseRemoteResource aceptara el sobre publicado con ID y estado no vacíos, versión entera no negativa y payload de objeto o null, ignorando campos futuros; y que rechazara ID vacío, versión textual y valores null. También esperaba que IncidentClient validara cada respuesta antes de devolverla, conservara payload null como details null sin inventar datos, distinguiera errores de contrato, timeout y servidor, y enviara la creación por POST con autenticación sintética y una clave de idempotencia estable.",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-05.test.ts src/infrastructure/incidentClient.test.ts",
+      "observedResult": "El comando terminó con código 0: pasaron 2 suites y 11 pruebas en total. La prueba pública aceptó los dos DTO válidos, incluido payload null con un campo futuro, y rechazó ID vacío, versión textual y entrada null. Las pruebas del cliente confirmaron consulta, separación DTO-objeto de aplicación, conservación de null, rechazo de DTO corrupto, error HTTP 500 distinguible, creación POST con Idempotency-Key y cancelación por timeout.",
+      "explanation": "Implementé el límite de datos remotos en src/infrastructure/remoteResource.ts y conecté src/course-evaluation/index.ts a esa misma lógica, evitando una implementación creada sólo para el evaluador. El validador comprueba el sobre {id, version, status, payload} y descarta campos desconocidos. IncidentClient concentra fetch fuera de la interfaz, agrega los encabezados del backend didáctico, aplica timeout con AbortController y valida tanto el sobre como los campos de dominio antes de construir IncidentSnapshot. Un payload null válido se representa como details null; los fallos se exponen mediante IncidentClientError con categorías contract, timeout, network, server y http. La creación exige datos válidos y una Idempotency-Key estable, y ninguna pantalla realiza fetch directamente."
+    },
+    {
+      "studentId": "",
+      "commitShas": [
+        ""
+      ],
+      "files": [
+        ""
+      ],
+      "tests": [
+        ""
+      ],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    },
+    {
+      "studentId": "",
+      "commitShas": [
+        ""
+      ],
+      "files": [
+        ""
+      ],
+      "tests": [
+        ""
+      ],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    }
+  ]
+}
