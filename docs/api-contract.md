@@ -93,9 +93,10 @@ fallo del cliente.
 
 ## Por qué se separan estas tres capas
 
-- **UI nunca llama `fetch` directamente.** Solo interactúa con
-  `IncidentClient` (`getIncidents`, `getIncident`, `createIncident`),
-  que internamente usa `requestJson` como único punto de llamada HTTP.
+- **UI nunca llama `fetch` directamente.** Usa los casos de uso, que
+  reciben `RemoteIncidentRepository`; éste delega en `IncidentClient`
+  (`getIncidents`, `getIncident`, `createIncident`), cuyo `requestJson` es
+  el único punto de llamada HTTP.
 - **Cambios en el formato del DTO del backend** (ej. un campo nuevo, o
   un cambio de nombre no documentado) se absorben en `remoteResource.ts`
   sin tocar la lógica de incidencias.
@@ -113,14 +114,59 @@ enviada como encabezado `Idempotency-Key`. Esto permite reintentar una
 creación que falló por timeout sin generar una incidencia duplicada:
 el backend reconoce la misma clave como la misma operación.
 
-## Casos de prueba cubiertos (ver `incidentClient.test.ts`)
+## Del cliente a la pantalla: adaptador y error de dominio
 
-- Respuesta válida con payload completo
-- Payload nulo (válido, no es un error)
-- Sobre malformado (campo faltante o tipo incorrecto)
-- Timeout (vía `AbortController` y `timeoutMs` configurable)
-- Error de servidor (HTTP ≥ 500)
-- 404 traducido a `null` en `getIncident`
+`IncidentSnapshot` e `IncidentClientError` siguen siendo tipos de
+infraestructura. La UI no los importa (lo comprueba
+`course-tests/architecture-boundaries.test.ts`); los recibe traducidos por
+`RemoteIncidentRepository` (src/infrastructure/remoteIncidentRepository.ts),
+que implementa los puertos del dominio `IncidentSource` e `IncidentWriter`
+(src/domain/incident.ts). `App.tsx` es el único lugar donde se instancia
+`new RemoteIncidentRepository(new IncidentClient())`.
+
+| Del cliente | Al dominio |
+|---|---|
+| `details` completo | `Incident` (title = description porque el contrato no publica título; `reportedAt: null` porque el backend no publica fecha) |
+| `details: null` | `IncidentWithoutDetails { id, status, detailsAvailable: false }`; la lista muestra "Detalle no disponible" |
+| `getIncident` → `null` (404) | `null` |
+
+| `IncidentClientError.kind` | `IncidentSourceError.kind` | Mensaje en pantalla |
+|---|---|---|
+| `contract` | `invalid_response` | "El servidor envió datos inválidos y no se mostraron." |
+| `timeout` | `timeout` | "El servidor tardó demasiado en responder. Intenta de nuevo." |
+| `server` | `unavailable` | "El servicio de incidencias no está disponible en este momento." |
+| `network` | `network` | "No hay conexión con el servidor de incidencias." |
+| `http` (401/403/422/429…) | `rejected` | Mensaje genérico de la operación |
+
+`IncidentSourceError` expone `code = kind`; la telemetría sanitizada conserva
+`errorType` y `code` y descarta `message`/`stack`, así que el registro distingue
+el tipo de fallo sin guardar tokens, actor ni texto libre.
+
+La creación se hace desde el formulario de `CampusOpsApp` mediante el caso de
+uso `createIncident` (src/application/incidentUseCases.ts). La pantalla genera
+una `Idempotency-Key` por borrador y la reutiliza si el envío se reintenta
+tras un fallo; si el borrador cambia, se genera otra.
+
+## Pruebas que verifican este contrato
+
+- `course-tests/public/week-05.test.ts`: los 5 casos públicos de `parseRemoteResource`.
+- `src/infrastructure/incidentClient.test.ts`: consulta, payload null, DTO
+  malformado, HTTP 500, creación POST con idempotencia y timeout.
+- `src/infrastructure/incidentClient.failures.test.ts`: matriz de fallos con
+  dobles que copian el cuerpo real de cada variante del backend (JSON roto,
+  DTO corrupto, dominio inválido, lento con y sin timeout, 500, 429, 401,
+  404 → null, red caída) y que ningún rechazo sale sin tipo ni con datos sensibles.
+- `src/infrastructure/incidentClient.backend.test.ts`: el cliente real contra
+  `course-backend/server.mjs` levantado en 127.0.0.1 con `X-Course-Scenario`
+  (success, nullable, malformed, slow, server_error, rate_limited) y creación
+  repetida con la misma clave sin duplicar.
+- `src/infrastructure/remoteIncidentRepository.test.ts`: conversión al dominio y
+  traducción de errores.
+- `src/ui/CampusOpsApp.test.tsx`: un mensaje distinto por tipo de fallo,
+  incidencias sin detalle y creación con reintento con la misma clave.
+
+Los resultados observados están en `reports/week-05/contract-tests.json` y
+`reports/week-05/failure-matrix.json`.
 
 ## Riesgo residual
 
