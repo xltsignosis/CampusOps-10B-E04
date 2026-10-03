@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "commitSha": "fe6e03a1a5a1267c0b45347dadb9b97cf66d40d7",
+  "generatedAt": "2026-10-03T00:05:00-06:00",
+  "contract": {
+    "document": "docs/api-contract.md",
+    "dto": "src/infrastructure/remoteResource.ts (RemoteResource, parseRemoteResource)",
+    "applicationObject": "src/infrastructure/incidentClient.ts (IncidentSnapshot) -> src/domain/incident.ts (Incident, IncidentWithoutDetails)",
+    "errors": "IncidentClientError (contract|timeout|network|server|http) -> IncidentSourceError (invalid_response|timeout|unavailable|network|rejected)",
+    "uiEntryPoint": "src/ui/CampusOpsApp.tsx usa casos de uso de src/application/incidentUseCases.ts; App.tsx inyecta RemoteIncidentRepository(new IncidentClient())"
+  },
+  "environment": "Windows 11, Node v24.16.0 local (el proyecto fija 22.22.0 en .nvmrc; CI usa Node 22 en Ubuntu). Sin Internet público: los dobles no usan red y el backend didáctico se levanta en 127.0.0.1.",
+  "checks": [
+    {
+      "id": "public-dto-valid-envelope",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-05.test.ts",
+      "evidence": "Caso 0: {id:'campus-inc-001', version:2, status:'assigned', payload:{...}} -> ok:true. Resultado: Tests: 5 passed, 5 total."
+    },
+    {
+      "id": "public-dto-null-payload-forward-compatible",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-05.test.ts",
+      "evidence": "Caso 1: payload null más el campo extra ignored:'forward-compatible' -> ok:true. El null es válido y el campo desconocido se descarta (parseRemoteResource copia sólo id, version, status y payload)."
+    },
+    {
+      "id": "public-dto-rejects-empty-id-text-version-null",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-05.test.ts",
+      "evidence": "Casos 2, 3 y 4: id '' -> ok:false; version '3' (texto) -> ok:false; entrada null -> ok:false. Los 5 casos públicos pasan."
+    },
+    {
+      "id": "dto-vs-domain-boundary",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"fm-05\"",
+      "evidence": "Un sobre que parseRemoteResource acepta, pero con status 'archived', category 'plumbing', sin priority o con location objeto, lo rechaza IncidentClient con kind 'contract' antes de construir IncidentSnapshot. Muestra que el DTO genérico y la regla de dominio son dos capas separadas: 4/4 pasan."
+    },
+    {
+      "id": "dto-extra-fields-not-leaked-to-app-object",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"fm-01\"",
+      "evidence": "El DTO real del backend trae notes, evidence e history dentro de payload; el IncidentSnapshot devuelto no contiene 'history' y la lista, el detalle y la creación (201) producen el mismo objeto de aplicación."
+    },
+    {
+      "id": "null-payload-is-not-invalid",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts src/infrastructure/remoteIncidentRepository.test.ts src/ui/CampusOpsApp.test.tsx",
+      "evidence": "payload null -> IncidentSnapshot.details null (no lanza error) -> IncidentWithoutDetails {id, status, detailsAvailable:false} en el dominio -> la lista muestra 'Detalle no disponible'. No se rellenan título, categoría ni ubicación."
+    },
+    {
+      "id": "domain-mapping-no-invented-data",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/infrastructure/remoteIncidentRepository.test.ts",
+      "evidence": "RemoteIncidentRepository convierte IncidentSnapshot a Incident con title = description (el contrato no publica título) y reportedAt: null (el backend no publica fecha); IncidentDetail muestra 'No disponible'. 9/9 pruebas del adaptador pasan."
+    },
+    {
+      "id": "error-translation-to-domain",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/infrastructure/remoteIncidentRepository.test.ts",
+      "evidence": "JSON roto -> IncidentSourceError(invalid_response); 500 -> unavailable; 429 -> rejected; timeout -> timeout; borrador con descripción vacía -> rejected sin llamar a fetch. Todos son instanceof IncidentSourceError."
+    },
+    {
+      "id": "ui-uses-client-through-use-cases",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/ui/CampusOpsApp.test.tsx course-tests/smoke.test.tsx course-tests/skeleton.test.tsx",
+      "evidence": "CampusOpsApp recibe IncidentSource/IncidentWriter del dominio; App.tsx inyecta RemoteIncidentRepository(new IncidentClient()). La UI muestra un mensaje distinto por tipo de fallo (5 casos) y crea mediante createIncident. Smoke y skeleton siguen pasando (85/85 en las 10 suites del equipo)."
+    },
+    {
+      "id": "no-http-from-ui",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "grep -rn \"fetch\\|XMLHttpRequest\\|axios\" src/ui ; npm test -- --ci --runInBand course-tests/architecture-boundaries.test.ts",
+      "evidence": "grep no encuentra ninguna coincidencia en src/ui. La prueba 'ui layer never imports infrastructure directly' pasa: la UI sólo importa domain y application. El único punto HTTP es IncidentClient.requestJson."
+    },
+    {
+      "id": "create-idempotency-key-reused-on-retry",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/ui/CampusOpsApp.test.tsx src/infrastructure/incidentClient.backend.test.ts",
+      "evidence": "En la UI, el primer envío falla por timeout y el reintento usa la misma Idempotency-Key (keys[1] === keys[0]). Contra el backend local, dos POST con 'create-be-0001' devuelven el mismo id y la lista lo contiene una sola vez."
+    },
+    {
+      "id": "client-tested-without-real-provider",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.test.ts src/infrastructure/incidentClient.failures.test.ts src/infrastructure/remoteIncidentRepository.test.ts",
+      "evidence": "Las 43 pruebas (6 + 28 + 9) usan fetchImpl inyectado con respuestas fijas y no abren sockets. El cliente no necesita ningún proveedor externo para aprobar."
+    },
+    {
+      "id": "jest-expo-global-fetch-is-a-double",
+      "status": "not_applicable",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts (primera versión, sin fetchImpl)",
+      "evidence": "Observado: con el fetch global, las 9 pruebas fallaron con 'El backend respondió con HTTP undefined.' porque el preset jest-expo sustituye fetch por un doble incluso en @jest-environment node. Se resolvió con un transporte node:http mínimo dentro de la prueba que respeta AbortSignal; la lógica del cliente sigue siendo la real. No es un fallo de la app: se deja registrado como límite del entorno de pruebas."
+    }
+  ]
+}

@@ -42,21 +42,41 @@
       "explanation": "No ejecuté una prueba automatizada propia esta semana porque mi aportación fue documental, pero sí hice una revisión técnica directa del código real de remoteResource.ts e incidentClient.ts para asegurar que el documento describiera el comportamiento exacto implementado (por ejemplo, que un payload null es válido y no un error, que un 404 en getIncident se traduce a null en vez de propagar una excepción, y los cinco tipos de error distinguibles: contract, timeout, network, server, http), en vez de una descripción genérica de buenas prácticas de DTO."
     },
     {
-      "studentId": "",
+      "studentId": "3523110621",
       "commitShas": [
-        ""
+        "c84af9f0a8239697cd7e5be25e4463454a3dabd1",
+        "fe6e03a1a5a1267c0b45347dadb9b97cf66d40d7"
       ],
       "files": [
-        ""
+        "src/infrastructure/incidentClient.failures.test.ts",
+        "src/infrastructure/incidentClient.backend.test.ts",
+        "src/infrastructure/remoteIncidentRepository.ts",
+        "src/infrastructure/remoteIncidentRepository.test.ts",
+        "src/domain/incident.ts",
+        "src/application/incidentUseCases.ts",
+        "src/ui/CampusOpsApp.tsx",
+        "src/ui/IncidentReportForm.tsx",
+        "src/ui/CampusOpsApp.test.tsx",
+        "App.tsx",
+        "reports/week-05/contract-tests.json",
+        "reports/week-05/failure-matrix.json",
+        "evidence/week-05/engineering.json"
       ],
       "tests": [
-        ""
+        "src/infrastructure/incidentClient.failures.test.ts",
+        "src/infrastructure/incidentClient.backend.test.ts",
+        "src/infrastructure/remoteIncidentRepository.test.ts",
+        "src/ui/CampusOpsApp.test.tsx",
+        "course-tests/public/week-05.test.ts"
       ],
-      "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
+      "reviews": [
+        "Revisé src/infrastructure/incidentClient.ts de Persona 1 contra course-backend/campusops.mjs: el formato coincide, pero el cliente no estaba conectado a la app (App.tsx seguía con InMemoryIncidentRepository) y no había caso de uso de creación; lo conecté mediante RemoteIncidentRepository.",
+        "Revisé docs/api-contract.md de Persona 2: mencionaba una prueba de '404 -> null' que no existía. Agregué esa prueba (fm-07 y be-not-found) y actualicé la lista de pruebas del documento."
+      ],
+      "prediction": "Esperaba que las variantes del backend se distinguieran así: success -> objeto de aplicación, nullable -> details null sin error, malformed -> contract (aunque llega con HTTP 200), slow -> timeout sólo si supera timeoutMs, server_error -> server 500 y rate_limited -> http 429. También esperaba que la prueba contra el backend local funcionara con el fetch global en @jest-environment node.",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts src/infrastructure/incidentClient.backend.test.ts src/infrastructure/remoteIncidentRepository.test.ts src/ui/CampusOpsApp.test.tsx",
+      "observedResult": "Las cuatro suites pasan: 28 + 9 + 9 + 7 = 53 pruebas. La clasificación de variantes salió como predije; curl confirmó que malformed llega como HTTP 200 con {\"items\": [} y que slow tarda 1.2 s. La predicción del fetch falló: la primera versión de la prueba de backend dio 9 fallos con 'HTTP undefined' porque jest-expo reemplaza fetch global; la corregí con un transporte node:http que respeta AbortSignal. Al quitar temporalmente la distinción server/http y la validación de estado, fallaron 3 pruebas; al restaurar, pasaron 37.",
+      "explanation": "Hice la parte de Persona 3 y los pendientes que no tenían dueño. Matriz de fallos: dobles que copian el cuerpo real de cada variante del backend y una suite que levanta course-backend/server.mjs en 127.0.0.1 con puerto libre, sin Internet público. Conexión de la app: RemoteIncidentRepository adapta IncidentClient a los puertos IncidentSource e IncidentWriter del dominio y traduce IncidentClientError a IncidentSourceError, para que la UI no importe infraestructura; CampusOpsApp ahora crea con el caso de uso createIncident, reutiliza la Idempotency-Key al reintentar y muestra un mensaje distinto por tipo de fallo. Payload null se representa como IncidentWithoutDetails para no inventar datos. Redacté contract-tests.json, failure-matrix.json y engineering.json con los comandos y resultados observados. Usé asistencia de IA (Claude Code) para redactar código, pruebas y reportes; lo verifiqué corriendo cada comando citado, con curl contra el backend local y con la mutación que comprueba que las pruebas detectan los controles quitados."
     }
   ]
 }

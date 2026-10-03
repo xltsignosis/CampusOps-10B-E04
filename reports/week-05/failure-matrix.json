@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "commitSha": "fe6e03a1a5a1267c0b45347dadb9b97cf66d40d7",
+  "generatedAt": "2026-10-03T00:10:00-06:00",
+  "backend": {
+    "start": "npm run backend (course-backend/server.mjs en http://127.0.0.1:4310); en Jest se levanta con COURSE_BACKEND_PORT=0",
+    "headers": "Authorization: Bearer course-valid-token, X-Course-Actor: reporter-1 (fixtures públicos sintéticos), X-Course-Scenario: <variante>",
+    "network": "Sólo 127.0.0.1. Ninguna prueba usa Internet público ni proveedores reales."
+  },
+  "sanitization": "IncidentClientError sólo lleva un mensaje fijo y el status HTTP; no copia el cuerpo, el token, el actor ni el error original. La telemetría (recordTelemetry -> redactForTelemetry) guarda errorType y code (p. ej. 'timeout') y descarta message y stack. fm-03, fm-08 y fm-09 verifican que el mensaje no contiene token, actor, ubicación, técnico ni descripción.",
+  "checks": [
+    {
+      "id": "fm-01-success",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "curl -s -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"X-Course-Scenario: success\" http://127.0.0.1:4310/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-success\"",
+      "expected": "200 con {items:[DTO]}; el cliente devuelve IncidentSnapshot con details completo.",
+      "observed": "curl: HTTP 200 en 0.0045 s, {\"items\":[{\"id\":\"campus-inc-001\",\"version\":1,\"status\":\"assigned\",\"payload\":{\"category\":\"connectivity\",...,\"priority\":\"medium\",\"notes\":[],\"evidence\":[],\"history\":[]}}]}. Jest be-success pasa: details {category:'connectivity', priority:'medium', assignedTechnicianId:'technician-1'}.",
+      "evidence": "Respuesta válida aceptada y convertida al objeto de aplicación; los campos notes, evidence e history del DTO no pasan al objeto (fm-01 de incidentClient.failures.test.ts)."
+    },
+    {
+      "id": "fm-02-nullable",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "curl -s -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"X-Course-Scenario: nullable\" http://127.0.0.1:4310/v1/incidents/campus-inc-001 ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-nullable\"",
+      "expected": "200 con payload null; es un valor válido: details null, sin error y sin inventar datos.",
+      "observed": "curl: HTTP 200, {\"id\":\"campus-inc-001\",\"version\":1,\"status\":\"assigned\",\"payload\":null}. Jest be-nullable pasa: todos los elementos tienen details === null y getIncident resuelve {details:null}. En la UI se muestra 'Detalle no disponible'.",
+      "evidence": "El null permitido no se confunde con formato inválido (no lanza 'contract') ni se rellena con valores ficticios."
+    },
+    {
+      "id": "fm-03-malformed-json",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"X-Course-Scenario: malformed\" http://127.0.0.1:4310/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-malformed\"",
+      "expected": "IncidentClientError kind 'contract'; la app no usa los datos ni se cierra.",
+      "observed": "curl: HTTP 200 con el cuerpo literal {\"items\": [} (JSON inválido). Jest be-malformed: rechazo con kind 'contract'. En la UI aparece 'El servidor envió datos inválidos y no se mostraron.'",
+      "evidence": "Un 200 no basta: si response.json() falla se representa como contract. El mensaje no contiene datos sensibles (fm-03 de incidentClient.failures.test.ts)."
+    },
+    {
+      "id": "fm-04-corrupt-dto",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"fm-04\"",
+      "expected": "Rechazo 'contract' para version textual, id vacío, versión negativa, payload arreglo, sin status, elemento null, lista sin items y creación sin incident.",
+      "observed": "8/8 pruebas pasan; todas rechazan con IncidentClientError kind 'contract'.",
+      "evidence": "parseRemoteResource se aplica a cada elemento antes de devolver la lista: un solo DTO corrupto invalida la respuesta completa y no se entrega una lista parcial."
+    },
+    {
+      "id": "fm-05-invalid-domain",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"fm-05\"",
+      "expected": "Un sobre válido con datos de incidencia inválidos (status 'archived', category 'plumbing', sin priority, location objeto) se rechaza como 'contract'.",
+      "observed": "4/4 pruebas pasan (24 omitidas por el filtro -t).",
+      "evidence": "La validación de dominio de IncidentClient (toIncidentSnapshot) es una segunda barrera después de parseRemoteResource."
+    },
+    {
+      "id": "fm-06-slow-timeout",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -m 1 -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"X-Course-Scenario: slow\" http://127.0.0.1:4310/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-slow\"",
+      "expected": "El backend tarda 1200 ms; con timeoutMs 300 el cliente aborta y lanza kind 'timeout'.",
+      "observed": "curl con -m 1: HTTP 000 a los 1.0067 s, exit=28 (operación cancelada por tiempo). Jest be-slow: kind 'timeout' en 315 ms. Con dobles (fm-06): kind 'timeout' en 26 ms con timeoutMs 20.",
+      "evidence": "AbortController cancela la petición; se limpia el temporizador en finally y la UI muestra 'El servidor tardó demasiado en responder. Intenta de nuevo.'"
+    },
+    {
+      "id": "fm-06b-slow-within-limit",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "curl -s -o /dev/null -w \"%{http_code} %{time_total}\" -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"X-Course-Scenario: slow\" http://127.0.0.1:4310/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-slow-boundary\"",
+      "expected": "Si la respuesta lenta llega antes del límite (timeoutMs 3000), se acepta normalmente.",
+      "observed": "curl sin límite: HTTP 200 en 1.2052 s. Jest be-slow-boundary: resuelve con la lista en 1204 ms.",
+      "evidence": "Una respuesta lenta pero válida no se marca como fallo; el límite configurable decide el resultado."
+    },
+    {
+      "id": "fm-07-server-error-500",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -w \" -> HTTP %{http_code}\" -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"X-Course-Scenario: server_error\" http://127.0.0.1:4310/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-server-error\"",
+      "expected": "IncidentClientError kind 'server', status 500, distinto de contract y de timeout.",
+      "observed": "curl: {\"code\":\"controlled_failure\"} -> HTTP 500. Jest be-server-error: {kind:'server', status:500}. El mensaje no incluye 'controlled_failure'.",
+      "evidence": "En el dominio se convierte en IncidentSourceError('unavailable') y la UI muestra 'El servicio de incidencias no está disponible en este momento.'"
+    },
+    {
+      "id": "fm-07b-rate-limited-429",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -w \" -> HTTP %{http_code}\" -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"X-Course-Scenario: rate_limited\" http://127.0.0.1:4310/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-rate-limited\"",
+      "expected": "IncidentClientError kind 'http', status 429; no se confunde con un error de servidor.",
+      "observed": "curl: {\"code\":\"rate_limited\"} -> HTTP 429. Jest be-rate-limited: {kind:'http', status:429}.",
+      "evidence": "Se conserva el status para que la política de reintentos de semana 9 pueda respetar Retry-After; esta semana no se reintenta automáticamente."
+    },
+    {
+      "id": "fm-07c-unauthorized-401",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -w \" -> HTTP %{http_code}\" http://127.0.0.1:4310/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"401\"",
+      "expected": "Sin credenciales el backend responde 401 y el cliente lanza kind 'http' con status 401.",
+      "observed": "curl sin encabezados: {\"code\":\"unauthorized\"} -> HTTP 401. Jest: {kind:'http', status:401}.",
+      "evidence": "El rechazo de autorización es un error tipado, no una excepción genérica."
+    },
+    {
+      "id": "fm-08-not-found-404",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "curl -s -w \" -> HTTP %{http_code}\" -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" http://127.0.0.1:4310/v1/incidents/campus-inc-999 ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-not-found\"",
+      "expected": "404 en el detalle -> null (no encontrada); 404 en la lista sí es error http.",
+      "observed": "curl: {\"code\":\"not_found\"} -> HTTP 404. Jest be-not-found: getIncident resuelve null. Con dobles, getIncidents con 404 rechaza {kind:'http', status:404}.",
+      "evidence": "Ahora sí existe la prueba de '404 -> null' que menciona docs/api-contract.md."
+    },
+    {
+      "id": "fm-09-network-down",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"fm-08\"",
+      "expected": "Si fetch rechaza sin respuesta (p. ej. ECONNREFUSED) y no hubo abort, kind 'network', sin filtrar el error original.",
+      "observed": "Pasa: kind 'network'; el mensaje no contiene 'ECONNREFUSED' ni el token incluido a propósito en el error simulado.",
+      "evidence": "La UI muestra 'No hay conexión con el servidor de incidencias.'"
+    },
+    {
+      "id": "fm-10-no-unhandled-exceptions",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"fm-09\" ; npm test -- --ci --runInBand src/ui/CampusOpsApp.test.tsx",
+      "expected": "Cada variante de fallo rechaza sólo con un error tipado y la pantalla lo atrapa sin cerrarse.",
+      "observed": "5/5 pasan (malformed, server_error, rate_limited, slow, dto corrupto): todos instanceof IncidentClientError con kind conocido. En la UI, los 5 tipos de IncidentSourceError producen un mensaje distinto en campusops-error y la telemetría registra code = kind.",
+      "evidence": "Los casos de uso registran el fallo y lo relanzan; CampusOpsApp lo atrapa en .catch/try y muestra un mensaje genérico. No hay excepciones sin controlar."
+    },
+    {
+      "id": "fm-11-create-replay-no-duplicate",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "curl -s -X POST -H \"Content-Type: application/json\" -H \"Idempotency-Key: create-curl-0001\" -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -d '{\"category\":\"water\",\"description\":\"Fuga ficticia curl\",\"location\":\"Edificio B\"}' http://127.0.0.1:4310/v1/incidents (dos veces) ; npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts -t \"be-create-idempotent\"",
+      "expected": "La segunda creación con la misma clave devuelve la misma incidencia (duplicate:true) y no crea otra.",
+      "observed": "curl 1: HTTP 201, id campus-inc-101, duplicate:false. curl 2: HTTP 200, id campus-inc-101, duplicate:true. Jest be-create-idempotent: replay.id === first.id y la lista contiene el id una sola vez.",
+      "evidence": "Después de un timeout, la UI reintenta con la misma Idempotency-Key (CampusOpsApp.test.tsx), así que un reintento no duplica la incidencia."
+    },
+    {
+      "id": "fm-12-control-removed-is-detected",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "Mutación temporal en src/infrastructure/incidentClient.ts: kind fijo 'http' para todo !response.ok y desactivar la comprobación INCIDENT_STATUSES; luego npx jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand src/infrastructure/incidentClient.failures.test.ts src/infrastructure/incidentClient.backend.test.ts",
+      "expected": "Sin esos controles, las pruebas deben fallar.",
+      "observed": "Test Suites: 2 failed; Tests: 3 failed, 34 passed, 37 total. Fallaron be-server-error (500 -> server), fm-07 '500 controlled_failure -> server con status 500' y fm-05 'estado fuera del flujo... -> contract'. Se restauró el archivo (git diff sólo muestra el cambio de fetchImpl del commit c84af9f).",
+      "evidence": "status 'fail' registra la corrida con el control quitado: las pruebas no pasan por accidente, detectan cuando se pierde la distinción server/http y la validación de dominio."
+    },
+    {
+      "id": "fm-12-control-removed-is-detected",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npx jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand src/infrastructure/incidentClient.failures.test.ts src/infrastructure/incidentClient.backend.test.ts",
+      "expected": "Con el control restaurado, las 37 pruebas pasan.",
+      "observed": "Tests: 37 passed (28 con dobles + 9 contra el backend local) en el commit fe6e03a.",
+      "evidence": "Mismo comando que la corrida mutada, ahora con el código real del commit."
+    }
+  ]
+}

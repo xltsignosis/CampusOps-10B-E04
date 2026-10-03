@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "commitSha": "fe6e03a1a5a1267c0b45347dadb9b97cf66d40d7",
+  "decision": "Separar tres capas con límites explícitos. (1) DTO: RemoteResource, validado sólo como sobre genérico por parseRemoteResource (src/infrastructure/remoteResource.ts), que copia sólo id/version/status/payload y acepta payload null. (2) Dominio: IncidentClient valida las reglas de incidencia (estado, categoría, prioridad, textos) y construye IncidentSnapshot; RemoteIncidentRepository lo convierte en Incident o en IncidentWithoutDetails (src/domain/incident.ts) sin inventar título, fecha ni detalle. (3) Errores: el transporte se expresa como IncidentClientError (contract|timeout|network|server|http) dentro de infraestructura y se traduce a IncidentSourceError (invalid_response|timeout|unavailable|network|rejected) en el dominio. Así la UI sólo conoce puertos y errores del dominio, y un DTO inválido nunca llega a la pantalla.",
+  "alternatives": [
+    "Usar el DTO crudo del backend como modelo de la app y validar campo por campo en cada pantalla: menos código al inicio, pero acopla la UI al formato HTTP y cada pantalla repetiría (o se saltaría) la validación.",
+    "Validar todo (sobre y reglas de incidencia) dentro de parseRemoteResource: una sola función, pero va más allá del contrato publicado en docs/CAMPUSOPS_API.md (sobre con id/estado no vacíos) y mezcla un validador genérico, reutilizable para otros recursos, con reglas que sólo aplican a incidencias.",
+    "Representar cualquier fallo con un Error genérico o devolviendo null/lista vacía: es simple, pero confunde payload null válido, JSON roto, timeout y 500, y la UI no podría decidir entre reintentar o avisar que el servicio no está disponible."
+  ],
+  "tradeoff": "Beneficio: un cambio de formato del backend se absorbe en remoteResource.ts/incidentClient.ts sin tocar la UI; payload null se distingue de inválido; cada tipo de fallo tiene un mensaje y un code de telemetría propios, sin filtrar datos; y todo se prueba con dobles sin red. Costo: más tipos y una traducción doble de errores (IncidentClientError -> IncidentSourceError) que hay que mantener sincronizadas; el dominio ganó IncidentWithoutDetails y reportedAt nullable, así que la UI debe manejar ambos casos; y la validación de dominio duplica la lista de categorías y estados que también tiene el backend.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-05.test.ts",
+      "result": "pass: Tests 5 passed, 5 total",
+      "evidence": "La capa DTO acepta el sobre válido y el payload null con un campo futuro, y rechaza id vacío, versión textual y null (reports/week-05/contract-tests.json, public-dto-*)."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.failures.test.ts -t \"fm-05\"",
+      "result": "pass: 4 passed (24 omitidas por el filtro)",
+      "evidence": "Un sobre que pasa parseRemoteResource pero tiene status 'archived', categoría desconocida, sin prioridad o ubicación no textual se rechaza como contract: el límite DTO/dominio está donde dice la decisión (dto-vs-domain-boundary)."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.backend.test.ts",
+      "result": "pass: Tests 9 passed, 9 total, contra course-backend/server.mjs en 127.0.0.1",
+      "evidence": "success -> objeto de aplicación; nullable -> details null; malformed -> contract; slow con 300 ms -> timeout y con 3000 ms -> éxito; server_error -> server 500; rate_limited -> http 429; 404 -> null; creación repetida con la misma clave sin duplicar (reports/week-05/failure-matrix.json)."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/infrastructure/remoteIncidentRepository.test.ts src/ui/CampusOpsApp.test.tsx course-tests/architecture-boundaries.test.ts",
+      "result": "pass: 9 + 7 + 1 pruebas",
+      "evidence": "La traducción a IncidentSourceError produce un mensaje distinto en pantalla por cada kind y la telemetría guarda code = kind; la UI no importa infraestructura ni hace fetch (grep sin coincidencias en src/ui)."
+    },
+    {
+      "command": "Mutación temporal de src/infrastructure/incidentClient.ts (kind fijo 'http' y sin comprobación de estado), luego npx jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand src/infrastructure/incidentClient.failures.test.ts src/infrastructure/incidentClient.backend.test.ts",
+      "result": "fail esperado: 3 failed, 34 passed; tras restaurar: 37 passed",
+      "evidence": "Si se quita la distinción server/http o la validación de dominio, las pruebas fallan (failure-matrix fm-12): las pruebas protegen la decisión, no sólo el camino feliz."
+    },
+    {
+      "command": "npm run typecheck && npm run lint && npm run test:smoke && npm run backend:self-test && npm run audit:ci",
+      "result": "pass: sin errores de tipos ni de lint, smoke 1/1, self-test del backend PASS, audit sin vulnerabilidades críticas (código de salida 0)",
+      "evidence": "Comprobaciones de AC-01 corridas a mano en Windows porque course_public_evaluator.py --execute-toolchain no encuentra npm.cmd (WinError 2); CI en Ubuntu las corre completas."
+    }
+  ]
+}
