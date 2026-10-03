@@ -3,13 +3,15 @@ import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { getBackendHealth } from './src/api/courseBackend';
-import { InMemoryIncidentRepository } from './src/infrastructure/inMemoryIncidentRepository';
+import { IncidentClient } from './src/infrastructure/incidentClient';
+import { RemoteIncidentRepository } from './src/infrastructure/remoteIncidentRepository';
 import { InMemoryTelemetrySink } from './src/infrastructure/inMemoryTelemetrySink';
 import { CampusOpsApp } from './src/ui/CampusOpsApp';
 
 export default function App() {
   const [status, setStatus] = useState<'checking' | 'available' | 'offline'>('checking');
-  const incidentRepository = useMemo(() => new InMemoryIncidentRepository(), []);
+  // Composition root: la UI recibe puertos del dominio; sólo aquí se elige el cliente HTTP.
+  const incidentRepository = useMemo(() => new RemoteIncidentRepository(new IncidentClient()), []);
   const telemetry = useMemo(() => new InMemoryTelemetrySink(), []);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function App() {
       </View>
 
       <View style={styles.content}>
-        <CampusOpsApp repository={incidentRepository} telemetry={telemetry} />
+        <CampusOpsApp repository={incidentRepository} writer={incidentRepository} telemetry={telemetry} />
       </View>
       <StatusBar style="auto" />
     </View>

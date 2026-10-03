@@ -161,7 +161,8 @@ export class IncidentClient {
     this.accessToken = options.accessToken ?? DEFAULT_ACCESS_TOKEN;
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.scenario = options.scenario;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    // Se resuelve fetch global al llamar, no al construir, y sin depender de `this`.
+    this.fetchImpl = options.fetchImpl ?? ((input, init) => fetch(input, init));
 
     if (!isNonEmptyString(this.baseUrl) || !isNonEmptyString(this.actorId)) {
       throw new Error('La configuración del cliente de incidencias es inválida.');

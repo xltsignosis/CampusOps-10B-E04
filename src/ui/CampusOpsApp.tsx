@@ -1,25 +1,60 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import type { Incident, IncidentRepository } from '../domain/incident';
+import {
+  hasDetails,
+  IncidentSourceError,
+  type Incident,
+  type IncidentDraft,
+  type IncidentEntry,
+  type IncidentSource,
+  type IncidentWriter,
+} from '../domain/incident';
 import type { TelemetrySink } from '../domain/telemetry';
-import { getIncidentDetail, getIncidentList } from '../application/incidentUseCases';
+import {
+  createIncident,
+  getIncidentDetail,
+  getIncidentList,
+  newIdempotencyKey,
+} from '../application/incidentUseCases';
 import { IncidentList } from './IncidentList';
 import { IncidentDetail } from './IncidentDetail';
+import { IncidentReportForm } from './IncidentReportForm';
 
 interface CampusOpsAppProps {
-  repository: IncidentRepository;
+  repository: IncidentSource;
+  /** Si se omite, la app sólo consulta y no muestra el formulario de reporte. */
+  writer?: IncidentWriter;
   telemetry?: TelemetrySink;
 }
 
 // Mensajes genéricos: el detalle técnico sólo va, sanitizado, al registro de telemetría.
 const LIST_ERROR = 'No se pudieron cargar las incidencias.';
 const DETAIL_ERROR = 'No se pudo cargar la incidencia.';
+const CREATE_ERROR = 'No se pudo crear la incidencia.';
+const NO_DETAILS = 'El servidor no envió el detalle de esta incidencia.';
 
-export function CampusOpsApp({ repository, telemetry }: CampusOpsAppProps) {
-  const [incidents, setIncidents] = useState<readonly Incident[]>([]);
+// Un mensaje distinto por tipo de fallo, para que la persona sepa si conviene reintentar.
+const FAILURE_MESSAGES: Readonly<Record<IncidentSourceError['kind'], string | null>> = {
+  timeout: 'El servidor tardó demasiado en responder. Intenta de nuevo.',
+  unavailable: 'El servicio de incidencias no está disponible en este momento.',
+  invalid_response: 'El servidor envió datos inválidos y no se mostraron.',
+  network: 'No hay conexión con el servidor de incidencias.',
+  rejected: null,
+};
+
+function describeFailure(error: unknown, fallback: string): string {
+  return error instanceof IncidentSourceError ? FAILURE_MESSAGES[error.kind] ?? fallback : fallback;
+}
+
+export function CampusOpsApp({ repository, writer, telemetry }: CampusOpsAppProps) {
+  const [incidents, setIncidents] = useState<readonly IncidentEntry[]>([]);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  // Se conserva entre reintentos del mismo borrador para que el backend no duplique.
+  const pendingKey = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -30,9 +65,9 @@ export function CampusOpsApp({ repository, telemetry }: CampusOpsAppProps) {
           setLoading(false);
         }
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (active) {
-          setErrorMessage(LIST_ERROR);
+          setErrorMessage(describeFailure(error, LIST_ERROR));
           setLoading(false);
         }
       });
@@ -45,14 +80,42 @@ export function CampusOpsApp({ repository, telemetry }: CampusOpsAppProps) {
   const handleSelectIncident = async (id: string) => {
     setLoading(true);
     setErrorMessage(null);
+    setNotice(null);
     try {
       const detail = await getIncidentDetail(repository, id, telemetry);
-      setSelectedIncident(detail);
-    } catch {
-      setErrorMessage(DETAIL_ERROR);
+      if (detail !== null && !hasDetails(detail)) {
+        setErrorMessage(NO_DETAILS);
+      } else {
+        setSelectedIncident(detail);
+      }
+    } catch (error) {
+      setErrorMessage(describeFailure(error, DETAIL_ERROR));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreate = async (draft: IncidentDraft) => {
+    if (!writer) return;
+    pendingKey.current ??= newIdempotencyKey();
+    setSubmitting(true);
+    setErrorMessage(null);
+    setNotice(null);
+    try {
+      const created = await createIncident(writer, draft, pendingKey.current, telemetry);
+      pendingKey.current = null;
+      setIncidents((current) => [created, ...current.filter((item) => item.id !== created.id)]);
+      setNotice(`Incidencia creada: ${created.id}`);
+    } catch (error) {
+      setErrorMessage(describeFailure(error, CREATE_ERROR));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDraftChange = () => {
+    // Un borrador distinto es otra operación: necesita otra clave.
+    pendingKey.current = null;
   };
 
   const handleBack = () => {
@@ -75,10 +138,24 @@ export function CampusOpsApp({ repository, telemetry }: CampusOpsAppProps) {
           {errorMessage}
         </Text>
       ) : null}
+      {notice ? (
+        <Text testID="campusops-notice" style={styles.noticeText}>
+          {notice}
+        </Text>
+      ) : null}
       {selectedIncident ? (
         <IncidentDetail incident={selectedIncident} onBack={handleBack} />
       ) : (
-        <IncidentList incidents={incidents} onSelectIncident={handleSelectIncident} />
+        <>
+          {writer ? (
+            <IncidentReportForm
+              submitting={submitting}
+              onSubmit={handleCreate}
+              onDraftChange={handleDraftChange}
+            />
+          ) : null}
+          <IncidentList incidents={incidents} onSelectIncident={handleSelectIncident} />
+        </>
       )}
     </View>
   );
@@ -97,6 +174,12 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 13,
     color: '#6b7280',
+  },
+  noticeText: {
+    paddingVertical: 8,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#047857',
   },
   errorText: {
     paddingVertical: 8,

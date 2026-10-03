@@ -65,7 +65,7 @@ export function IncidentDetail({ incident, onBack }: IncidentDetailProps) {
 
         <View style={styles.detailRow}>
           <Text style={styles.label}>Fecha de reporte:</Text>
-          <Text style={styles.value}>{incident.reportedAt}</Text>
+          <Text style={styles.value}>{incident.reportedAt ?? 'No disponible'}</Text>
         </View>
       </View>
     </View>

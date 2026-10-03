@@ -1,9 +1,9 @@
 import { FlatList, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import type { Incident } from '../domain/incident';
+import { hasDetails, type IncidentEntry } from '../domain/incident';
 import type { IncidentStatus } from '../campusops/contracts';
 
 interface IncidentListProps {
-  incidents: readonly Incident[];
+  incidents: readonly IncidentEntry[];
   onSelectIncident: (id: string) => void;
 }
 
@@ -23,7 +23,7 @@ export function IncidentList({ incidents, onSelectIncident }: IncidentListProps)
         data={incidents}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => hasDetails(item) ? (
           <Pressable
             testID={`incident-item-${item.id}`}
             style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
@@ -44,6 +44,16 @@ export function IncidentList({ incidents, onSelectIncident }: IncidentListProps)
               <Text style={styles.meta}>Prioridad: {item.priority}</Text>
             </View>
           </Pressable>
+        ) : (
+          <View testID={`incident-item-${item.id}`} style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.incidentId}>{item.id}</Text>
+              <View style={[styles.badge, statusBadgeStyles[item.status]]}>
+                <Text style={styles.badgeText}>{item.status}</Text>
+              </View>
+            </View>
+            <Text style={styles.location}>Detalle no disponible: el servidor no envió datos de esta incidencia.</Text>
+          </View>
         )}
       />
     </View>

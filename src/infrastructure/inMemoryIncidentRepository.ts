@@ -1,7 +1,14 @@
-import type { Incident, IncidentRepository } from '../domain/incident';
+import type {
+  Incident,
+  IncidentDraft,
+  IncidentRepository,
+  IncidentWriter,
+} from '../domain/incident';
 
-export class InMemoryIncidentRepository implements IncidentRepository {
+export class InMemoryIncidentRepository implements IncidentRepository, IncidentWriter {
   private readonly incidents: Incident[];
+  private readonly createdByKey = new Map<string, Incident>();
+  private sequence = 100;
 
   constructor(initialData?: Incident[]) {
     this.incidents = initialData ? [...initialData] : [
@@ -71,6 +78,27 @@ export class InMemoryIncidentRepository implements IncidentRepository {
   async getById(id: string): Promise<Incident | null> {
     const found = this.incidents.find((incident) => incident.id === id);
     return found ? { ...found } : null;
+  }
+
+  /** Doble local de la creación remota: repetir la clave devuelve la misma incidencia. */
+  async create(draft: IncidentDraft, idempotencyKey: string): Promise<Incident> {
+    const previous = this.createdByKey.get(idempotencyKey);
+    if (previous) return { ...previous };
+
+    const created: Incident = {
+      id: `INC-LOCAL-${++this.sequence}`,
+      title: draft.description,
+      description: draft.description,
+      category: draft.category,
+      status: 'open',
+      priority: 'medium',
+      location: { source: 'manual', label: draft.location },
+      reportedAt: new Date().toISOString(),
+      assignedTechnicianId: null,
+    };
+    this.incidents.unshift(created);
+    this.createdByKey.set(idempotencyKey, created);
+    return { ...created };
   }
 }
 
