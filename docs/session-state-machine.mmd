@@ -1,0 +1,9 @@
+stateDiagram-v2
+  [*] --> Anonymous
+  Anonymous --> Authenticated: login exitoso
+  Authenticated --> Refreshing: primer request401
+  Refreshing --> Refreshing: otro request401 (se encola, sin nuevo refresh)
+  Refreshing --> Authenticated: refreshSucceeded (se guarda token y se reintenta cada solicitud una vez)
+  Refreshing --> Anonymous: refreshFailed (se borra el token)
+  Authenticated --> Anonymous: logout (se borra el token)
+  Refreshing --> Anonymous: logout (se borra el token)
