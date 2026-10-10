@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "week": 6,
+  "teamId": "E04",
+  "members": [
+    {
+      "studentId": "3523110248",
+      "commitShas": [
+        ""
+      ],
+      "files": [
+        ""
+      ],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    },
+    {
+      "studentId": "3523110241",
+      "commitShas": [
+        ""
+      ],
+      "files": [
+        ""
+      ],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    },
+    {
+      "studentId": "3523110621",
+      "commitShas": [
+        ""
+      ],
+      "files": [
+        ""
+      ],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    }
+  ]
+}
