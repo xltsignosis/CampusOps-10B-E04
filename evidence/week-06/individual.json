@@ -6,17 +6,22 @@
     {
       "studentId": "3523110248",
       "commitShas": [
-        ""
+        "c040318b96dff12bf853b5ffaa016dfe1b352ee0"
       ],
       "files": [
-        ""
+        "src/course-evaluation/index.ts",
+        "src/course-evaluation/index.test.ts",
+        "evidence/week-06/individual.json"
       ],
-      "tests": [],
+      "tests": [
+        "course-tests/public/week-06.test.ts",
+        "src/course-evaluation/index.test.ts"
+      ],
       "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
+      "prediction": "Esperaba que tres eventos request401 de generation 0 compartieran una sola renovación, que refreshSucceeded de generation 1 guardara el nuevo token y reintentara cada requestId una sola vez, y que un fallo o logout eliminaran el estado de sesión sin permitir que una respuesta tardía lo restaurara. También esperaba que los resultados obsoletos no reemplazaran el token vigente ni cancelaran una renovación posterior.",
+      "command": "npm test -- --runInBand course-tests/public/week-06.test.ts src/course-evaluation/index.test.ts\nnpm run typecheck\nnode node_modules/eslint/bin/eslint.js src/course-evaluation/index.ts src/course-evaluation/index.test.ts\ngit diff --check",
+      "observedResult": "La ejecución final de Jest terminó con código 0: pasaron 2 suites y 15 pruebas, incluidas las pruebas públicas de semana 6. Se comprobaron renovación compartida, espera antes del reintento, IDs duplicados, prevención de bucles, 401 tardíos, nuevas generaciones, resultados obsoletos, fallo de renovación, logout y eventos incompletos. TypeScript detectó inicialmente errores de inferencia en generation; después de agregar las anotaciones number, npm run typecheck terminó con código 0. ESLint y git diff --check también terminaron con código 0. La plantilla individual.json se leyó correctamente como JSON y conservó tres registros para el equipo E04.",
+      "explanation": "Implementé coordinateRefresh en src/course-evaluation/index.ts reemplazando el stub pending. La función procesa los cuatro tipos de AuthEvent y devuelve un resumen del estado de sesión, la generación activa, el token vigente, el número de renovaciones y los IDs reintentados. refreshingGeneration permite compartir una renovación en curso; dos conjuntos evitan solicitudes pendientes duplicadas y más de un reintento por requestId. Los resultados de renovación se aceptan para la generación siguiente a la que expiró; los 401 tardíos usan el token vigente sin disparar otro refresh. Un fallo vigente o logout limpia el token y la cola, y cierra el procesamiento de la sesión porque el contrato no incluye un evento de login. Agregué pruebas unitarias y creé la plantilla de evidencia individual de semana 6. Utilicé asistencia de IA (Codex) para implementar, redactar y verificar estos cambios. El SHA registrado corresponde al commit de implementación, pruebas y plantilla; esta actualización de evidencia es posterior."
     },
     {
       "studentId": "3523110241",
