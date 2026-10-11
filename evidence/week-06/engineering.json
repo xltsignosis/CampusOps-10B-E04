@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "week": 6,
+  "commitSha": "a1f5ef581e61a37b2a06bc071a14487f80761742",
+  "decision": "Política de renovación: una sola renovación compartida por generación de token y un solo reintento por solicitud; si la renovación falla no se vuelve a intentar y la sesión regresa a no autenticado. Las reglas viven en una sola función, applyAuthEvent (src/application/session/refreshCoordinator.ts): el primer request401 de una generación inicia la renovación, los siguientes sólo se encolan, refreshSucceeded autoriza un reintento a cada solicitud encolada, un requestId ya reintentado se ignora, y refreshFailed o logout cierran la sesión de forma definitiva. SessionManager (src/application/session/sessionManager.ts) aplica esas reglas evento por evento y ejecuta los efectos: llama una vez al servicio, guarda el token nuevo en SecureStore o lo borra. El adaptador coordinateRefresh de src/course-evaluation/index.ts delega en las mismas reglas, así que no hay una implementación aparte para las pruebas. La expiración por reloj (expiresIn 60 s, reloj inyectable) entra por el mismo camino que un 401. Transición segura cuando falla: ante 401 invalid_grant, falta de red o respuesta inválida del refresh, se borra la sesión guardada, el estado en memoria queda anónimo, las solicitudes que esperaban terminan con error sin reenviarse y la pantalla vuelve al inicio de sesión con el aviso de sesión expirada. Una respuesta de renovación que llega después de un logout o de un login nuevo se descarta comparando la época de la sesión.",
+  "alternatives": [
+    "Que cada solicitud que reciba 401 haga su propia renovación: es lo más simple de escribir, pero tres consultas simultáneas harían tres renovaciones. Con tokens de renovación que rotan, la segunda invalida a la primera; en el simulador se observó que course-refresh-1 ya recibe 401 invalid_grant. Es justo lo que la actividad pide evitar y la mutación conc-control-removed-single-flight muestra que las pruebas lo detectan.",
+    "Reintentar la renovación varias veces con espera cuando falla (por ejemplo 3 intentos): aguantaría un corte breve de red, pero mantiene solicitudes colgadas, puede convertirse en un bucle contra un backend que ya revocó la sesión y deja el token viejo guardado mientras tanto.",
+    "Renovar sólo por reloj con un temporizador antes de que venza, sin reaccionar al 401: evita casi todos los 401, pero si el servidor invalida el token antes de tiempo la app nunca se entera, y un temporizador es difícil de probar sin esperas reales.",
+    "Dejar la lógica sólo dentro del adaptador de evaluación, como estaba al inicio de la semana: pasa la prueba pública, pero la app seguía con actor y token fijos y sin login ni logout, y el contrato pide que el adaptador llame a la lógica real de la app."
+  ],
+  "tradeoff": "Beneficio: bajo concurrencia hay exactamente una llamada de renovación por generación (3 solicitudes, 1 refresh, 1 reintento cada una), cada solicitud se envía como máximo 2 veces, y cualquier fallo deja un estado seguro y fácil de explicar: sin token en memoria ni en SecureStore. Al estar las reglas en una función pura se prueban sin red y sin esperas, y el diagrama docs/session-state-machine.mmd usa los mismos nombres de evento. Costo: un fallo momentáneo de red durante la renovación saca a la persona de la sesión aunque su token de renovación siguiera siendo válido; las solicitudes que esperan dependen del timeout del servicio de sesión (1 s); el conjunto de solicitudes ya reintentadas crece mientras dura la sesión; y hay dos lugares que limitan el reintento (applyAuthEvent y el reenvío único de IncidentClient) que deben mantenerse de acuerdo. Además el backend didáctico sólo acepta course-refresh-0, así que en la app real la segunda renovación siempre termina en cierre de sesión, a los 2 minutos de uso.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-06.test.ts src/course-evaluation/index.test.ts",
+      "result": "pass: Test Suites 2 passed; Tests 15 passed, 15 total",
+      "evidence": "El adaptador ya delega en refreshCoordinator.ts y las 2 pruebas públicas más las 13 unitarias de Persona 2 siguen pasando sin modificarlas (reports/week-06/concurrency.json, conc-public-contract)."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts",
+      "result": "pass: Tests 15 passed, 15 total",
+      "evidence": "Con reloj controlable: a 59 999 ms no renueva y a 60 000 ms renueva una vez; tres 401 simultáneos comparten una renovación; un segundo 401 de la misma solicitud no renueva; refresh fallido deja {anonymous, expired} y store en null; un refresh que llega después del logout no guarda nada; los eventos de sesión no contienen tokens."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.session.test.ts",
+      "result": "pass: Tests 5 passed, 5 total",
+      "evidence": "Cliente HTTP real con la sesión real: 3 consultas con 401 producen 3 envíos con el token viejo, 1 renovación y 3 reenvíos con el nuevo; si el backend sigue en 401 son 6 envíos y 1 renovación; si la renovación falla son 3 envíos, 0 reenvíos y sesión cerrada."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts",
+      "result": "pass: Tests 15 passed, 15 total, contra course-backend/server.mjs en 127.0.0.1",
+      "evidence": "Login por perfil; 3 consultas con token vencido hacen 1 POST /v1/session/refresh; la segunda renovación recibe 401 invalid_grant y la sesión se cierra con el store vacío; después del logout no sale ninguna solicitud. Autorización: técnico asignado inicia y resuelve, técnico ajeno 403, reportante y técnico no cierran ni reabren (403), coordinación cierra y reabre (reports/week-06/auth-tests.json)."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/ui/SessionGate.test.tsx src/app.session.test.tsx",
+      "result": "pass: Test Suites 2 passed; Tests 11 passed, 11 total",
+      "evidence": "La pantalla regresa al inicio de sesión con 'Tu sesión expiró. Inicia sesión de nuevo.' cuando falla la renovación; con el App.tsx real, la clave campusops-session-token existe después de entrar y el almacén seguro queda vacío después de 'Cerrar sesión'."
+    },
+    {
+      "command": "Mutación temporal de src/application/session/refreshCoordinator.ts (quitar la línea que sólo encola cuando ya hay una renovación en curso), luego npx jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/public/week-06.test.ts src/course-evaluation/index.test.ts src/application/session/sessionManager.test.ts src/infrastructure/incidentClient.session.test.ts src/infrastructure/session.backend.test.ts",
+      "result": "fail esperado: 5 suites fallidas, 14 failed, 36 passed; tras restaurar con git checkout: 50 passed",
+      "evidence": "Si se quita la renovación compartida fallan la prueba pública del curso y las de sesión, cliente y backend (concurrency.json, conc-control-removed-single-flight). Quitando el límite de un reintento fallan 2 pruebas y el cliente sigue sin entrar en bucle (conc-control-removed-bounded-retry)."
+    },
+    {
+      "command": "npm run typecheck ; npm run lint ; npm run test:smoke ; npm run backend:self-test ; npm run audit:ci ; npm run bundle:release",
+      "result": "pass: los seis terminaron con código de salida 0; smoke 1/1; self-test del backend PASS; expo export generó dist/export",
+      "evidence": "Comprobaciones de AC-01 corridas a mano en Windows, una por una, porque course_public_evaluator.py --execute-toolchain no encuentra npm.cmd (WinError 2); el CI en Ubuntu las corre completas. El smoke test de App no se modificó."
+    },
+    {
+      "command": "npm test -- --ci --runInBand",
+      "result": "Test Suites: 22 passed, 6 failed, 28 total. Tests: 157 passed, 12 failed, 169 total",
+      "evidence": "Las 6 suites que fallan son course-tests/public/week-08 a week-13: prueban funciones de semanas futuras que siguen como pending() en src/course-evaluation/index.ts y ya fallaban igual antes de estos cambios (17 passed, 6 failed). No se probó la app en emulador ni en dispositivo Android."
+    }
+  ]
+}

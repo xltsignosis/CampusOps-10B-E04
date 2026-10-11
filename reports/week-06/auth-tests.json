@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "week": 6,
+  "commitSha": "a1f5ef581e61a37b2a06bc071a14487f80761742",
+  "generatedAt": "2026-10-10T23:05:00-06:00",
+  "backend": {
+    "start": "npm run backend (course-backend/server.mjs en http://127.0.0.1:4310); para los curl se levantó con COURSE_BACKEND_PORT=4316 y en Jest con COURSE_BACKEND_PORT=0",
+    "actors": "reporter-1, reporter-2, technician-1, technician-2 y coordinator-1: fixtures públicos del curso, no son cuentas reales. El selector de actor es una ayuda de prueba, no autenticación de producción.",
+    "network": "Sólo 127.0.0.1. Ninguna prueba usa Internet público ni proveedores reales."
+  },
+  "clock": "La expiración se prueba con FakeClock (src/testing/sessionDoubles.ts), un reloj que sólo avanza cuando la prueba llama advance(ms). Ninguna prueba espera 60 segundos reales.",
+  "notTested": "No se corrió la app en emulador ni en dispositivo Android: expo-secure-store se sustituye por un doble en Jest (src/app.session.test.tsx). npm run bundle:release sí terminó con código 0.",
+  "checks": [
+    {
+      "id": "auth-login-profiles",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "curl -s -X POST -H \"Content-Type: application/json\" -d '{\"actorId\":\"technician-1\"}' http://127.0.0.1:4316/v1/session/login ; npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-login\"",
+      "expected": "El backend devuelve actor, rol y tokens; la app queda autenticada con el rol correcto para reportante, técnico y coordinador.",
+      "observed": "curl: {\"actorId\":\"technician-1\",\"role\":\"technician\",\"accessToken\":\"course-valid-token\",\"refreshToken\":\"course-refresh-0\",\"expiresIn\":60} -> HTTP 200. Jest: Tests 4 passed, 11 skipped (be-login-reporter-1, be-login-technician-1, be-login-coordinator-1 y be-login-unknown).",
+      "evidence": "SessionManager.login guarda la sesión en el store con expiresAt = 60 000 ms del reloj y entrega a la app sólo {actorId, role}; el snapshot de sesión no contiene tokens (auth-login-ok en sessionManager.test.ts)."
+    },
+    {
+      "id": "auth-login-rejected",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -X POST -H \"Content-Type: application/json\" -d '{\"actorId\":\"intruso-1\"}' http://127.0.0.1:4316/v1/session/login ; npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"auth-login\"",
+      "expected": "Un actor que no existe recibe 401, no queda sesión y no se guarda nada.",
+      "observed": "curl: {\"code\":\"unknown_fixture_actor\"} -> HTTP 401. Jest: Tests 2 passed, 13 skipped (auth-login-ok y auth-login-rejected). En be-login-unknown el store queda en null y la única solicitud enviada es /v1/session/login.",
+      "evidence": "El gateway convierte el 401 en SessionError('invalid_credentials'); la pantalla muestra 'Ese actor de prueba no existe.' (ui-login-rejected) y el cliente de incidencias rechaza sin enviar la consulta."
+    },
+    {
+      "id": "auth-restore-stored-session",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts ; npm test -- --ci --runInBand src/ui/SessionGate.test.tsx src/app.session.test.tsx",
+      "expected": "Una sesión guardada y vigente se recupera sin llamar al login; una vencida o ilegible se descarta y se pide iniciar sesión.",
+      "observed": "sessionManager.test.ts: Tests 15 passed (incluye auth-restore). SessionGate + app.session: Tests 11 passed (incluye auth-app-restore y auth-app-restore-invalid).",
+      "evidence": "En auth-app-restore la app abre directo en la lista y sólo envía /v1/incidents; con un valor que no es JSON muestra 'Iniciar sesión' y no envía nada."
+    },
+    {
+      "id": "auth-expiry-boundary",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"auth-expiry\"",
+      "expected": "Con expiresIn de 60 s: a los 59 999 ms la solicitud usa el token de la generación 0 sin renovar; a los 60 000 ms se renueva una vez y usa la generación 1.",
+      "observed": "Tests 2 passed, 13 skipped (auth-expiry-boundary y auth-expiry-shared). A 59 999 ms gateway.refresh tiene 0 llamadas; a 60 000 ms tiene 1 llamada con course-refresh-g0 y authorize devuelve generation 1.",
+      "evidence": "La comparación es clock.now() >= expiresAt en SessionManager.authorize; el límite exacto se comprueba con el reloj controlable, sin esperas."
+    },
+    {
+      "id": "auth-refresh-real-backend",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "curl -s -X POST -H \"Content-Type: application/json\" -d '{\"refreshToken\":\"course-refresh-0\"}' http://127.0.0.1:4316/v1/session/refresh ; npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-refresh\"",
+      "expected": "Con el token vencido la app renueva contra el backend y guarda el nuevo token de renovación.",
+      "observed": "curl: {\"accessToken\":\"course-valid-token\",\"refreshToken\":\"course-refresh-1\",\"expiresIn\":60} -> HTTP 200. Jest: Tests 3 passed, 12 skipped (be-refresh-shared, be-refresh-stale-token, be-refresh-invalid). En be-refresh-shared el store queda con refreshToken course-refresh-1 y expiresAt 120 000.",
+      "evidence": "Después de renovar, las consultas de incidencias responden normalmente con el token vigente."
+    },
+    {
+      "id": "auth-refresh-failed-returns-anonymous",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -X POST -H \"Content-Type: application/json\" -d '{\"refreshToken\":\"course-refresh-1\"}' http://127.0.0.1:4316/v1/session/refresh ; curl -s -X POST -H \"Content-Type: application/json\" -H \"X-Course-Scenario: invalid_refresh\" -d '{\"refreshToken\":\"course-refresh-0\"}' http://127.0.0.1:4316/v1/session/refresh ; npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"auth-refresh\"",
+      "expected": "Si la renovación falla, la sesión regresa a no autenticado, se borra el token guardado y nada vuelve a intentar renovar.",
+      "observed": "curl con course-refresh-1: {\"code\":\"invalid_grant\"} -> HTTP 401. curl con invalid_refresh: {\"code\":\"invalid_grant\"} -> HTTP 401. Jest: Tests 4 passed, 11 skipped (auth-refresh-failed, auth-refresh-unavailable, auth-refresh-stale-after-logout, auth-refresh-stale-other-session). En be-refresh-stale-token y be-refresh-invalid el snapshot queda {status:'anonymous', reason:'expired'} y el store en null.",
+      "evidence": "Después del fallo, onUnauthorized devuelve false y gateway.refresh se queda en 1 llamada; authorize lanza 'unauthenticated'. La pantalla regresa al login con 'Tu sesión expiró. Inicia sesión de nuevo.' (ui-session-expired). El backend didáctico sólo acepta course-refresh-0, así que en la app real la segunda renovación siempre termina en este caso."
+    },
+    {
+      "id": "auth-refresh-stale-result-ignored",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"auth-refresh\"",
+      "expected": "Una respuesta de renovación que llega después del cierre de sesión, o que pertenece a una sesión anterior, no guarda tokens ni cambia la sesión actual.",
+      "observed": "Tests 4 passed, 11 skipped. auth-refresh-stale-after-logout: store null y snapshot {anonymous, logout}. auth-refresh-stale-other-session: el store conserva coordinator-1 con course-token-g0 y no aparece course-token-obsoleto.",
+      "evidence": "SessionManager compara la época (epoch) con la que empezó la renovación; si cambió por logout o por un login nuevo, descarta el resultado."
+    },
+    {
+      "id": "auth-logout-removes-persisted-token",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"auth-logout-clears\" ; npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-logout\" ; npm test -- --ci --runInBand src/app.session.test.tsx -t \"auth-app-secure-store\"",
+      "expected": "Al cerrar sesión no queda token persistido y la app deja de enviar solicitudes autenticadas.",
+      "observed": "auth-logout-clears: Tests 1 passed, 14 skipped (store null, 1 llamada a clear, authorize lanza 'unauthenticated'). be-logout: Tests 1 passed, 14 skipped (después del logout no sale ninguna solicitud al backend). auth-app-secure-store: Tests 1 passed, 2 skipped (la clave campusops-session-token existe después de entrar y el almacén queda con 0 elementos después de 'Cerrar sesión').",
+      "evidence": "El logout llama a clearSessionToken de src/lib/session/secure-session.ts (SecureStore.deleteItemAsync) a través de SecureSessionStore. La prueba de la app usa el App.tsx real con expo-secure-store sustituido por un mapa en memoria."
+    },
+    {
+      "id": "auth-no-token-in-logs",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"auth-no-token-in-logs\" ; npm test -- --ci --runInBand course-tests/security/threat-controls.test.ts -t \"no escribe en consola\"",
+      "expected": "Los eventos de sesión no contienen tokens ni el actor, aunque el error original los traiga en su mensaje; el código de la app no escribe en consola.",
+      "observed": "auth-no-token-in-logs: Tests 1 passed, 14 skipped. Los eventos serializados contienen session.login.succeeded, session.refresh.succeeded, session.refresh.failed y session.login.failed, y no contienen 'course-token', 'course-refresh', 'Bearer' ni 'technician-1'. threat-controls: Tests 1 passed, 19 skipped.",
+      "evidence": "La sesión registra sólo con recordTelemetry (redactForTelemetry de semana 4), que reduce los errores a errorType y code. SessionError lleva un mensaje fijo ('Sesión: unavailable'), nunca el cuerpo de la respuesta."
+    },
+    {
+      "id": "authz-technician-resolves-assigned",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-authz\"",
+      "expected": "technician-1, asignado a campus-inc-001, puede iniciar la atención y resolverla con diagnóstico.",
+      "observed": "Tests 7 passed, 8 skipped. be-authz-technician-resolves: start -> versión 2, in_progress; resolve -> versión 3, resolved. Con curl: start -> HTTP 201, resolve -> HTTP 201.",
+      "evidence": "La operación pasa por la sesión real: SessionManager + IncidentClient.performAction + RemoteIncidentRepository.perform contra el backend local."
+    },
+    {
+      "id": "authz-technician-not-assigned-403",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -X POST -H \"Content-Type: application/json\" -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: technician-2\" -H \"Idempotency-Key: curl-t2-resolve\" -d '{\"action\":\"resolve\",\"baseVersion\":1,\"diagnosis\":\"x\"}' http://127.0.0.1:4316/v1/incidents/campus-inc-001/actions ; npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-authz\"",
+      "expected": "technician-2, que no está asignado, recibe 403 al iniciar o resolver y la incidencia no cambia.",
+      "observed": "curl: {\"code\":\"forbidden\"} -> HTTP 403. Jest be-authz-technician-not-assigned: start y resolve rechazan con {kind:'http', status:403}; coordinator-1 sigue viendo versión 1 y estado assigned.",
+      "evidence": "La solicitud se envía directo al backend, sin pasar por la pantalla: el rechazo es del servicio."
+    },
+    {
+      "id": "authz-close-reopen-needs-coordinator-403",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -X POST -H \"Content-Type: application/json\" -H \"Authorization: Bearer course-valid-token\" -H \"X-Course-Actor: reporter-1\" -H \"Idempotency-Key: curl-r1-close-1\" -d '{\"action\":\"close\",\"baseVersion\":1}' http://127.0.0.1:4316/v1/incidents/campus-inc-001/actions ; npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-authz\"",
+      "expected": "Ni el reportante ni el técnico asignado pueden cerrar o reabrir, ni antes ni después de que la incidencia esté resuelta.",
+      "observed": "curl reporter-1 close: {\"code\":\"forbidden\"} -> HTTP 403. curl technician-1 close con la incidencia ya resuelta: {\"code\":\"forbidden\"} -> HTTP 403. Jest be-authz-close-needs-coordinator y be-authz-reporter-cannot-coordinate pasan: 403 en close y reopen, y la incidencia sigue en versión 3, resolved.",
+      "evidence": "En el dominio el rechazo llega como IncidentSourceError('rejected', 403) y la pantalla muestra 'No tienes permiso para esta operación.' (ui-action-403)."
+    },
+    {
+      "id": "authz-coordinator-closes-reopens",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-authz\"",
+      "expected": "coordinator-1 cierra la incidencia resuelta y después la reabre.",
+      "observed": "be-authz-coordinator-closes-reopens: close -> versión 4, closed; reopen -> versión 5, assigned. Con curl: close -> HTTP 201, reopen -> HTTP 201, y el estado final es versión 5, assigned, con historial start, resolve, close, reopen.",
+      "evidence": "El historial del backend conserva qué actor hizo cada operación."
+    },
+    {
+      "id": "authz-visibility-and-missing-token",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "curl -s -H \"X-Course-Actor: coordinator-1\" http://127.0.0.1:4316/v1/incidents ; npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-authz\"",
+      "expected": "reporter-2 no puede leer la incidencia de reporter-1 (403) y una solicitud sin token válido recibe 401 aunque el actor exista.",
+      "observed": "curl sin Authorization: {\"code\":\"unauthorized\"} -> HTTP 401. Jest be-authz-visibility: detalle {kind:'http', status:403} y lista vacía. be-authz-no-token: {kind:'http', status:401}.",
+      "evidence": "Enviar sólo el encabezado X-Course-Actor no autentica: hace falta el token de la sesión."
+    },
+    {
+      "id": "authz-hidden-buttons-are-not-the-control",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/ui/SessionGate.test.tsx -t \"ui-role\" ; npm test -- --ci --runInBand src/ui/SessionGate.test.tsx -t \"ui-action-403\"",
+      "expected": "La pantalla ofrece a cada perfil sólo sus operaciones, pero si el servicio responde 403 se muestra el rechazo y la incidencia no cambia en pantalla.",
+      "observed": "ui-role: Tests 3 passed, 5 skipped (reportante: formulario y ninguna operación; técnico asignado: 'Iniciar atención' y luego 'Marcar resuelta'; technician-2: ninguna; coordinación: cerrar y reabrir sólo en resolved/closed). ui-action-403: Tests 1 passed, 7 skipped (mensaje 'No tienes permiso para esta operación.' y el botón sigue igual).",
+      "evidence": "availableActions (src/domain/incidentPermissions.ts) sólo decide qué botones mostrar. Los checks authz-*-403 de este reporte envían las mismas operaciones sin pantalla y el backend las rechaza."
+    }
+  ]
+}

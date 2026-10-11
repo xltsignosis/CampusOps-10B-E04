@@ -41,17 +41,47 @@
     {
       "studentId": "3523110621",
       "commitShas": [
-        ""
+        "a1f5ef581e61a37b2a06bc071a14487f80761742"
       ],
       "files": [
-        ""
+        "src/application/session/refreshCoordinator.ts",
+        "src/application/session/sessionManager.ts",
+        "src/domain/session.ts",
+        "src/domain/incidentPermissions.ts",
+        "src/domain/incident.ts",
+        "src/infrastructure/sessionGateway.ts",
+        "src/infrastructure/secureTokenStore.ts",
+        "src/infrastructure/incidentClient.ts",
+        "src/infrastructure/remoteIncidentRepository.ts",
+        "src/application/incidentUseCases.ts",
+        "src/ui/LoginScreen.tsx",
+        "src/ui/SessionGate.tsx",
+        "src/ui/IncidentDetail.tsx",
+        "src/ui/CampusOpsApp.tsx",
+        "App.tsx",
+        "src/course-evaluation/index.ts",
+        "docs/session-state-machine.mmd",
+        "reports/week-06/auth-tests.json",
+        "reports/week-06/concurrency.json",
+        "evidence/week-06/engineering.json"
       ],
-      "tests": [],
-      "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
+      "tests": [
+        "src/application/session/sessionManager.test.ts",
+        "src/infrastructure/incidentClient.session.test.ts",
+        "src/infrastructure/session.backend.test.ts",
+        "src/ui/SessionGate.test.tsx",
+        "src/app.session.test.tsx",
+        "course-tests/public/week-06.test.ts",
+        "src/course-evaluation/index.test.ts"
+      ],
+      "reviews": [
+        "Revisé src/course-evaluation/index.ts de Persona 2 (commit c040318): las reglas de coordinateRefresh estaban bien y pasaban sus 13 pruebas, pero vivían sólo en el adaptador y la app no las usaba (no había login, refresh ni logout, y el cliente tenía actor y token fijos). Las moví sin cambiarlas a src/application/session/refreshCoordinator.ts y dejé el adaptador delegando, como en semanas 4 y 5; sus pruebas siguen pasando sin tocarlas.",
+        "Revisé docs/session-state-machine.mmd de Persona 1 (commit 6129f6f) contra el código: sus transiciones coinciden con applyAuthEvent. Le agregué las que aparecieron con la sesión real: restore, expiración por reloj, 401 tardío y segundo 401 de la misma solicitud."
+      ],
+      "prediction": "Esperaba que tres consultas que reciben 401 al mismo tiempo hicieran una sola renovación y que cada una se reenviara una vez; que a los 59 999 ms no se renovara y a los 60 000 ms sí; que si la renovación fallaba la sesión quedara sin token guardado y la pantalla regresara al login; y que el backend respondiera 403 cuando technician-2 intentara resolver o cuando el reportante intentara cerrar, aunque la solicitud no pasara por la pantalla. También esperaba que al quitar la renovación compartida fallaran las pruebas, y que mover la lógica de Persona 2 no rompiera ninguna prueba anterior.",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts\nnpm test -- --ci --runInBand src/infrastructure/incidentClient.session.test.ts\nnpm test -- --ci --runInBand src/infrastructure/session.backend.test.ts\nnpm test -- --ci --runInBand src/ui/SessionGate.test.tsx src/app.session.test.tsx\nnpm test -- --ci --runInBand course-tests/public/week-06.test.ts src/course-evaluation/index.test.ts\nnpm run typecheck\nnpm run lint\nnpm test -- --ci --runInBand",
+      "observedResult": "Sesión 15/15, cliente con sesión 5/5, backend local 15/15, pantalla y app 11/11, públicas más unitarias de Persona 2 15/15. typecheck y lint con código 0. La corrida completa dio 22 suites pasadas y 6 fallidas (157 pruebas pasan, 12 fallan); las 6 son las públicas de semanas 8 a 13, que ya fallaban antes porque esas funciones siguen pendientes. Contra el backend, tres consultas con el token vencido hicieron un solo POST /v1/session/refresh; la segunda renovación recibió 401 invalid_grant y la sesión se cerró con el almacén vacío. technician-2 y reporter-1 recibieron 403 y la incidencia no cambió. Dos cosas no salieron como esperaba: al agregar la versión a la incidencia falló una prueba mía de semana 5 que comparaba el objeto exacto, y tuve que actualizar esa expectativa; y al quitar el límite de un reintento sólo fallaron 2 pruebas, porque el cliente HTTP por su cuenta ya reenvía una sola vez. Al quitar la renovación compartida fallaron 14 pruebas, incluida la pública. No probé la app en emulador ni en teléfono; el almacenamiento seguro se sustituyó por un doble en Jest.",
+      "explanation": "Mi parte era perfiles, autorización, reportes y pruebas. Al revisar la rama vi que no había una sesión real en la app sobre la cual probar inicio, expiración y cierre, así que también la hice. Moví las reglas de Persona 2 a la capa de aplicación como applyAuthEvent y escribí SessionManager, que las aplica evento por evento: en login guarda la sesión con expo-secure-store, en authorize revisa el reloj inyectado, ante un 401 comparte una sola llamada de renovación y deja un reintento por solicitud, y si la renovación falla o hay logout borra lo guardado y queda sin sesión. IncidentClient ahora toma el token y el actor de la sesión y reenvía como máximo una vez. Agregué las operaciones iniciar, resolver, cerrar y reabrir, la pantalla de inicio de sesión con los actores de prueba y los botones por perfil; la pantalla sólo decide qué mostrar y el permiso lo valida el backend, lo que comprobé enviando las operaciones prohibidas directo al backend (403). Llené auth-tests.json, concurrency.json y engineering.json con los comandos y resultados que corrí. Usé asistencia de IA (Claude Code) para implementar, escribir las pruebas y redactar; se verificó corriendo los comandos listados, revisando los diffs y con dos mutaciones temporales que se restauraron con git checkout."
     }
   ]
 }

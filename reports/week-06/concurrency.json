@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "week": 6,
+  "commitSha": "a1f5ef581e61a37b2a06bc071a14487f80761742",
+  "generatedAt": "2026-10-10T23:05:00-06:00",
+  "summary": {
+    "concurrentRequests": 3,
+    "refreshCalls": 1,
+    "retriesPerRequest": 1,
+    "maxSendsPerRequest": 2,
+    "rules": "src/application/session/refreshCoordinator.ts (applyAuthEvent). El adaptador coordinateRefresh de src/course-evaluation/index.ts delega en esas mismas reglas y SessionManager las aplica evento por evento."
+  },
+  "clock": "FakeClock (src/testing/sessionDoubles.ts): el tiempo sólo avanza con advance(ms). La renovación en curso se controla con una promesa diferida, sin temporizadores ni esperas.",
+  "checks": [
+    {
+      "id": "conc-public-contract",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-06.test.ts src/course-evaluation/index.test.ts",
+      "expected": "Tres request401 de la generación 0 y un refreshSucceeded dan refreshCalls 1 y retriedRequestIds ['a','b','c']; logout deja persistedToken en null.",
+      "observed": "Test Suites: 2 passed, 2 total. Tests: 15 passed, 15 total (2 públicas y 13 unitarias de Persona 2).",
+      "evidence": "Las mismas pruebas pasaban antes de mover la lógica a src/application/session/refreshCoordinator.ts y siguen pasando sin haberlas modificado."
+    },
+    {
+      "id": "conc-single-flight-session",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"conc-\"",
+      "expected": "Tres 401 simultáneos esperan una sola llamada de renovación y cada solicitud queda autorizada a un reintento.",
+      "observed": "Tests 4 passed, 11 skipped (conc-single-flight, conc-bounded-retry, conc-late-401, conc-new-generation). En conc-single-flight, con la renovación todavía en curso: gateway.refresh 1 llamada y stats {refreshCalls:1, retriedRequests:0, generation:0}; al resolverse: [true,true,true] y stats {refreshCalls:1, retriedRequests:3, generation:1}.",
+      "evidence": "Ninguna solicitud se reintenta antes de que la renovación termine: retriedRequests pasa de 0 a 3 sólo después del refreshSucceeded."
+    },
+    {
+      "id": "conc-client-three-401",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.session.test.ts -t \"conc-client\"",
+      "expected": "Tres getIncidents en paralelo que reciben 401 producen 3 envíos con el token viejo, 1 renovación y 3 reenvíos con el token nuevo.",
+      "observed": "Tests 4 passed, 1 skipped. conc-client-three-401: mientras la renovación está pendiente hay 3 envíos y 1 llamada a refresh; al terminar, los encabezados Authorization fueron, en orden, 3 veces 'Bearer course-token-g0' y 3 veces 'Bearer course-token-g1'; refresh sigue en 1 llamada.",
+      "evidence": "Es el cliente HTTP real (IncidentClient) con la sesión real (SessionManager); sólo fetch y el servicio de sesión son dobles."
+    },
+    {
+      "id": "conc-backend-three-expired",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-refresh\"",
+      "expected": "Contra el backend local, tres consultas con el token vencido hacen un solo POST /v1/session/refresh y las tres obtienen la lista.",
+      "observed": "Tests 3 passed, 12 skipped. be-refresh-shared: las tres listas contienen campus-inc-001, el conteo de solicitudes a /v1/session/refresh es 1 y stats {refreshCalls:1, retriedRequests:3, generation:1}.",
+      "evidence": "El conteo se hace sobre las solicitudes HTTP que realmente salen hacia el backend. Con la renovación compartida quitada (conc-control-removed-single-flight) esta misma prueba falla."
+    },
+    {
+      "id": "conc-clock-expiry-shared",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"auth-expiry\"",
+      "expected": "Si tres solicitudes encuentran el token vencido por reloj al mismo tiempo, también comparten una renovación.",
+      "observed": "Tests 2 passed, 13 skipped. auth-expiry-shared: gateway.refresh 1 llamada, las tres credenciales con generation 1 y expiresAt 120 000.",
+      "evidence": "La expiración por reloj entra por el mismo camino que el 401 (SessionManager.authorize llama a onUnauthorized)."
+    },
+    {
+      "id": "conc-bounded-retry-no-loop",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"conc-\" ; npm test -- --ci --runInBand src/infrastructure/incidentClient.session.test.ts -t \"conc-client\"",
+      "expected": "Si el backend sigue respondiendo 401 después de renovar, cada solicitud se envía 2 veces como máximo y termina con error; no hay segunda renovación.",
+      "observed": "conc-bounded-retry: la segunda y tercera llamada a onUnauthorized de request-1 devuelven false y refresh se queda en 1 llamada. conc-client-no-loop: 3 consultas rechazadas con {kind:'http', status:401}, 6 envíos en total y 1 renovación.",
+      "evidence": "Hay dos límites: applyAuthEvent ignora el request401 de un requestId ya reintentado, y IncidentClient.requestJson reenvía con un if, no con un ciclo."
+    },
+    {
+      "id": "conc-late-401-uses-current-token",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"conc-\"",
+      "expected": "Un 401 que llega tarde, de una solicitud enviada con el token anterior, se reintenta con el token ya renovado sin otra renovación.",
+      "observed": "conc-late-401: onUnauthorized('request-2', 0) devuelve true, refresh se queda en 1 llamada y authorize entrega course-token-g1, generation 1.",
+      "evidence": "applyAuthEvent distingue la generación del token con que salió la solicitud de la generación vigente."
+    },
+    {
+      "id": "conc-new-generation-one-more-refresh",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/application/session/sessionManager.test.ts -t \"conc-\"",
+      "expected": "Cuando vence el token renovado se permite exactamente una renovación más, compartida por las solicitudes de esa generación.",
+      "observed": "conc-new-generation: refresh se llamó con ['course-refresh-g0','course-refresh-g1'] y stats {refreshCalls:2, retriedRequests:3, generation:2}.",
+      "evidence": "Dos generaciones vencidas producen dos renovaciones, no una por solicitud."
+    },
+    {
+      "id": "conc-refresh-failed-no-retries",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.session.test.ts -t \"conc-client\" ; npm test -- --ci --runInBand src/infrastructure/session.backend.test.ts -t \"be-refresh\"",
+      "expected": "Si la única renovación falla, las solicitudes que esperaban no se reintentan y la sesión queda cerrada, sin token guardado.",
+      "observed": "conc-client-refresh-failed: 3 consultas rechazadas, 3 envíos (ningún reenvío), 1 renovación, snapshot {anonymous, expired} y store null. be-refresh-stale-token (backend real): 2 consultas rechazadas, 2 solicitudes a /v1/session/refresh en toda la sesión (la primera aceptada y la segunda con 401), store null, y la siguiente consulta ya no sale al backend.",
+      "evidence": "No hay reintento de la renovación: un fallo lleva directo a no autenticado."
+    },
+    {
+      "id": "conc-retry-keeps-idempotency-key",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/infrastructure/incidentClient.session.test.ts -t \"conc-client\"",
+      "expected": "El reenvío de una escritura después de renovar conserva el actor y la misma Idempotency-Key.",
+      "observed": "conc-client-retry-keeps-key: dos envíos a /v1/incidents/campus-inc-001/actions con la clave start-key-0001, el primero con course-token-g0 y el segundo con course-token-g1.",
+      "evidence": "Así el reintento por sesión no puede duplicar la operación en el backend."
+    },
+    {
+      "id": "conc-control-removed-single-flight",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "Mutación temporal en src/application/session/refreshCoordinator.ts: quitar la línea `if (next.refreshingGeneration !== null) return { ...next, pendingRequestIds };`; luego npx jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/public/week-06.test.ts src/course-evaluation/index.test.ts src/application/session/sessionManager.test.ts src/infrastructure/incidentClient.session.test.ts src/infrastructure/session.backend.test.ts",
+      "expected": "Sin la renovación compartida cada 401 dispara su propia renovación y las pruebas deben fallar.",
+      "observed": "Test Suites: 5 failed, 5 total. Tests: 14 failed, 36 passed, 50 total. Fallaron, entre otras, la pública 'coalesces concurrent 401s into one refresh and retries each request once', conc-single-flight, conc-client-three-401, auth-expiry-shared y be-refresh-shared. Se restauró el archivo con git checkout y git status quedó limpio.",
+      "evidence": "status 'fail' registra la corrida con el control quitado: las pruebas detectan las renovaciones duplicadas, incluida la prueba pública del curso."
+    },
+    {
+      "id": "conc-control-removed-single-flight",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npx jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/public/week-06.test.ts src/course-evaluation/index.test.ts src/application/session/sessionManager.test.ts src/infrastructure/incidentClient.session.test.ts src/infrastructure/session.backend.test.ts",
+      "expected": "Con el control restaurado, las 50 pruebas pasan.",
+      "observed": "Test Suites: 5 passed, 5 total. Tests: 50 passed, 50 total, en el commit a1f5ef5.",
+      "evidence": "Mismo comando que la corrida mutada, ahora con el código real del commit."
+    },
+    {
+      "id": "conc-control-removed-bounded-retry",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "Mutación temporal: en src/application/session/refreshCoordinator.ts dejar el request401 sin la condición `state.retriedRequestIds.has(event.requestId)` y en src/application/session/sessionManager.ts quitar `if (this.refreshState.retriedRequestIds.has(requestId)) return false;`; luego el mismo npx jest de conc-control-removed-single-flight",
+      "expected": "Sin el límite de un reintento por solicitud, una solicitud ya reintentada puede volver a renovar y las pruebas deben fallar.",
+      "observed": "Test Suites: 2 failed, 3 passed, 5 total. Tests: 2 failed, 48 passed, 50 total. Fallaron 'retries duplicate request IDs once and prevents refresh loops' (index.test.ts) y conc-bounded-retry (sessionManager.test.ts). conc-client-no-loop siguió pasando. Se restauraron los dos archivos con git checkout.",
+      "evidence": "Aun sin ese límite en la sesión, el cliente HTTP no entra en bucle porque sólo reenvía una vez; por eso conc-client-no-loop no falló. Son dos barreras independientes."
+    }
+  ]
+}
