@@ -26,17 +26,19 @@
     {
       "studentId": "3523110241",
       "commitShas": [
-        ""
+        "8dd26d88159ce741a4ab5dec650fe450807a13c3"
       ],
       "files": [
-        ""
+        "docs/session-state-machine.mmd"
       ],
       "tests": [],
-      "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
+      "reviews": [
+        "Contrasté los estados y eventos del diagrama con la firma real de coordinateRefresh en src/course-evaluation/index.ts (status 'anonymous' | 'authenticated', eventos request401, refreshSucceeded, refreshFailed y logout) y comprobé en mermaid.live que el diagrama se renderiza sin errores de sintaxis."
+      ],
+      "prediction": "Esperaba que el diagrama solo fuera válido si usaba los mismos estados y eventos que el código, porque el enunciado exige que coincidan, así que tomé los nombres de la firma de coordinateRefresh en lugar de inventarlos.",
+      "command": "Revisión del diagrama en mermaid.live y comparación con src/course-evaluation/index.ts",
+      "observedResult": "[Describe lo que viste: si se renderizó sin errores y si los estados coincidían con el código.]",
+      "explanation": "El diagrama representa cuatro estados: Anonymous, Authenticated y Refreshing, además del inicio. Muestra que varios request401 durante Refreshing se encolan sin iniciar otro refresh (renovación compartida), que refreshSucceeded vuelve a Authenticated y reintenta cada solicitud una vez, y que refreshFailed o logout vuelven a Anonymous borrando el token. [Si la implementación de coordinateRefresh agrega o quita transiciones, indícalo aquí y ajusta el diagrama.]"
     },
     {
       "studentId": "3523110621",
