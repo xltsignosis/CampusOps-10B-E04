@@ -3,16 +3,27 @@ import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { getBackendHealth } from './src/api/courseBackend';
+import { SessionManager } from './src/application/session/sessionManager';
 import { IncidentClient } from './src/infrastructure/incidentClient';
 import { RemoteIncidentRepository } from './src/infrastructure/remoteIncidentRepository';
 import { InMemoryTelemetrySink } from './src/infrastructure/inMemoryTelemetrySink';
+import { SecureSessionStore } from './src/infrastructure/secureTokenStore';
+import { HttpSessionGateway } from './src/infrastructure/sessionGateway';
 import { CampusOpsApp } from './src/ui/CampusOpsApp';
+import { SessionGate } from './src/ui/SessionGate';
 
 export default function App() {
   const [status, setStatus] = useState<'checking' | 'available' | 'offline'>('checking');
-  // Composition root: la UI recibe puertos del dominio; sólo aquí se elige el cliente HTTP.
-  const incidentRepository = useMemo(() => new RemoteIncidentRepository(new IncidentClient()), []);
+  // Composition root: la UI recibe puertos del dominio; sólo aquí se eligen sesión y cliente HTTP.
   const telemetry = useMemo(() => new InMemoryTelemetrySink(), []);
+  const sessionManager = useMemo(
+    () => new SessionManager({ gateway: new HttpSessionGateway(), store: new SecureSessionStore(), telemetry }),
+    [telemetry],
+  );
+  const incidentRepository = useMemo(
+    () => new RemoteIncidentRepository(new IncidentClient({ auth: sessionManager })),
+    [sessionManager],
+  );
 
   useEffect(() => {
     let active = true;
@@ -33,7 +44,18 @@ export default function App() {
       </View>
 
       <View style={styles.content}>
-        <CampusOpsApp repository={incidentRepository} writer={incidentRepository} telemetry={telemetry} />
+        <SessionGate controller={sessionManager}>
+          {(session) => (
+            <CampusOpsApp
+              key={session.actorId}
+              repository={incidentRepository}
+              writer={incidentRepository}
+              actions={incidentRepository}
+              session={session}
+              telemetry={telemetry}
+            />
+          )}
+        </SessionGate>
       </View>
       <StatusBar style="auto" />
     </View>

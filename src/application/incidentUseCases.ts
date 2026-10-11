@@ -1,4 +1,6 @@
 import type {
+  IncidentAction,
+  IncidentActions,
   IncidentDraft,
   IncidentEntry,
   IncidentSource,
@@ -92,7 +94,44 @@ export async function createIncident(
   }
 }
 
+/**
+ * Ejecuta una operación sobre una incidencia (iniciar, resolver, cerrar, reabrir).
+ * El permiso lo decide el servicio: aquí sólo se registra el resultado, sin el
+ * diagnóstico ni el actor, que son datos sensibles.
+ */
+export async function performIncidentAction(
+  actions: IncidentActions,
+  incidentId: string,
+  baseVersion: number,
+  action: IncidentAction,
+  idempotencyKey: string,
+  telemetry?: TelemetrySink,
+): Promise<IncidentEntry> {
+  const startedAt = Date.now();
+  try {
+    const updated = await actions.perform(incidentId, baseVersion, action, idempotencyKey);
+    recordTelemetry(telemetry, {
+      event: 'incident.action.succeeded',
+      status: 'ok',
+      durationMs: Date.now() - startedAt,
+      incidentId,
+      operation: action.action,
+    });
+    return updated;
+  } catch (error) {
+    recordTelemetry(telemetry, {
+      event: 'incident.action.failed',
+      status: 'error',
+      durationMs: Date.now() - startedAt,
+      incidentId,
+      operation: action.action,
+      error,
+    });
+    throw error;
+  }
+}
+
 /** Clave de idempotencia para un envío nuevo (el backend exige al menos 8 caracteres). */
-export function newIdempotencyKey(): string {
-  return `create-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+export function newIdempotencyKey(prefix = 'create'): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }

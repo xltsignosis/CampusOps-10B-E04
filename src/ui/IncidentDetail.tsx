@@ -1,11 +1,23 @@
-import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import type { Incident } from '../domain/incident';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View, type ViewStyle } from 'react-native';
+import type { Incident, IncidentAction, IncidentActionName } from '../domain/incident';
 import type { IncidentStatus } from '../campusops/contracts';
 
 interface IncidentDetailProps {
   incident: Incident;
   onBack: () => void;
+  /** Operaciones que el perfil puede intentar. Vacío o ausente: sólo lectura. */
+  actions?: readonly IncidentActionName[];
+  busy?: boolean;
+  onAction?: (action: IncidentAction) => void;
 }
+
+const ACTION_LABELS: Readonly<Record<IncidentActionName, string>> = {
+  start: 'Iniciar atención',
+  resolve: 'Marcar resuelta',
+  close: 'Cerrar incidencia',
+  reopen: 'Reabrir incidencia',
+};
 
 const statusBadgeStyles: Record<IncidentStatus, ViewStyle> = {
   open: { backgroundColor: '#fef3c7' },
@@ -15,7 +27,9 @@ const statusBadgeStyles: Record<IncidentStatus, ViewStyle> = {
   closed: { backgroundColor: '#f3f4f6' },
 };
 
-export function IncidentDetail({ incident, onBack }: IncidentDetailProps) {
+export function IncidentDetail({ incident, onBack, actions = [], busy = false, onAction }: IncidentDetailProps) {
+  const [diagnosis, setDiagnosis] = useState<string>('');
+
   return (
     <View style={styles.container}>
       <Pressable
@@ -68,6 +82,40 @@ export function IncidentDetail({ incident, onBack }: IncidentDetailProps) {
           <Text style={styles.value}>{incident.reportedAt ?? 'No disponible'}</Text>
         </View>
       </View>
+
+      {onAction && actions.length > 0 ? (
+        <View style={styles.actions}>
+          {actions.includes('resolve') ? (
+            <TextInput
+              testID="action-diagnosis"
+              style={styles.input}
+              placeholder="Diagnóstico de la resolución"
+              value={diagnosis}
+              onChangeText={setDiagnosis}
+              editable={!busy}
+              accessibilityLabel="Diagnóstico de la resolución"
+            />
+          ) : null}
+          {actions.map((name) => {
+            const disabled = busy || (name === 'resolve' && diagnosis.trim().length === 0);
+            return (
+              <Pressable
+                key={name}
+                testID={`action-${name}`}
+                style={[styles.actionButton, disabled && styles.actionDisabled]}
+                disabled={disabled}
+                onPress={() =>
+                  onAction(name === 'resolve' ? { action: 'resolve', diagnosis: diagnosis.trim() } : { action: name })
+                }
+                accessibilityRole="button"
+                accessibilityLabel={ACTION_LABELS[name]}
+              >
+                <Text style={styles.actionText}>{ACTION_LABELS[name]}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -144,6 +192,34 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     textTransform: 'uppercase',
+  },
+  actions: {
+    marginTop: 12,
+    gap: 8,
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#111827',
+  },
+  actionButton: {
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  actionDisabled: {
+    opacity: 0.5,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
 

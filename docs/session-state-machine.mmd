@@ -1,7 +1,11 @@
+%% Código: src/application/session/refreshCoordinator.ts (applyAuthEvent) y src/application/session/sessionManager.ts
 stateDiagram-v2
   [*] --> Anonymous
-  Anonymous --> Authenticated: login exitoso
-  Authenticated --> Refreshing: primer request401
+  Anonymous --> Authenticated: login exitoso (se guarda el token)
+  Anonymous --> Authenticated: restore (sesión guardada y vigente)
+  Authenticated --> Refreshing: primer request401 o reloj vencido
+  Authenticated --> Authenticated: request401 tardío de la generación anterior (se reintenta con el token vigente, sin refresh)
+  Authenticated --> Authenticated: segundo request401 de la misma solicitud (se rechaza, sin nuevo refresh)
   Refreshing --> Refreshing: otro request401 (se encola, sin nuevo refresh)
   Refreshing --> Authenticated: refreshSucceeded (se guarda token y se reintenta cada solicitud una vez)
   Refreshing --> Anonymous: refreshFailed (se borra el token)

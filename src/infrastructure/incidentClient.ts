@@ -1,4 +1,5 @@
 import type { IncidentCategory, IncidentStatus } from '../campusops/contracts';
+import { SessionError, type RequestAuthorizer, type RequestCredentials } from '../domain/session';
 import { parseRemoteResource, type RemoteResource } from './remoteResource';
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:4310';
@@ -49,6 +50,13 @@ export type CreateIncidentInput = Readonly<{
   location: string;
 }>;
 
+/** Operaciones sobre una incidencia existente; el backend decide si el perfil puede ejecutarlas. */
+export type IncidentActionInput =
+  | Readonly<{ action: 'start' }>
+  | Readonly<{ action: 'resolve'; diagnosis: string }>
+  | Readonly<{ action: 'close' }>
+  | Readonly<{ action: 'reopen' }>;
+
 export type IncidentClientErrorKind =
   | 'contract'
   | 'timeout'
@@ -75,6 +83,8 @@ export type IncidentClientOptions = Readonly<{
   timeoutMs?: number;
   scenario?: string;
   fetchImpl?: typeof fetch;
+  /** Sesión de la app. Si se omite, se usan actorId y accessToken fijos. */
+  auth?: RequestAuthorizer;
 }>;
 
 type RequestOptions = Readonly<{
@@ -153,6 +163,8 @@ export class IncidentClient {
   private readonly timeoutMs: number;
   private readonly scenario: string | undefined;
   private readonly fetchImpl: typeof fetch;
+  private readonly auth: RequestAuthorizer | undefined;
+  private requestSequence = 0;
 
   constructor(options: IncidentClientOptions = {}) {
     this.baseUrl = (options.baseUrl ?? process.env.EXPO_PUBLIC_COURSE_BACKEND_URL ?? DEFAULT_BASE_URL)
@@ -163,6 +175,7 @@ export class IncidentClient {
     this.scenario = options.scenario;
     // Se resuelve fetch global al llamar, no al construir, y sin depender de `this`.
     this.fetchImpl = options.fetchImpl ?? ((input, init) => fetch(input, init));
+    this.auth = options.auth;
 
     if (!isNonEmptyString(this.baseUrl) || !isNonEmptyString(this.actorId)) {
       throw new Error('La configuración del cliente de incidencias es inválida.');
@@ -222,14 +235,79 @@ export class IncidentClient {
     return parseIncident(response.incident);
   }
 
+  async performAction(
+    id: string,
+    baseVersion: number,
+    input: IncidentActionInput,
+    idempotencyKey: string,
+  ): Promise<IncidentSnapshot> {
+    if (!isNonEmptyString(id) || !Number.isInteger(baseVersion) || baseVersion < 0) {
+      throw new Error('La incidencia o su versión son inválidas.');
+    }
+    if (input.action === 'resolve' && !isNonEmptyString(input.diagnosis)) {
+      throw new Error('La resolución necesita un diagnóstico.');
+    }
+    if (!isNonEmptyString(idempotencyKey) || idempotencyKey.length < 8) {
+      throw new Error('La clave de idempotencia debe contener al menos 8 caracteres.');
+    }
+
+    const response = await this.requestJson(`/v1/incidents/${encodeURIComponent(id)}/actions`, {
+      method: 'POST',
+      body: { ...input, baseVersion },
+      idempotencyKey,
+    });
+    if (!isRecord(response) || !('incident' in response)) {
+      throw new IncidentClientError('contract', 'La operación no devolvió una incidencia válida.');
+    }
+    return parseIncident(response.incident);
+  }
+
+  private async credentialsFor(requestId: string): Promise<RequestCredentials> {
+    if (!this.auth) {
+      return { accessToken: this.accessToken, actorId: this.actorId, generation: 0 };
+    }
+    try {
+      return await this.auth.authorize(requestId);
+    } catch (error) {
+      if (error instanceof SessionError) {
+        throw new IncidentClientError('http', 'No hay una sesión válida para esta solicitud.', 401);
+      }
+      throw error;
+    }
+  }
+
   private async requestJson(path: string, options: RequestOptions = {}): Promise<unknown> {
+    this.requestSequence += 1;
+    const requestId = `request-${this.requestSequence}`;
+
+    let credentials = await this.credentialsFor(requestId);
+    let response = await this.send(path, options, credentials);
+    // Un 401 se consulta con la sesión; a lo más se reenvía una vez por solicitud.
+    if (response.status === 401 && this.auth && await this.auth.onUnauthorized(requestId, credentials.generation)) {
+      credentials = await this.credentialsFor(requestId);
+      response = await this.send(path, options, credentials);
+    }
+
+    if (!response.ok) {
+      const kind: IncidentClientErrorKind = response.status >= 500 ? 'server' : 'http';
+      throw new IncidentClientError(kind, `El backend respondió con HTTP ${response.status}.`, response.status);
+    }
+
+    try {
+      return await response.json() as unknown;
+    } catch {
+      throw new IncidentClientError('contract', 'El backend devolvió JSON inválido.');
+    }
+  }
+
+  private async send(path: string, options: RequestOptions, credentials: RequestCredentials): Promise<Response> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
     const method = options.method ?? 'GET';
     const headers: Record<string, string> = {
       Accept: 'application/json',
-      Authorization: `Bearer ${this.accessToken}`,
-      'X-Course-Actor': this.actorId,
+      Authorization: `Bearer ${credentials.accessToken}`,
+      'X-Course-Actor': credentials.actorId,
     };
 
     if (this.scenario) {
@@ -243,31 +321,17 @@ export class IncidentClient {
     }
 
     try {
-      let response: Response;
-      try {
-        response = await this.fetchImpl(`${this.baseUrl}${path}`, {
-          method,
-          headers,
-          signal: controller.signal,
-          ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
-        });
-      } catch {
-        if (controller.signal.aborted) {
-          throw new IncidentClientError('timeout', 'El backend excedió el tiempo de espera.');
-        }
-        throw new IncidentClientError('network', 'No fue posible conectar con el backend.');
+      return await this.fetchImpl(`${this.baseUrl}${path}`, {
+        method,
+        headers,
+        signal: controller.signal,
+        ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+      });
+    } catch {
+      if (controller.signal.aborted) {
+        throw new IncidentClientError('timeout', 'El backend excedió el tiempo de espera.');
       }
-
-      if (!response.ok) {
-        const kind: IncidentClientErrorKind = response.status >= 500 ? 'server' : 'http';
-        throw new IncidentClientError(kind, `El backend respondió con HTTP ${response.status}.`, response.status);
-      }
-
-      try {
-        return await response.json() as unknown;
-      } catch {
-        throw new IncidentClientError('contract', 'El backend devolvió JSON inválido.');
-      }
+      throw new IncidentClientError('network', 'No fue posible conectar con el backend.');
     } finally {
       clearTimeout(timeout);
     }

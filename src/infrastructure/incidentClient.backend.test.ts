@@ -4,70 +4,20 @@
  * Semana 5 — el cliente real contra el backend didáctico local (course-backend/server.mjs).
  * Se levanta en 127.0.0.1 con un puerto libre; no se usa Internet público ni proveedores reales.
  */
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
-import { request } from 'node:http';
-import { resolve } from 'node:path';
+import { nodeHttpFetch, startLocalBackend, type LocalBackend } from '../testing/localBackend';
 
 import { IncidentClient, IncidentClientError } from './incidentClient';
 
-/**
- * jest-expo sustituye el fetch global por un doble incluso en entorno node, así que
- * aquí se usa un transporte HTTP real mínimo con node:http. Respeta AbortSignal
- * igual que fetch, de modo que el timeout del cliente se prueba de verdad.
- */
-const nodeHttpFetch = ((input: string | URL | Request, init?: RequestInit) =>
-  new Promise<Response>((done, fail) => {
-    const signal = init?.signal;
-    if (signal?.aborted) return fail(new Error('aborted'));
-    const req = request(
-      String(input),
-      { method: init?.method ?? 'GET', headers: init?.headers as Record<string, string> },
-      (res) => {
-        const chunks: Buffer[] = [];
-        res.on('data', (chunk: Buffer) => chunks.push(chunk));
-        res.on('end', () => {
-          const raw = Buffer.concat(chunks).toString('utf8');
-          const status = res.statusCode ?? 0;
-          done({
-            ok: status >= 200 && status < 300,
-            status,
-            json: () => Promise.resolve().then(() => JSON.parse(raw) as unknown),
-          } as unknown as Response);
-        });
-        res.on('error', fail);
-      },
-    );
-    req.on('error', fail);
-    signal?.addEventListener('abort', () => {
-      req.destroy();
-      fail(new Error('aborted'));
-    });
-    if (typeof init?.body === 'string') req.write(init.body);
-    req.end();
-  })) as typeof fetch;
-
-let backend: ChildProcessWithoutNullStreams;
+let backend: LocalBackend;
 let baseUrl = '';
 
 beforeAll(async () => {
-  backend = spawn(process.execPath, [resolve(__dirname, '..', '..', 'course-backend', 'server.mjs')], {
-    env: { ...process.env, COURSE_BACKEND_HOST: '127.0.0.1', COURSE_BACKEND_PORT: '0' },
-  });
-  baseUrl = await new Promise<string>((done, fail) => {
-    const timer = setTimeout(() => fail(new Error('el backend didáctico no arrancó')), 10_000);
-    backend.stdout.on('data', (chunk: Buffer) => {
-      const match = /listening at (http:\/\/[^\s]+)/.exec(chunk.toString());
-      if (match?.[1]) {
-        clearTimeout(timer);
-        done(match[1]);
-      }
-    });
-    backend.once('exit', (code) => fail(new Error(`el backend terminó con código ${String(code)}`)));
-  });
+  backend = await startLocalBackend();
+  baseUrl = backend.baseUrl;
 });
 
 afterAll(() => {
-  backend.kill();
+  backend.stop();
 });
 
 function client(scenario?: string, timeoutMs = 3_000): IncidentClient {

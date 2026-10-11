@@ -17,6 +17,8 @@ export interface Incident {
   /** null cuando la fuente no publica la fecha; la app no la inventa. */
   readonly reportedAt: string | null;
   readonly assignedTechnicianId: string | null;
+  /** Versión del recurso remoto; ausente si la fuente no versiona (datos en memoria). */
+  readonly version?: number;
 }
 
 /**
@@ -53,6 +55,25 @@ export type IncidentDraft = Readonly<{
 /** Puerto de escritura, separado para que una fuente de sólo lectura siga siendo válida. */
 export interface IncidentWriter {
   create(draft: IncidentDraft, idempotencyKey: string): Promise<IncidentEntry>;
+}
+
+/** Operaciones sobre una incidencia existente. El servicio valida quién puede ejecutarlas. */
+export type IncidentAction =
+  | Readonly<{ action: 'start' }>
+  | Readonly<{ action: 'resolve'; diagnosis: string }>
+  | Readonly<{ action: 'close' }>
+  | Readonly<{ action: 'reopen' }>;
+
+export type IncidentActionName = IncidentAction['action'];
+
+/** Puerto de operaciones; baseVersion es la versión que la persona tenía en pantalla. */
+export interface IncidentActions {
+  perform(
+    incidentId: string,
+    baseVersion: number,
+    action: IncidentAction,
+    idempotencyKey: string,
+  ): Promise<IncidentEntry>;
 }
 
 /**

@@ -38,6 +38,7 @@ test('convierte el objeto validado en Incident del dominio sin inventar la fecha
       location: { source: 'manual', label: 'Edificio de prueba A' },
       reportedAt: null,
       assignedTechnicianId: 'technician-1',
+      version: 1,
     },
   ]);
 });

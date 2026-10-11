@@ -1,5 +1,7 @@
 import {
   IncidentSourceError,
+  type IncidentAction,
+  type IncidentActions,
   type IncidentDraft,
   type IncidentEntry,
   type IncidentSource,
@@ -41,6 +43,7 @@ export function toIncidentEntry(snapshot: IncidentSnapshot): IncidentEntry {
     location: { source: 'manual', label: details.location },
     reportedAt: null,
     assignedTechnicianId: details.assignedTechnicianId,
+    version: snapshot.version,
   };
 }
 
@@ -55,7 +58,7 @@ export function toIncidentSourceError(error: unknown): IncidentSourceError {
 }
 
 /** Adaptador que expone IncidentClient a los casos de uso mediante los puertos del dominio. */
-export class RemoteIncidentRepository implements IncidentSource<IncidentEntry>, IncidentWriter {
+export class RemoteIncidentRepository implements IncidentSource<IncidentEntry>, IncidentWriter, IncidentActions {
   private readonly client: IncidentClient;
 
   constructor(client: IncidentClient) {
@@ -83,6 +86,19 @@ export class RemoteIncidentRepository implements IncidentSource<IncidentEntry>, 
   async create(draft: IncidentDraft, idempotencyKey: string): Promise<IncidentEntry> {
     try {
       return toIncidentEntry(await this.client.createIncident(draft, idempotencyKey));
+    } catch (error) {
+      throw toIncidentSourceError(error);
+    }
+  }
+
+  async perform(
+    incidentId: string,
+    baseVersion: number,
+    action: IncidentAction,
+    idempotencyKey: string,
+  ): Promise<IncidentEntry> {
+    try {
+      return toIncidentEntry(await this.client.performAction(incidentId, baseVersion, action, idempotencyKey));
     } catch (error) {
       throw toIncidentSourceError(error);
     }
