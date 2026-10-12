@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 6,
-  "commitSha": "a1f5ef581e61a37b2a06bc071a14487f80761742",
+  "commitSha": "05a6eddff00c65c7562787ede08e35f87aed1439",
   "generatedAt": "2026-10-10T23:05:00-06:00",
   "backend": {
     "start": "npm run backend (course-backend/server.mjs en http://127.0.0.1:4310); para los curl se levantó con COURSE_BACKEND_PORT=4316 y en Jest con COURSE_BACKEND_PORT=0",
