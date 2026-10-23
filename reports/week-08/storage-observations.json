@@ -1,0 +1,272 @@
+{
+  "generatedAt": "2026-10-23T23:45:26.872Z",
+  "scope": "Pruebas del almacén y caso de uso en árbol de trabajo; no representa la entrega completa ni una ejecución nativa.",
+  "observations": {
+    "restart": {
+      "before": {
+        "incident": {
+          "base": {
+            "id": "campus-inc-001",
+            "version": 1,
+            "title": "Fuga ficticia",
+            "description": "Caso sintético de persistencia",
+            "category": "water",
+            "status": "assigned",
+            "priority": "medium",
+            "assignedTechnicianId": "technician-1",
+            "location": {
+              "source": "manual",
+              "label": "Aula ficticia"
+            },
+            "reportedAt": null
+          },
+          "local": {
+            "id": "campus-inc-001",
+            "version": 1,
+            "title": "Fuga ficticia",
+            "description": "Caso sintético de persistencia",
+            "category": "water",
+            "status": "in_progress",
+            "priority": "medium",
+            "assignedTechnicianId": "technician-1",
+            "location": {
+              "source": "manual",
+              "label": "Aula ficticia"
+            },
+            "reportedAt": null
+          }
+        },
+        "operations": [
+          {
+            "operationId": "offline-start-001",
+            "actorId": "technician-1",
+            "incidentId": "campus-inc-001",
+            "baseVersion": 1,
+            "action": "start",
+            "payload": {
+              "notes": "Inspección pendiente sin conexión",
+              "photoReferenceIds": [
+                "photo-pending-001"
+              ]
+            }
+          }
+        ],
+        "photos": [
+          {
+            "referenceId": "photo-pending-001",
+            "incidentId": "campus-inc-001",
+            "actorId": "technician-1",
+            "localUri": "file:///ficticio/photo-001.jpg",
+            "status": "pending"
+          }
+        ]
+      },
+      "independentProcess": [
+        {
+          "operation_id": "offline-start-001",
+          "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+        }
+      ],
+      "after": {
+        "incident": {
+          "base": {
+            "id": "campus-inc-001",
+            "version": 1,
+            "title": "Fuga ficticia",
+            "description": "Caso sintético de persistencia",
+            "category": "water",
+            "status": "assigned",
+            "priority": "medium",
+            "assignedTechnicianId": "technician-1",
+            "location": {
+              "source": "manual",
+              "label": "Aula ficticia"
+            },
+            "reportedAt": null
+          },
+          "local": {
+            "id": "campus-inc-001",
+            "version": 1,
+            "title": "Fuga ficticia",
+            "description": "Caso sintético de persistencia",
+            "category": "water",
+            "status": "in_progress",
+            "priority": "medium",
+            "assignedTechnicianId": "technician-1",
+            "location": {
+              "source": "manual",
+              "label": "Aula ficticia"
+            },
+            "reportedAt": null
+          }
+        },
+        "operations": [
+          {
+            "operationId": "offline-start-001",
+            "actorId": "technician-1",
+            "incidentId": "campus-inc-001",
+            "baseVersion": 1,
+            "action": "start",
+            "payload": {
+              "notes": "Inspección pendiente sin conexión",
+              "photoReferenceIds": [
+                "photo-pending-001"
+              ]
+            }
+          }
+        ],
+        "photos": [
+          {
+            "referenceId": "photo-pending-001",
+            "incidentId": "campus-inc-001",
+            "actorId": "technician-1",
+            "localUri": "file:///ficticio/photo-001.jpg",
+            "status": "pending"
+          }
+        ]
+      }
+    },
+    "confirmation": {
+      "invalidReceiptsRejected": 4,
+      "pendingAfterReopen": [
+        {
+          "operationId": "offline-start-001",
+          "incidentId": "campus-inc-001",
+          "baseVersion": 1,
+          "actorId": "technician-1",
+          "action": "start",
+          "payload": {
+            "notes": "Inspección pendiente sin conexión",
+            "photoReferenceIds": [
+              "photo-pending-001"
+            ]
+          }
+        }
+      ],
+      "afterConfirmation": [],
+      "photos": [
+        {
+          "referenceId": "photo-pending-001",
+          "incidentId": "campus-inc-001",
+          "actorId": "technician-1",
+          "localUri": "file:///ficticio/photo-001.jpg",
+          "status": "pending"
+        }
+      ]
+    },
+    "migration": {
+      "before": {
+        "version": 1,
+        "columns": [
+          "sequence",
+          "operation_id",
+          "actor_id",
+          "incident_id",
+          "base_version",
+          "action",
+          "payload_json"
+        ],
+        "tables": [
+          "local_incidents",
+          "pending_operations",
+          "sqlite_sequence"
+        ],
+        "incidents": [
+          {
+            "actor_id": "technician-1",
+            "incident_id": "campus-inc-001",
+            "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+            "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+          }
+        ],
+        "operations": [
+          {
+            "sequence": 1,
+            "operation_id": "offline-start-001",
+            "actor_id": "technician-1",
+            "incident_id": "campus-inc-001",
+            "base_version": 1,
+            "action": "start",
+            "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+          }
+        ]
+      },
+      "afterFailure": {
+        "version": 1,
+        "columns": [
+          "sequence",
+          "operation_id",
+          "actor_id",
+          "incident_id",
+          "base_version",
+          "action",
+          "payload_json"
+        ],
+        "tables": [
+          "local_incidents",
+          "pending_operations",
+          "sqlite_sequence"
+        ],
+        "incidents": [
+          {
+            "actor_id": "technician-1",
+            "incident_id": "campus-inc-001",
+            "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+            "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+          }
+        ],
+        "operations": [
+          {
+            "sequence": 1,
+            "operation_id": "offline-start-001",
+            "actor_id": "technician-1",
+            "incident_id": "campus-inc-001",
+            "base_version": 1,
+            "action": "start",
+            "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+          }
+        ]
+      },
+      "afterRecovery": {
+        "version": 2,
+        "columns": [
+          "sequence",
+          "operation_id",
+          "actor_id",
+          "incident_id",
+          "base_version",
+          "action",
+          "payload_json",
+          "created_at"
+        ],
+        "tables": [
+          "local_incidents",
+          "pending_operations",
+          "pending_photo_references",
+          "sqlite_sequence"
+        ],
+        "incidents": [
+          {
+            "actor_id": "technician-1",
+            "incident_id": "campus-inc-001",
+            "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+            "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+          }
+        ],
+        "operations": [
+          {
+            "sequence": 1,
+            "operation_id": "offline-start-001",
+            "actor_id": "technician-1",
+            "incident_id": "campus-inc-001",
+            "base_version": 1,
+            "action": "start",
+            "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}",
+            "created_at": null
+          }
+        ]
+      }
+    }
+  },
+  "technicalCommitSha": "32ee850d23c24bf83c92582c98c41550ba46bbf6"
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "teamId": "E04",
+  "members": [
+    {
+      "studentId": "3523110248",
+      "commitShas": [
+        "bd44af8bfa8710ba4d3be3d41dd03e64c4702c6e",
+        "56d2920c5629283a432e6cf1b950405f4189b047",
+        "afd7bc4f7b5f21c378bbf753ae4bca08e8268ee9",
+        "32ee850d23c24bf83c92582c98c41550ba46bbf6"
+      ],
+      "files": [
+        "docs/data-model.md",
+        "src/domain/offlineStore.ts",
+        "src/application/saveOfflineStart.ts",
+        "src/infrastructure/storage/sqliteConnection.ts",
+        "src/infrastructure/storage/openOfflineStore.ts",
+        "src/infrastructure/storage/sqliteOfflineStore.ts",
+        "src/infrastructure/storage/migrations.ts",
+        "src/infrastructure/storage/sqliteOfflineStore.test.ts",
+        "src/testing/nodeSqlite.ts",
+        "package.json",
+        "package-lock.json",
+        "reports/week-08/storage-observations.json"
+      ],
+      "tests": [
+        "src/infrastructure/storage/sqliteOfflineStore.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "La expectativa de verificación fue que el almacén SQLite conservara la incidencia, las notas, las referencias de fotos y el mismo operationId al cerrar y reabrir; que las confirmaciones inválidas no retiraran operaciones; y que una falla inyectada después de modificar el esquema revirtiera íntegramente tablas y datos. Al reintentar la migración sin la falla se esperaba conservar la incidencia y la operación originales en el esquema 2.",
+      "command": "CAMPUSOPS_STORAGE_OBSERVATIONS=reports/week-08/storage-observations.json npm test -- --ci --runInBand src/infrastructure/storage/sqliteOfflineStore.test.ts\nnpm run typecheck\nnpm run lint",
+      "observedResult": "En la ejecución asistida por Codex del 23 de octubre de 2026 aprobaron las 10 pruebas del almacén. Se recuperó offline-start-001 con el mismo contenido después de cerrar y reabrir, y un proceso independiente leyó la operación en disco. La falla inyectada dejó el esquema y los registros exactamente como antes; la recuperación migró de versión 1 a 2 conservando la incidencia y la operación. Cuatro confirmaciones inválidas mantuvieron la cola, mientras una confirmación válida retiró la operación y conservó la referencia de foto pendiente. npm run typecheck y npm run lint terminaron con código 0. Los estados observados están en reports/week-08/storage-observations.json. No se comprobó el enlace nativo de Expo en dispositivo ni el reinicio de la app Android/iOS.",
+      "explanation": "Para la aportación de Persona 1 se prepararon, con asistencia de IA (Codex), docs/data-model.md, los tipos del modelo local, el almacén SQLite, la cola persistente y la migración transaccional. La incidencia conserva por separado la base remota y la intención local; la operación guarda autor, versión base, contenido e identidad estable; las fotos siguen siendo referencias pendientes sin afirmar una carga al servidor. La comprobación técnica se realizó ejecutando con Codex los comandos registrados contra SQLite real en disco y conservando los estados antes de migrar, tras la falla y después de recuperar. Se reutilizan los permisos existentes para preparar el inicio offline. Esta aportación no implementa el motor de sincronización, resolveSync, deduplicateOperations ni el reporte integral de Persona 3. El almacén aún no está conectado a App.tsx. La dependencia, implementación, pruebas y documentación se guardaron en commits separados con la identidad Git configurada de Persona 1; sus SHA completos están en commitShas. Este registro debe revisarse personalmente antes de entregar."
+    },
+    {
+      "studentId": "",
+      "commitShas": [],
+      "files": [],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    },
+    {
+      "studentId": "",
+      "commitShas": [],
+      "files": [],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    }
+  ]
+}
