@@ -5,6 +5,7 @@ import type {
   OperationConfirmation,
   PendingLocalChange,
   PendingPhotoReference,
+  VersionedIncident,
 } from '../../domain/offlineStore';
 import { migrateOfflineDatabase, type MigrationOptions } from './migrations';
 import type { SqliteConnection } from './sqliteConnection';
@@ -112,6 +113,27 @@ export class SqliteOfflineStore implements OfflineStore {
     });
   }
 
+  async cacheIncident(incident: VersionedIncident): Promise<void> {
+    const snapshot = JSON.stringify(incident);
+    await this.db.withExclusiveTransactionAsync(async (transaction) => {
+      const pending = await transaction.getFirstAsync('SELECT 1 FROM pending_operations WHERE actor_id = ? AND incident_id = ? LIMIT 1', [this.actorId, incident.id]);
+      if (pending) return;
+      const previous = await transaction.getFirstAsync<IncidentRow>(
+        'SELECT base_json, local_json FROM local_incidents WHERE actor_id = ? AND incident_id = ?',
+        [this.actorId, incident.id],
+      );
+      if (previous && (JSON.parse(previous.base_json) as VersionedIncident).version > incident.version) return;
+      await transaction.runAsync(`INSERT INTO local_incidents(actor_id, incident_id, base_json, local_json)
+        VALUES (?, ?, ?, ?) ON CONFLICT(actor_id, incident_id) DO UPDATE SET base_json = excluded.base_json, local_json = excluded.local_json`,
+      [this.actorId, incident.id, snapshot, snapshot]);
+    });
+  }
+
+  async listIncidents(): Promise<readonly import('../../domain/offlineStore').LocalIncident[]> {
+    const rows = await this.db.getAllAsync<IncidentRow>('SELECT base_json, local_json FROM local_incidents WHERE actor_id = ? ORDER BY incident_id', [this.actorId]);
+    return rows.map((row) => ({ base: JSON.parse(row.base_json), local: JSON.parse(row.local_json) }));
+  }
+
   async getIncident(incidentId: string): Promise<LocalIncident | null> {
     const row = await this.db.getFirstAsync<IncidentRow>(
       'SELECT base_json, local_json FROM local_incidents WHERE actor_id = ? AND incident_id = ?',
@@ -141,6 +163,14 @@ export class SqliteOfflineStore implements OfflineStore {
   async removeConfirmedOperation(confirmation: OperationConfirmation): Promise<boolean> {
     if (confirmation.confirmed !== true || confirmation.actorId !== this.actorId ||
       !Number.isSafeInteger(confirmation.serverVersion)) throw new Error('offline_invalid_confirmation');
+    const server = confirmation.serverIncident;
+    const followup = confirmation.followup;
+    if ((server && (server.id !== confirmation.incidentId || server.version !== confirmation.serverVersion)) ||
+      (followup && (followup.actorId !== this.actorId || followup.incidentId !== confirmation.incidentId ||
+        followup.baseVersion !== confirmation.serverVersion || followup.operationId !== `${confirmation.operationId}:note` ||
+        followup.action !== 'comment' || typeof followup.payload.text !== 'string' || !followup.payload.text.trim()))) {
+      throw new Error('offline_invalid_confirmation');
+    }
     let removed = false;
     await this.db.withExclusiveTransactionAsync(async (transaction) => {
       const row = await transaction.getFirstAsync<OperationRow>(
@@ -151,12 +181,40 @@ export class SqliteOfflineStore implements OfflineStore {
       if (row.incident_id !== confirmation.incidentId || confirmation.serverVersion <= row.base_version) {
         throw new Error('offline_invalid_confirmation');
       }
+      if (followup && (row.action !== 'start' ||
+        (JSON.parse(row.payload_json) as Record<string, unknown>).notes !== followup.payload.text)) {
+        throw new Error('offline_invalid_confirmation');
+      }
       const result = await transaction.runAsync(
         'DELETE FROM pending_operations WHERE operation_id = ? AND actor_id = ?',
         [confirmation.operationId, this.actorId],
       );
       removed = result.changes === 1;
-      // Confirmar una acción no confirma ni elimina fotografías pendientes.
+      const remaining = await transaction.getFirstAsync(
+        'SELECT 1 FROM pending_operations WHERE actor_id = ? AND incident_id = ? LIMIT 1',
+        [this.actorId, confirmation.incidentId],
+      );
+      if (server && !remaining) {
+        const snapshot = JSON.stringify(server);
+        await transaction.runAsync(
+          'UPDATE local_incidents SET base_json = ?, local_json = ? WHERE actor_id = ? AND incident_id = ?',
+          [snapshot, snapshot, this.actorId, confirmation.incidentId],
+        );
+      }
+      if (followup) {
+        const existing = await transaction.getFirstAsync<OperationRow>(
+          'SELECT * FROM pending_operations WHERE operation_id = ?', [followup.operationId],
+        );
+        if (existing && canonicalJson(toOperation(existing)) !== canonicalJson(followup)) {
+          throw new Error('offline_operation_identity_reused');
+        }
+        if (!existing) await transaction.runAsync(`
+          INSERT INTO pending_operations(operation_id, actor_id, incident_id, base_version, action, payload_json, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [followup.operationId, this.actorId, followup.incidentId, followup.baseVersion,
+          followup.action, JSON.stringify(followup.payload), new Date().toISOString()]);
+      }
+      // El recibo y la nota sucesora son atómicos. Las fotografías siguen pendientes.
     });
     return removed;
   }

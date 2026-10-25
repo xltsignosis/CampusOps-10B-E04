@@ -208,17 +208,13 @@ sincronización. Cada integrante registra únicamente las pruebas o revisiones q
 haya realizado y pueda explicar. Se utilizó asistencia de Codex para esta aportación;
 la verificación ejecutable queda en los comandos y observaciones anteriores.
 
-## Puntos de conexión para el equipo
+## Integración con la app
 
-1. En la composición de la app, restaurar la sesión y abrir
-   `openOfflineStore(session.actorId)`; mostrar errores de apertura/migración y
-   conservar el archivo para recuperación.
-2. Para iniciar offline, usar `saveOfflineStart(store, session, base, operationId,
-   notes, photos)` y mostrar la intención como pendiente de confirmación.
-3. Al reconectar, leer las operaciones y usar **su actor, versión base e identidad
-   originales**. Validar la sesión actual antes del envío.
-4. Obtener la versión remota y conectar la política del equipo con `base` y `local`.
-   Un conflicto conserva la cola y no modifica la asignación remota desde este módulo.
-5. Tras una respuesta exitosa validada, retirar únicamente la operación confirmada.
-   Actualizar la representación remota en la integración de sincronización; este
-   almacén no convierte por sí mismo la intención local en estado remoto confirmado.
+1. `App.tsx` compone `OfflineSession` y abre `openOfflineStore(session.actorId)` después de autenticar. Un error de apertura conserva el archivo para recuperación. Desmontar la sesión cierra el repositorio y bloquea nuevos envíos.
+2. `OfflineIncidentRepository` guarda las lecturas remotas para consultar el caché sin conexión. `cacheIncident` no sobrescribe intenciones pendientes ni versiones más recientes. `listIncidents` recupera las filas del autor.
+3. Un inicio se persiste mediante `saveOfflineStart` antes de llamar al motor. Al reintentar se conservan autor, versión base, contenido e identidad. La app sincroniza al abrir, volver a primer plano, pulsar sincronizar y mediante sondeo de reconexión.
+4. El repositorio utiliza la política compartida de tres vías para combinar cambios independientes en su representación. El motor informa incompatibilidades como estado de aplicación y conserva la cola; no impone una asignación antigua.
+5. `removeConfirmedOperation` admite un `serverIncident` validado y una operación `followup` de nota. Dentro de la misma transacción retira el inicio confirmado, actualiza la base cuando no hay otras intenciones y guarda el comentario sucesor con ID `${operationId}:note` y su versión base confirmada. Si hay una colisión o falla, todo revierte. No hace falta cambiar el esquema 2: se usan las mismas tablas y relaciones.
+6. La nota se envía como `comment` porque el contrato de `start` no guarda texto. Su identidad y contenido sobreviven si se pierde la respuesta, y sólo su confirmación permite retirarla. Las fotos siguen pendientes independientemente de ambas confirmaciones.
+
+Las ejecuciones históricas del 23 de octubre descritas arriba corresponden al almacén aislado. La integración y sus comprobaciones actuales se indexan en `reports/week-08/migration-tests.json`; `docs/sync-policy.md` describe el comportamiento de la versión integrada.

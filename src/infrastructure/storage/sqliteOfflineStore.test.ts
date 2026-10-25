@@ -254,3 +254,32 @@ test('storage-fresh-failure: una instalación fallida queda en v0 y permite reab
   await migrateOfflineDatabase(db);
   expect((await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version'))?.user_version).toBe(2);
 });
+
+test('storage-followup: confirma inicio y persiste su nota sucesora junto con la nueva base', async () => {
+  const store = await open();
+  await store.savePendingChange(change);
+  const serverIncident = { ...base, status: 'in_progress' as const, version: 2 };
+  const followup = { ...change.operation, operationId: `${change.operation.operationId}:note`,
+    baseVersion: 2, action: 'comment', payload: { text: change.operation.payload.notes } };
+  expect(await store.removeConfirmedOperation({ ...confirmation, serverIncident, followup })).toBe(true);
+  await store.close();
+  const reopened = await open();
+  expect(await reopened.listPendingOperations()).toEqual([followup]);
+  expect(await reopened.getIncident(base.id)).toEqual({ base: serverIncident, local: serverIncident });
+  expect(await reopened.listPendingPhotos(base.id)).toEqual(change.photos);
+});
+
+test('storage-followup-rollback: una colisión de la nota revierte el borrado y la actualización de base', async () => {
+  const store = await open();
+  await store.savePendingChange(change);
+  const collision = { ...change.operation, operationId: `${change.operation.operationId}:note`,
+    action: 'comment', payload: { text: 'Otro contenido' } };
+  await store.savePendingChange({ ...change, operation: collision });
+  const before = await store.listPendingOperations();
+  const followup = { ...collision, baseVersion: 2, payload: { text: change.operation.payload.notes } };
+  await expect(store.removeConfirmedOperation({ ...confirmation,
+    serverIncident: { ...base, version: 2, status: 'in_progress' }, followup,
+  })).rejects.toThrow('offline_operation_identity_reused');
+  expect(await store.listPendingOperations()).toEqual(before);
+  expect(await store.getIncident(base.id)).toEqual({ base, local: change.local });
+});

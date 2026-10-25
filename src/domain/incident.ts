@@ -59,12 +59,13 @@ export interface IncidentWriter {
 
 /** Operaciones sobre una incidencia existente. El servicio valida quién puede ejecutarlas. */
 export type IncidentAction =
-  | Readonly<{ action: 'start' }>
+  | Readonly<{ action: 'start'; notes?: string }>
   | Readonly<{ action: 'resolve'; diagnosis: string }>
   | Readonly<{ action: 'close' }>
-  | Readonly<{ action: 'reopen' }>;
+  | Readonly<{ action: 'reopen' }>
+  | Readonly<{ action: 'comment'; text: string }>;
 
-export type IncidentActionName = IncidentAction['action'];
+export type IncidentActionName = Exclude<IncidentAction['action'], 'comment'>;
 
 /** Puerto de operaciones; baseVersion es la versión que la persona tenía en pantalla. */
 export interface IncidentActions {
@@ -97,7 +98,7 @@ export class IncidentSourceError extends Error {
   readonly code: IncidentSourceErrorKind;
   readonly status: number | undefined;
 
-  constructor(kind: IncidentSourceErrorKind, status?: number) {
+  constructor(kind: IncidentSourceErrorKind, status?: number, readonly serverCode?: string) {
     super(`Fuente de incidencias: ${kind}`);
     this.name = 'IncidentSourceError';
     this.kind = kind;

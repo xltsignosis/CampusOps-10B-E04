@@ -30,11 +30,15 @@ export type OperationConfirmation = Readonly<{
   actorId: string;
   serverVersion: number;
   confirmed: true;
+  serverIncident?: VersionedIncident;
+  followup?: PendingIncidentOperation;
 }>;
 
 /** Puerto acotado al actor de la sesión; no guarda ni restablece credenciales. */
 export interface OfflineStore {
   savePendingChange(change: PendingLocalChange): Promise<void>;
+  cacheIncident(incident: VersionedIncident): Promise<void>;
+  listIncidents(): Promise<readonly LocalIncident[]>;
   getIncident(incidentId: string): Promise<LocalIncident | null>;
   listPendingOperations(): Promise<readonly PendingIncidentOperation[]>;
   listPendingPhotos(incidentId: string): Promise<readonly PendingPhotoReference[]>;

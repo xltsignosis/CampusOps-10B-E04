@@ -55,7 +55,8 @@ export type IncidentActionInput =
   | Readonly<{ action: 'start' }>
   | Readonly<{ action: 'resolve'; diagnosis: string }>
   | Readonly<{ action: 'close' }>
-  | Readonly<{ action: 'reopen' }>;
+  | Readonly<{ action: 'reopen' }>
+  | Readonly<{ action: 'comment'; text: string }>;
 
 export type IncidentClientErrorKind =
   | 'contract'
@@ -68,7 +69,7 @@ export class IncidentClientError extends Error {
   readonly kind: IncidentClientErrorKind;
   readonly status: number | undefined;
 
-  constructor(kind: IncidentClientErrorKind, message: string, status?: number) {
+  constructor(kind: IncidentClientErrorKind, message: string, status?: number, readonly serverCode?: string) {
     super(message);
     this.name = 'IncidentClientError';
     this.kind = kind;
@@ -247,6 +248,7 @@ export class IncidentClient {
     if (input.action === 'resolve' && !isNonEmptyString(input.diagnosis)) {
       throw new Error('La resolución necesita un diagnóstico.');
     }
+    if (input.action === 'comment' && !isNonEmptyString(input.text)) throw new Error('La nota necesita contenido.');
     if (!isNonEmptyString(idempotencyKey) || idempotencyKey.length < 8) {
       throw new Error('La clave de idempotencia debe contener al menos 8 caracteres.');
     }
@@ -256,7 +258,7 @@ export class IncidentClient {
       body: { ...input, baseVersion },
       idempotencyKey,
     });
-    if (!isRecord(response) || !('incident' in response)) {
+    if (!isRecord(response) || !('incident' in response) || response.operationId !== idempotencyKey) {
       throw new IncidentClientError('contract', 'La operación no devolvió una incidencia válida.');
     }
     return parseIncident(response.incident);

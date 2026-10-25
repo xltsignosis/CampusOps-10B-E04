@@ -51,7 +51,7 @@ export function toIncidentEntry(snapshot: IncidentSnapshot): IncidentEntry {
 export function toIncidentSourceError(error: unknown): IncidentSourceError {
   if (error instanceof IncidentSourceError) return error;
   if (error instanceof IncidentClientError) {
-    return new IncidentSourceError(ERROR_KINDS[error.kind], error.status);
+    return new IncidentSourceError(ERROR_KINDS[error.kind], error.status, error.serverCode);
   }
   // Errores de validación de entrada del cliente (ID vacío, borrador inválido, etc.).
   return new IncidentSourceError('rejected');

@@ -1,7 +1,12 @@
+ifeq ($(OS),Windows_NT)
+PYTHON ?= python
+else
 PYTHON ?= python3
+endif
 NPM ?= npm
 
 .PHONY: setup verify feedback run run-backend package
+.PHONY: verify-week-08
 
 setup:
 	$(NPM) ci
@@ -26,6 +31,10 @@ package:
 
 verify-week-%:
 	$(PYTHON) tools/course_public_evaluator.py --week $* --mode verify --execute-toolchain
+
+verify-week-08:
+	$(PYTHON) tools/course_public_evaluator.py --week 8 --mode verify --execute-toolchain
+	$(NPM) run test:week08
 
 public-test-week-%:
 	$(PYTHON) tools/course_public_evaluator.py --week $* --mode public --execute-toolchain
