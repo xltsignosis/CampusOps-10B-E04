@@ -1,0 +1,2836 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "commitSha": "5af6eba47ce8062d09d59d99d96ee4c0d8153794",
+  "generatedAt": "2026-10-25T21:30:46.026Z",
+  "scope": "SQLite real en disco, backend HTTP local en proceso independiente y lógica real de aplicación. Sesión segura y reloj sustituidos por dobles. Sin prueba nativa en teléfono/emulador. Consultar workingTreeAtExecution.",
+  "nodeVersion": "v22.22.0",
+  "command": "node tools/run-week08-tests.cjs",
+  "workingTreeAtExecution": "M evidence/week-08/individual.json\n?? evidence/week-08/engineering.json\n?? reports/week-08/public-tests.json\n?? reports/week-08/verify.json",
+  "status": "pass",
+  "summary": {
+    "suites": 25,
+    "passedSuites": 25,
+    "failedSuites": 0,
+    "tests": 187,
+    "passed": 187,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "offline-notes-preservation",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-notes: confirmar el inicio no debe perder la nota pendiente que el motor omitió del envío",
+      "expected": "La nota guardada sin conexión permanece localmente o confirmada en servidor; confirmar start no autoriza perderla.",
+      "evidence": "passed: sync-notes: confirmar el inicio no debe perder la nota pendiente que el motor omitió del envío. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "result": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "confirmed"
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "status": "confirmed"
+            }
+          ],
+          "confirmed": 2,
+          "pending": 0,
+          "conflicts": 0,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            }
+          },
+          "operations": [],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "server": {
+          "id": "campus-inc-001",
+          "version": 3,
+          "status": "in_progress",
+          "details": {
+            "category": "connectivity",
+            "description": "Sin conexión en laboratorio ficticio",
+            "location": "Edificio de prueba A",
+            "reporterId": "reporter-1",
+            "assignedTechnicianId": "technician-1",
+            "priority": "medium"
+          },
+          "history": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "action": "start",
+              "version": 2
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "actorId": "technician-1",
+              "action": "comment",
+              "version": 3
+            }
+          ],
+          "notes": [
+            {
+              "actorId": "technician-1",
+              "text": "Synthetic offline note"
+            }
+          ]
+        },
+        "notePreserved": true,
+        "calls": [
+          {
+            "path": "/v1/session/login",
+            "body": {
+              "actorId": "technician-1"
+            },
+            "status": 200
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001",
+            "body": {
+              "action": "start",
+              "baseVersion": 1
+            },
+            "status": 201
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001:note",
+            "body": {
+              "action": "comment",
+              "text": "Synthetic offline note",
+              "baseVersion": 2
+            },
+            "status": 201
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "offline-restart",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "storage-restart: recupera identidad, notas, base, intención local y referencia tras cerrar y reabrir",
+      "expected": "Misma base, intención, notas, referencias y operationId después de cerrar y reabrir SQLite; lectura desde otro proceso.",
+      "evidence": "passed: storage-restart: recupera identidad, notas, base, intención local y referencia tras cerrar y reabrir. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "version": 1,
+              "title": "Fuga ficticia",
+              "description": "Caso sintético de persistencia",
+              "category": "water",
+              "status": "assigned",
+              "priority": "medium",
+              "assignedTechnicianId": "technician-1",
+              "location": {
+                "source": "manual",
+                "label": "Aula ficticia"
+              },
+              "reportedAt": null
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "version": 1,
+              "title": "Fuga ficticia",
+              "description": "Caso sintético de persistencia",
+              "category": "water",
+              "status": "in_progress",
+              "priority": "medium",
+              "assignedTechnicianId": "technician-1",
+              "location": {
+                "source": "manual",
+                "label": "Aula ficticia"
+              },
+              "reportedAt": null
+            }
+          },
+          "operations": [
+            {
+              "operationId": "offline-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Inspección pendiente sin conexión",
+                "photoReferenceIds": [
+                  "photo-pending-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "photo-pending-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/photo-001.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "independentProcess": [
+          {
+            "operation_id": "offline-start-001",
+            "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+          }
+        ],
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "version": 1,
+              "title": "Fuga ficticia",
+              "description": "Caso sintético de persistencia",
+              "category": "water",
+              "status": "assigned",
+              "priority": "medium",
+              "assignedTechnicianId": "technician-1",
+              "location": {
+                "source": "manual",
+                "label": "Aula ficticia"
+              },
+              "reportedAt": null
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "version": 1,
+              "title": "Fuga ficticia",
+              "description": "Caso sintético de persistencia",
+              "category": "water",
+              "status": "in_progress",
+              "priority": "medium",
+              "assignedTechnicianId": "technician-1",
+              "location": {
+                "source": "manual",
+                "label": "Aula ficticia"
+              },
+              "reportedAt": null
+            }
+          },
+          "operations": [
+            {
+              "operationId": "offline-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Inspección pendiente sin conexión",
+                "photoReferenceIds": [
+                  "photo-pending-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "photo-pending-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/photo-001.jpg",
+              "status": "pending"
+            }
+          ]
+        }
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "valid-migration",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "storage-migration: conserva los datos v1, revierte una falla después del DDL y recupera a v2",
+      "expected": "Migrar de v1 a v2 conservando incidencias y operaciones; segunda migración sin cambios.",
+      "evidence": "passed: storage-migration: conserva los datos v1, revierte una falla después del DDL y recupera a v2. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "version": 1,
+          "columns": [
+            "sequence",
+            "operation_id",
+            "actor_id",
+            "incident_id",
+            "base_version",
+            "action",
+            "payload_json"
+          ],
+          "tables": [
+            "local_incidents",
+            "pending_operations",
+            "sqlite_sequence"
+          ],
+          "incidents": [
+            {
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+              "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+            }
+          ],
+          "operations": [
+            {
+              "sequence": 1,
+              "operation_id": "offline-start-001",
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_version": 1,
+              "action": "start",
+              "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+            }
+          ]
+        },
+        "afterFailure": {
+          "version": 1,
+          "columns": [
+            "sequence",
+            "operation_id",
+            "actor_id",
+            "incident_id",
+            "base_version",
+            "action",
+            "payload_json"
+          ],
+          "tables": [
+            "local_incidents",
+            "pending_operations",
+            "sqlite_sequence"
+          ],
+          "incidents": [
+            {
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+              "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+            }
+          ],
+          "operations": [
+            {
+              "sequence": 1,
+              "operation_id": "offline-start-001",
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_version": 1,
+              "action": "start",
+              "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+            }
+          ]
+        },
+        "afterRecovery": {
+          "version": 2,
+          "columns": [
+            "sequence",
+            "operation_id",
+            "actor_id",
+            "incident_id",
+            "base_version",
+            "action",
+            "payload_json",
+            "created_at"
+          ],
+          "tables": [
+            "local_incidents",
+            "pending_operations",
+            "pending_photo_references",
+            "sqlite_sequence"
+          ],
+          "incidents": [
+            {
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+              "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+            }
+          ],
+          "operations": [
+            {
+              "sequence": 1,
+              "operation_id": "offline-start-001",
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_version": 1,
+              "action": "start",
+              "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}",
+              "created_at": null
+            }
+          ]
+        }
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "failed-migration-rollback",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "storage-migration: conserva los datos v1, revierte una falla después del DDL y recupera a v2",
+      "expected": "La falla después del DDL revierte tablas, columnas, filas y versión; reabrir y recuperar conserva los datos.",
+      "evidence": "passed: storage-migration: conserva los datos v1, revierte una falla después del DDL y recupera a v2. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "version": 1,
+          "columns": [
+            "sequence",
+            "operation_id",
+            "actor_id",
+            "incident_id",
+            "base_version",
+            "action",
+            "payload_json"
+          ],
+          "tables": [
+            "local_incidents",
+            "pending_operations",
+            "sqlite_sequence"
+          ],
+          "incidents": [
+            {
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+              "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+            }
+          ],
+          "operations": [
+            {
+              "sequence": 1,
+              "operation_id": "offline-start-001",
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_version": 1,
+              "action": "start",
+              "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+            }
+          ]
+        },
+        "afterFailure": {
+          "version": 1,
+          "columns": [
+            "sequence",
+            "operation_id",
+            "actor_id",
+            "incident_id",
+            "base_version",
+            "action",
+            "payload_json"
+          ],
+          "tables": [
+            "local_incidents",
+            "pending_operations",
+            "sqlite_sequence"
+          ],
+          "incidents": [
+            {
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+              "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+            }
+          ],
+          "operations": [
+            {
+              "sequence": 1,
+              "operation_id": "offline-start-001",
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_version": 1,
+              "action": "start",
+              "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}"
+            }
+          ]
+        },
+        "afterRecovery": {
+          "version": 2,
+          "columns": [
+            "sequence",
+            "operation_id",
+            "actor_id",
+            "incident_id",
+            "base_version",
+            "action",
+            "payload_json",
+            "created_at"
+          ],
+          "tables": [
+            "local_incidents",
+            "pending_operations",
+            "pending_photo_references",
+            "sqlite_sequence"
+          ],
+          "incidents": [
+            {
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"assigned\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}",
+              "local_json": "{\"id\":\"campus-inc-001\",\"version\":1,\"title\":\"Fuga ficticia\",\"description\":\"Caso sintético de persistencia\",\"category\":\"water\",\"status\":\"in_progress\",\"priority\":\"medium\",\"assignedTechnicianId\":\"technician-1\",\"location\":{\"source\":\"manual\",\"label\":\"Aula ficticia\"},\"reportedAt\":null}"
+            }
+          ],
+          "operations": [
+            {
+              "sequence": 1,
+              "operation_id": "offline-start-001",
+              "actor_id": "technician-1",
+              "incident_id": "campus-inc-001",
+              "base_version": 1,
+              "action": "start",
+              "payload_json": "{\"notes\":\"Inspección pendiente sin conexión\",\"photoReferenceIds\":[\"photo-pending-001\"]}",
+              "created_at": null
+            }
+          ]
+        }
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "concurrent-reassignment",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-reassignment: el 403 real conserva ambas intenciones y debe informarse como conflicto de reasignación",
+      "expected": "Reasignación remota conservada, intención local pendiente y conflicto informado en aplicación aun si el backend devuelve 403.",
+      "evidence": "passed: sync-reassignment: el 403 real conserva ambas intenciones y debe informarse como conflicto de reasignación. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "assigned": {
+          "status": 201,
+          "body": {
+            "incident": {
+              "id": "campus-inc-001",
+              "version": 2,
+              "status": "assigned",
+              "payload": {
+                "category": "connectivity",
+                "description": "Sin conexión en laboratorio ficticio",
+                "location": "Edificio de prueba A",
+                "reporterId": "reporter-1",
+                "assignedTechnicianId": "technician-2",
+                "priority": "medium",
+                "notes": [],
+                "evidence": [],
+                "history": [
+                  {
+                    "operationId": "week08-reassign-001",
+                    "actorId": "coordinator-1",
+                    "action": "assign",
+                    "version": 2
+                  }
+                ]
+              }
+            },
+            "operationId": "week08-reassign-001",
+            "duplicate": false
+          }
+        },
+        "result": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "conflict",
+              "fields": [
+                "work"
+              ],
+              "reason": "assignment_or_permission_changed"
+            }
+          ],
+          "confirmed": 0,
+          "pending": 0,
+          "conflicts": 1,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "server": {
+          "id": "campus-inc-001",
+          "version": 2,
+          "status": "assigned",
+          "details": {
+            "category": "connectivity",
+            "description": "Sin conexión en laboratorio ficticio",
+            "location": "Edificio de prueba A",
+            "reporterId": "reporter-1",
+            "assignedTechnicianId": "technician-2",
+            "priority": "medium"
+          },
+          "history": [
+            {
+              "operationId": "week08-reassign-001",
+              "actorId": "coordinator-1",
+              "action": "assign",
+              "version": 2
+            }
+          ],
+          "notes": []
+        },
+        "calls": [
+          {
+            "path": "/v1/session/login",
+            "body": {
+              "actorId": "technician-1"
+            },
+            "status": 200
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001",
+            "body": {
+              "action": "start",
+              "baseVersion": 1
+            },
+            "status": 403
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "independent-changes",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-independent: combina intención persistida y cambio remoto independiente sin mutar los registros",
+      "expected": "Combinar inicio local y prioridad remota sin mutar entradas. El repositorio de la app utiliza la misma politica compartida; ver tambien workspace-merge.",
+      "evidence": "passed: sync-independent: combina intención persistida y cambio remoto independiente sin mutar los registros. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "records": [
+          {
+            "id": "campus-inc-001",
+            "version": 1,
+            "fields": {
+              "work": {
+                "status": "assigned",
+                "assignedTechnicianId": "technician-1"
+              },
+              "priority": "medium"
+            }
+          },
+          {
+            "id": "campus-inc-001",
+            "version": 1,
+            "fields": {
+              "work": {
+                "status": "in_progress",
+                "assignedTechnicianId": "technician-1"
+              },
+              "priority": "medium"
+            }
+          },
+          {
+            "id": "campus-inc-001",
+            "version": 2,
+            "fields": {
+              "work": {
+                "status": "assigned",
+                "assignedTechnicianId": "technician-1"
+              },
+              "priority": "high"
+            }
+          }
+        ],
+        "result": {
+          "kind": "merged",
+          "fields": {
+            "priority": "high",
+            "work": {
+              "status": "in_progress",
+              "assignedTechnicianId": "technician-1"
+            }
+          }
+        },
+        "inputsUnchanged": true
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "repeated-operation",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-confirmed: 2xx retira sólo la operación confirmada; el replay tiene un efecto y la foto sigue pendiente",
+      "expected": "Reenviar misma identidad y baseVersion: HTTP 201/200, un solo efecto por inicio y comentario; retirar operación confirmada, foto aún pendiente.",
+      "evidence": "passed: sync-confirmed: 2xx retira sólo la operación confirmada; el replay tiene un efecto y la foto sigue pendiente. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "result": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "confirmed"
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "status": "confirmed"
+            }
+          ],
+          "confirmed": 2,
+          "pending": 0,
+          "conflicts": 0,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "replay": {
+          "id": "campus-inc-001",
+          "title": "Sin conexión en laboratorio ficticio",
+          "description": "Sin conexión en laboratorio ficticio",
+          "category": "connectivity",
+          "status": "in_progress",
+          "priority": "medium",
+          "location": {
+            "source": "manual",
+            "label": "Edificio de prueba A"
+          },
+          "reportedAt": null,
+          "assignedTechnicianId": "technician-1",
+          "version": 2
+        },
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            }
+          },
+          "operations": [],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "server": {
+          "id": "campus-inc-001",
+          "version": 3,
+          "status": "in_progress",
+          "details": {
+            "category": "connectivity",
+            "description": "Sin conexión en laboratorio ficticio",
+            "location": "Edificio de prueba A",
+            "reporterId": "reporter-1",
+            "assignedTechnicianId": "technician-1",
+            "priority": "medium"
+          },
+          "history": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "action": "start",
+              "version": 2
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "actorId": "technician-1",
+              "action": "comment",
+              "version": 3
+            }
+          ],
+          "notes": [
+            {
+              "actorId": "technician-1",
+              "text": "Synthetic offline note"
+            }
+          ]
+        },
+        "calls": [
+          {
+            "path": "/v1/session/login",
+            "body": {
+              "actorId": "technician-1"
+            },
+            "status": 200
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001",
+            "body": {
+              "action": "start",
+              "baseVersion": 1
+            },
+            "status": 201
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001:note",
+            "body": {
+              "action": "comment",
+              "text": "Synthetic offline note",
+              "baseVersion": 2
+            },
+            "status": 201
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001",
+            "body": {
+              "action": "start",
+              "baseVersion": 1
+            },
+            "status": 200
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "lost-response-after-commit",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-lost-response: timeout_after_commit conserva identidad tras reabrir y el reintento no duplica el efecto",
+      "expected": "Tras timeout el servidor ya avanzó a v2; cola idéntica tras reabrir; replay con mismo ID confirma sin segundo efecto.",
+      "evidence": "passed: sync-lost-response: timeout_after_commit conserva identidad tras reabrir y el reintento no duplica el efecto. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "first": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "pending",
+              "reason": "unconfirmed_response"
+            }
+          ],
+          "confirmed": 0,
+          "pending": 1,
+          "conflicts": 0,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "committed": {
+          "id": "campus-inc-001",
+          "version": 2,
+          "status": "in_progress",
+          "details": {
+            "category": "connectivity",
+            "description": "Sin conexión en laboratorio ficticio",
+            "location": "Edificio de prueba A",
+            "reporterId": "reporter-1",
+            "assignedTechnicianId": "technician-1",
+            "priority": "medium"
+          },
+          "history": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "action": "start",
+              "version": 2
+            }
+          ],
+          "notes": []
+        },
+        "reopened": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "retry": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "confirmed"
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "status": "pending",
+              "reason": "unconfirmed_response"
+            }
+          ],
+          "confirmed": 1,
+          "pending": 1,
+          "conflicts": 0,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "notePending": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 2
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 2
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 2,
+              "action": "comment",
+              "payload": {
+                "text": "Synthetic offline note"
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "noteRetry": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "status": "confirmed"
+            }
+          ],
+          "confirmed": 1,
+          "pending": 0,
+          "conflicts": 0,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            }
+          },
+          "operations": [],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "server": {
+          "id": "campus-inc-001",
+          "version": 3,
+          "status": "in_progress",
+          "details": {
+            "category": "connectivity",
+            "description": "Sin conexión en laboratorio ficticio",
+            "location": "Edificio de prueba A",
+            "reporterId": "reporter-1",
+            "assignedTechnicianId": "technician-1",
+            "priority": "medium"
+          },
+          "history": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "action": "start",
+              "version": 2
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "actorId": "technician-1",
+              "action": "comment",
+              "version": 3
+            }
+          ],
+          "notes": [
+            {
+              "actorId": "technician-1",
+              "text": "Synthetic offline note"
+            }
+          ]
+        },
+        "calls": [
+          {
+            "path": "/v1/session/login",
+            "body": {
+              "actorId": "technician-1"
+            },
+            "status": 200
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001",
+            "body": {
+              "action": "start",
+              "baseVersion": 1
+            },
+            "error": "aborted"
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001",
+            "body": {
+              "action": "start",
+              "baseVersion": 1
+            },
+            "status": 200
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001:note",
+            "body": {
+              "action": "comment",
+              "text": "Synthetic offline note",
+              "baseVersion": 2
+            },
+            "error": "aborted"
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001:note",
+            "body": {
+              "action": "comment",
+              "text": "Synthetic offline note",
+              "baseVersion": 2
+            },
+            "status": 200
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "network-outage",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-network: red caída conserva la cola y al reconectar usa la identidad original",
+      "expected": "Red caída conserva toda la cola; reconectar confirma usando la identidad original.",
+      "evidence": "passed: sync-network: red caída conserva la cola y al reconectar usa la identidad original. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "first": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "pending",
+              "reason": "unconfirmed_response"
+            }
+          ],
+          "confirmed": 0,
+          "pending": 1,
+          "conflicts": 0,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "duringFailure": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "retry": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "confirmed"
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "status": "confirmed"
+            }
+          ],
+          "confirmed": 2,
+          "pending": 0,
+          "conflicts": 0,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 3
+            }
+          },
+          "operations": [],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        }
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "version-conflict-409",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-version-conflict: un 409 conserva intención local y prioridad remota sin descartar la cola",
+      "expected": "HTTP 409 informa conflicto y conserva intención local y prioridad remota.",
+      "evidence": "passed: sync-version-conflict: un 409 conserva intención local y prioridad remota sin descartar la cola. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "result": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "conflict",
+              "reason": "version_or_transition_changed"
+            }
+          ],
+          "confirmed": 0,
+          "pending": 0,
+          "conflicts": 1,
+          "forbidden": 0,
+          "invalid": 0
+        },
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "server": {
+          "id": "campus-inc-001",
+          "version": 2,
+          "status": "assigned",
+          "details": {
+            "category": "connectivity",
+            "description": "Sin conexión en laboratorio ficticio",
+            "location": "Edificio de prueba A",
+            "reporterId": "reporter-1",
+            "assignedTechnicianId": "technician-1",
+            "priority": "high"
+          },
+          "history": [
+            {
+              "operationId": "week08-priority-001",
+              "actorId": "coordinator-1",
+              "action": "prioritize",
+              "version": 2
+            }
+          ],
+          "notes": []
+        },
+        "calls": [
+          {
+            "path": "/v1/session/login",
+            "body": {
+              "actorId": "technician-1"
+            },
+            "status": 200
+          },
+          {
+            "path": "/v1/incidents/campus-inc-001/actions",
+            "key": "week08-ariel-start-001",
+            "body": {
+              "action": "start",
+              "baseVersion": 1
+            },
+            "status": 409
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "author-session",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-author: la sesión de otro autor no envía ni elimina operaciones ajenas",
+      "expected": "Otra sesión no envía acciones ni retira operaciones de un autor distinto.",
+      "evidence": "passed: sync-author: la sesión de otro autor no envía ni elimina operaciones ajenas. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "before": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "result": {
+          "results": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "status": "forbidden",
+              "reason": "author_session_required"
+            }
+          ],
+          "confirmed": 0,
+          "pending": 0,
+          "conflicts": 0,
+          "forbidden": 1,
+          "invalid": 0
+        },
+        "after": {
+          "incident": {
+            "base": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "assigned",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            },
+            "local": {
+              "id": "campus-inc-001",
+              "title": "Sin conexión en laboratorio ficticio",
+              "description": "Sin conexión en laboratorio ficticio",
+              "category": "connectivity",
+              "status": "in_progress",
+              "priority": "medium",
+              "location": {
+                "source": "manual",
+                "label": "Edificio de prueba A"
+              },
+              "reportedAt": null,
+              "assignedTechnicianId": "technician-1",
+              "version": 1
+            }
+          },
+          "operations": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "incidentId": "campus-inc-001",
+              "baseVersion": 1,
+              "action": "start",
+              "payload": {
+                "notes": "Synthetic offline note",
+                "photoReferenceIds": [
+                  "week08-photo-001"
+                ]
+              }
+            }
+          ],
+          "photos": [
+            {
+              "referenceId": "week08-photo-001",
+              "incidentId": "campus-inc-001",
+              "actorId": "technician-1",
+              "localUri": "file:///ficticio/week08.jpg",
+              "status": "pending"
+            }
+          ]
+        },
+        "sentActions": []
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "identity-reuse-different-payload",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-key-reuse: otro contenido con la misma identidad es rechazado por SQLite y backend",
+      "expected": "SQLite rechaza identidad con contenido distinto; backend devuelve 409 idempotency_key_reused sin otro efecto.",
+      "evidence": "passed: sync-key-reuse: otro contenido con la misma identidad es rechazado por SQLite y backend. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "first": {
+          "status": 201,
+          "body": {
+            "incident": {
+              "id": "campus-inc-001",
+              "version": 4,
+              "status": "in_progress",
+              "payload": {
+                "category": "connectivity",
+                "description": "Sin conexión en laboratorio ficticio",
+                "location": "Edificio de prueba A",
+                "reporterId": "reporter-1",
+                "assignedTechnicianId": "technician-1",
+                "priority": "high",
+                "notes": [
+                  {
+                    "actorId": "technician-1",
+                    "text": "Synthetic offline note"
+                  }
+                ],
+                "evidence": [],
+                "history": [
+                  {
+                    "operationId": "week08-ariel-start-001",
+                    "actorId": "technician-1",
+                    "action": "start",
+                    "version": 2
+                  },
+                  {
+                    "operationId": "week08-ariel-start-001:note",
+                    "actorId": "technician-1",
+                    "action": "comment",
+                    "version": 3
+                  },
+                  {
+                    "operationId": "week08-reused-key-001",
+                    "actorId": "coordinator-1",
+                    "action": "prioritize",
+                    "version": 4
+                  }
+                ]
+              }
+            },
+            "operationId": "week08-reused-key-001",
+            "duplicate": false
+          }
+        },
+        "reused": {
+          "status": 409,
+          "body": {
+            "code": "idempotency_key_reused"
+          }
+        },
+        "server": {
+          "id": "campus-inc-001",
+          "version": 4,
+          "status": "in_progress",
+          "details": {
+            "category": "connectivity",
+            "description": "Sin conexión en laboratorio ficticio",
+            "location": "Edificio de prueba A",
+            "reporterId": "reporter-1",
+            "assignedTechnicianId": "technician-1",
+            "priority": "high"
+          },
+          "history": [
+            {
+              "operationId": "week08-ariel-start-001",
+              "actorId": "technician-1",
+              "action": "start",
+              "version": 2
+            },
+            {
+              "operationId": "week08-ariel-start-001:note",
+              "actorId": "technician-1",
+              "action": "comment",
+              "version": 3
+            },
+            {
+              "operationId": "week08-reused-key-001",
+              "actorId": "coordinator-1",
+              "action": "prioritize",
+              "version": 4
+            }
+          ],
+          "notes": [
+            {
+              "actorId": "technician-1",
+              "text": "Synthetic offline note"
+            }
+          ]
+        }
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "json-content-and-order",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-json-boundaries: JSON por contenido, ausencia distinta de null y conflictos ordenados",
+      "expected": "Objetos se comparan por contenido; ausencia difiere de null; arrays mantienen orden; campos conflictivos salen ordenados.",
+      "evidence": "passed: sync-json-boundaries: JSON por contenido, ausencia distinta de null y conflictos ordenados. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "ordered": {
+          "kind": "conflict",
+          "fields": [
+            "a",
+            "z"
+          ]
+        },
+        "objectOrder": {
+          "kind": "merged",
+          "fields": {
+            "nested": {
+              "x": 3,
+              "y": 2
+            }
+          }
+        },
+        "missingNull": {
+          "kind": "conflict",
+          "fields": [
+            "value"
+          ]
+        },
+        "arrayOrder": {
+          "kind": "conflict",
+          "fields": [
+            "value"
+          ]
+        }
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "deduplication-first-wins",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "test": "sync-deduplication: conserva la primera operación y el orden sin mutar las entradas",
+      "expected": "Conservar primera identidad y orden sin mutar entradas. La validación de contenido corresponde a almacenamiento/backend.",
+      "evidence": "passed: sync-deduplication: conserva la primera operación y el orden sin mutar las entradas. Observación adjunta en observed; fallos en failureMessages.",
+      "observed": {
+        "input": [
+          {
+            "operationId": "variant-1",
+            "payload": {
+              "value": 7
+            }
+          },
+          {
+            "operationId": "variant-1",
+            "payload": {
+              "value": 12
+            }
+          },
+          {
+            "operationId": "variant-2",
+            "payload": {
+              "value": 9
+            }
+          }
+        ],
+        "result": [
+          {
+            "operationId": "variant-1",
+            "payload": {
+              "value": 7
+            }
+          },
+          {
+            "operationId": "variant-2",
+            "payload": {
+              "value": 9
+            }
+          }
+        ],
+        "inputsUnchanged": true
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "week06-regression",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "expected": "Conservar todas las pruebas acumuladas hasta semana 6, incluidas sesión, login/logout, permisos y renovación compartida.",
+      "evidence": "156/156 pruebas de regresión aprobadas.",
+      "observed": [
+        {
+          "test": "renders the reproducible baseline and resolves backend state",
+          "status": "passed"
+        },
+        {
+          "test": "be-success: lista y detalle de campus-inc-001 como objetos de aplicación",
+          "status": "passed"
+        },
+        {
+          "test": "be-nullable: payload null del backend → details null, sin error",
+          "status": "passed"
+        },
+        {
+          "test": "be-malformed: JSON roto del backend → contract",
+          "status": "passed"
+        },
+        {
+          "test": "be-slow: 1200 ms del backend con timeout de 300 ms → timeout",
+          "status": "passed"
+        },
+        {
+          "test": "be-slow-boundary: 1200 ms del backend con timeout de 3000 ms → éxito",
+          "status": "passed"
+        },
+        {
+          "test": "be-server-error: 500 → server",
+          "status": "passed"
+        },
+        {
+          "test": "be-rate-limited: 429 → http 429",
+          "status": "passed"
+        },
+        {
+          "test": "be-not-found: detalle inexistente → null",
+          "status": "passed"
+        },
+        {
+          "test": "be-create-idempotent: crear y repetir con la misma clave no duplica",
+          "status": "passed"
+        },
+        {
+          "test": "auth-app-secure-store: la sesión se guarda cifrada al entrar y no queda nada al cerrar",
+          "status": "passed"
+        },
+        {
+          "test": "auth-app-restore: al abrir la app con una sesión guardada vigente no se pide iniciar sesión otra vez",
+          "status": "passed"
+        },
+        {
+          "test": "auth-app-restore-invalid: un valor guardado que no se puede interpretar se trata como sin sesión",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 1 — consultar incidencias ajenas technician-2 no ve la incidencia asignada a technician-1 (lista y detalle)",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 1 — consultar incidencias ajenas reporter-2 no ve la incidencia reportada por reporter-1 (lista y detalle)",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 1 — consultar incidencias ajenas control positivo: el técnico asignado, el reportante y el coordinador sí la ven",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 2 — alterar asignaciones technician-1 no puede reasignar la incidencia: 403 y el recurso queda intacto",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 2 — alterar asignaciones reporter-1 tampoco puede reasignar la incidencia",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 2 — alterar asignaciones control positivo: coordinator-1 sí puede reasignar (queda historial)",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — datos sensibles en registros guarda provisional: el código de la app no escribe en consola",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-nested-object: oculta claves sensibles en objetos anidados a varios niveles",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-array-of-objects: recorre listas de incidencias y oculta cada elemento sensible",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-whole-value: una clave sensible oculta el valor completo aunque sea objeto o lista",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-key-normalization: normaliza mayúsculas, guiones y guiones bajos antes de comparar",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-technical-context-kept: conserva el contexto técnico seguro del contrato",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-no-mutation: no modifica la entrada original y devuelve copias nuevas en cada nivel",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-circular-boundary: una referencia circular no provoca excepción ni bucle y el resultado es serializable",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-error-object: un Error se reduce a tipo y código, sin message ni stack con datos",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-error-path-detail: al fallar el detalle, el registro conserva contexto técnico sin datos sensibles",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-error-path-list: al fallar la lista, el registro tampoco contiene datos sensibles",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 3 — sanitización de registros con redactForTelemetry (semana 4) t3-sink-failure: si el registro falla, la operación de la app no se rompe",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 4 — credenciales expuestas (escáner de secretos del evaluador) un árbol sin credenciales pasa el escáner y el evaluador termina con código 0",
+          "status": "passed"
+        },
+        {
+          "test": "Amenaza 4 — credenciales expuestas (escáner de secretos del evaluador) un valor falso con nombre de variable pública secreta hace fallar el escáner y el evaluador termina con código 1",
+          "status": "passed"
+        },
+        {
+          "test": "pantalla de sesión ui-login-logout: sin sesión muestra el selector; al entrar muestra el perfil y al salir borra la sesión",
+          "status": "passed"
+        },
+        {
+          "test": "pantalla de sesión ui-login-rejected: un inicio rechazado muestra un mensaje y no abre la app",
+          "status": "passed"
+        },
+        {
+          "test": "pantalla de sesión ui-session-expired: si la renovación falla la pantalla regresa al inicio de sesión",
+          "status": "passed"
+        },
+        {
+          "test": "operaciones por perfil ui-role-reporter: el reportante ve el formulario y ninguna operación de atención",
+          "status": "passed"
+        },
+        {
+          "test": "operaciones por perfil ui-role-technician: sólo el técnico asignado ve \"Iniciar atención\" y luego \"Marcar resuelta\"",
+          "status": "passed"
+        },
+        {
+          "test": "operaciones por perfil ui-role-coordinator: coordinación ve cerrar y reabrir sólo cuando corresponde",
+          "status": "passed"
+        },
+        {
+          "test": "operaciones por perfil ui-action-flow: el técnico inicia y resuelve; la resolución exige diagnóstico",
+          "status": "passed"
+        },
+        {
+          "test": "operaciones por perfil ui-action-403: si el servicio responde 403 se avisa y la incidencia no cambia en pantalla",
+          "status": "passed"
+        },
+        {
+          "test": "fallo timeout → mensaje distinguible y sin datos técnicos",
+          "status": "passed"
+        },
+        {
+          "test": "fallo unavailable → mensaje distinguible y sin datos técnicos",
+          "status": "passed"
+        },
+        {
+          "test": "fallo invalid_response → mensaje distinguible y sin datos técnicos",
+          "status": "passed"
+        },
+        {
+          "test": "fallo network → mensaje distinguible y sin datos técnicos",
+          "status": "passed"
+        },
+        {
+          "test": "fallo rejected → mensaje distinguible y sin datos técnicos",
+          "status": "passed"
+        },
+        {
+          "test": "una incidencia con payload null se lista como \"detalle no disponible\"",
+          "status": "passed"
+        },
+        {
+          "test": "crear usa el writer, reutiliza la clave al reintentar y no muestra el error técnico",
+          "status": "passed"
+        },
+        {
+          "test": "inicio de sesión contra el backend be-login-reporter-1: el backend entrega el perfil reporter",
+          "status": "passed"
+        },
+        {
+          "test": "inicio de sesión contra el backend be-login-technician-1: el backend entrega el perfil technician",
+          "status": "passed"
+        },
+        {
+          "test": "inicio de sesión contra el backend be-login-coordinator-1: el backend entrega el perfil coordinator",
+          "status": "passed"
+        },
+        {
+          "test": "inicio de sesión contra el backend be-login-unknown: un actor que no existe recibe 401 y no queda sesión",
+          "status": "passed"
+        },
+        {
+          "test": "expiración y renovación contra el backend be-refresh-shared: tres consultas con el token vencido hacen una sola renovación real",
+          "status": "passed"
+        },
+        {
+          "test": "expiración y renovación contra el backend be-refresh-stale-token: el backend rechaza el token de renovación ya usado y la sesión se cierra",
+          "status": "passed"
+        },
+        {
+          "test": "expiración y renovación contra el backend be-refresh-invalid: con la variante invalid_refresh la primera renovación falla y no hay reintentos",
+          "status": "passed"
+        },
+        {
+          "test": "cierre de sesión contra el backend be-logout: después de cerrar sesión no hay token guardado ni solicitudes al backend",
+          "status": "passed"
+        },
+        {
+          "test": "autorización por perfil: la decide el backend, no la pantalla be-authz-technician-not-assigned: technician-2 no puede iniciar ni resolver una incidencia ajena",
+          "status": "passed"
+        },
+        {
+          "test": "autorización por perfil: la decide el backend, no la pantalla be-authz-close-needs-coordinator: reportante y técnico asignado no pueden cerrar ni reabrir",
+          "status": "passed"
+        },
+        {
+          "test": "autorización por perfil: la decide el backend, no la pantalla be-authz-technician-resolves: el técnico asignado inicia y resuelve su incidencia",
+          "status": "passed"
+        },
+        {
+          "test": "autorización por perfil: la decide el backend, no la pantalla be-authz-reporter-cannot-coordinate: resuelta la incidencia, el reportante sigue sin poder cerrarla",
+          "status": "passed"
+        },
+        {
+          "test": "autorización por perfil: la decide el backend, no la pantalla be-authz-coordinator-closes-reopens: coordinación cierra y reabre",
+          "status": "passed"
+        },
+        {
+          "test": "autorización por perfil: la decide el backend, no la pantalla be-authz-visibility: reporter-2 no puede leer la incidencia de reporter-1",
+          "status": "passed"
+        },
+        {
+          "test": "autorización por perfil: la decide el backend, no la pantalla be-authz-no-token: un token inválido recibe 401 aunque el actor exista",
+          "status": "passed"
+        },
+        {
+          "test": "Esqueleto de arquitectura de CampusOps (AC-01 y AC-02) los casos de uso de aplicación funcionan con repositorio mock aislado",
+          "status": "passed"
+        },
+        {
+          "test": "Esqueleto de arquitectura de CampusOps (AC-01 y AC-02) InMemoryIncidentRepository proporciona incidencias sintéticas desde la capa de infraestructura",
+          "status": "passed"
+        },
+        {
+          "test": "Esqueleto de arquitectura de CampusOps (AC-01 y AC-02) la capa UI renderiza la lista de incidencias y navega al detalle al seleccionarla",
+          "status": "passed"
+        },
+        {
+          "test": "t3-ui-error-path: la UI muestra un mensaje genérico y el registro no conserva datos sensibles",
+          "status": "passed"
+        },
+        {
+          "test": "fm-01 success: respuesta válida lista, detalle y creación devuelven objetos de aplicación sin campos extra del DTO",
+          "status": "passed"
+        },
+        {
+          "test": "fm-02 nullable: payload null permitido lista y detalle conservan details null sin inventar datos ni marcar error",
+          "status": "passed"
+        },
+        {
+          "test": "fm-03 malformed: cuerpo JSON roto del backend el cuerpo literal '{\"items\": [}' se rechaza como contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato version textual → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato id vacío → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato versión negativa → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato payload arreglo → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato sin status → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato elemento null → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato una lista sin items → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-04 DTO corrupto: el sobre no cumple el contrato una creación sin incident → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-05 dominio inválido: sobre válido, incidencia inválida estado fuera del flujo pasa parseRemoteResource pero el cliente lo rechaza → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-05 dominio inválido: sobre válido, incidencia inválida categoría desconocida pasa parseRemoteResource pero el cliente lo rechaza → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-05 dominio inválido: sobre válido, incidencia inválida sin prioridad pasa parseRemoteResource pero el cliente lo rechaza → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-05 dominio inválido: sobre válido, incidencia inválida ubicación no textual pasa parseRemoteResource pero el cliente lo rechaza → contract",
+          "status": "passed"
+        },
+        {
+          "test": "fm-06 slow: respuesta lenta si excede timeoutMs se aborta y se representa como timeout",
+          "status": "passed"
+        },
+        {
+          "test": "fm-06 slow: respuesta lenta límite: si llega antes de timeoutMs se acepta normalmente",
+          "status": "passed"
+        },
+        {
+          "test": "fm-07 server_error / rate_limited / rechazos HTTP 500 controlled_failure → server con status 500",
+          "status": "passed"
+        },
+        {
+          "test": "fm-07 server_error / rate_limited / rechazos HTTP 429 rate_limited → http con status 429 (no se confunde con server)",
+          "status": "passed"
+        },
+        {
+          "test": "fm-07 server_error / rate_limited / rechazos HTTP 401 unauthorized → http con status 401",
+          "status": "passed"
+        },
+        {
+          "test": "fm-07 server_error / rate_limited / rechazos HTTP 404 en detalle → null (no encontrada), no excepción",
+          "status": "passed"
+        },
+        {
+          "test": "fm-07 server_error / rate_limited / rechazos HTTP 404 en la lista sí es error http",
+          "status": "passed"
+        },
+        {
+          "test": "fm-08 red: fetch falla sin respuesta una conexión rechazada → network, sin filtrar el error original",
+          "status": "passed"
+        },
+        {
+          "test": "fm-09 ninguna excepción sin controlar malformed: getIncidents rechaza sólo con IncidentClientError tipado",
+          "status": "passed"
+        },
+        {
+          "test": "fm-09 ninguna excepción sin controlar server_error: getIncidents rechaza sólo con IncidentClientError tipado",
+          "status": "passed"
+        },
+        {
+          "test": "fm-09 ninguna excepción sin controlar rate_limited: getIncidents rechaza sólo con IncidentClientError tipado",
+          "status": "passed"
+        },
+        {
+          "test": "fm-09 ninguna excepción sin controlar slow: getIncidents rechaza sólo con IncidentClientError tipado",
+          "status": "passed"
+        },
+        {
+          "test": "fm-09 ninguna excepción sin controlar dto corrupto: getIncidents rechaza sólo con IncidentClientError tipado",
+          "status": "passed"
+        },
+        {
+          "test": "inicio de sesión auth-login-ok: guarda los tokens en el store y la sesión visible no los contiene",
+          "status": "passed"
+        },
+        {
+          "test": "inicio de sesión auth-login-rejected: un actor rechazado no deja sesión ni tokens guardados",
+          "status": "passed"
+        },
+        {
+          "test": "inicio de sesión auth-restore: recupera una sesión vigente sin llamar al servicio y descarta una vencida",
+          "status": "passed"
+        },
+        {
+          "test": "expiración con reloj controlable auth-expiry-boundary: a 59 999 ms no renueva; a 60 000 ms renueva una vez",
+          "status": "passed"
+        },
+        {
+          "test": "expiración con reloj controlable auth-expiry-shared: tres solicitudes que encuentran el token vencido comparten una renovación",
+          "status": "passed"
+        },
+        {
+          "test": "renovación compartida ante 401 conc-single-flight: tres 401 simultáneos esperan una sola renovación y se reintentan una vez",
+          "status": "passed"
+        },
+        {
+          "test": "renovación compartida ante 401 conc-bounded-retry: un segundo 401 de la misma solicitud no renueva otra vez",
+          "status": "passed"
+        },
+        {
+          "test": "renovación compartida ante 401 conc-late-401: un 401 tardío de la generación anterior usa el token ya renovado",
+          "status": "passed"
+        },
+        {
+          "test": "renovación compartida ante 401 conc-new-generation: cuando vence el token renovado se permite una renovación nueva",
+          "status": "passed"
+        },
+        {
+          "test": "fallo de renovación auth-refresh-failed: regresa a no autenticado, borra los tokens y no entra en bucle",
+          "status": "passed"
+        },
+        {
+          "test": "fallo de renovación auth-refresh-unavailable: si el servicio no responde también se cierra la sesión",
+          "status": "passed"
+        },
+        {
+          "test": "fallo de renovación auth-refresh-stale-after-logout: una renovación que llega después del cierre no guarda nada",
+          "status": "passed"
+        },
+        {
+          "test": "fallo de renovación auth-refresh-stale-other-session: la renovación de una sesión cerrada no toca la sesión nueva",
+          "status": "passed"
+        },
+        {
+          "test": "cierre de sesión auth-logout-clears: después del cierre no queda token persistido ni se autorizan solicitudes",
+          "status": "passed"
+        },
+        {
+          "test": "tokens fuera de los registros auth-no-token-in-logs: ni los eventos de sesión ni los errores contienen tokens o actor",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh starts without a persisted session",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh shares an in-flight refresh and waits for success before retrying",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh retries duplicate request IDs once and prevents refresh loops",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh retries late 401s with the current token without another refresh",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh allows one new refresh when a new generation expires",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh ignores stale outcomes while a newer refresh is in flight",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh clears a session on refreshFailed and ignores late events ($generation)",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh clears a session on refreshFailed and ignores late events (2)",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh clears a session on logout and ignores late events ($generation)",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh discards pending requests when the first refresh fails",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh ignores refresh outcomes without an in-flight refresh",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh handles omitted generations without mutating events",
+          "status": "passed"
+        },
+        {
+          "test": "coordinateRefresh ignores incomplete events and generations outside the active refresh",
+          "status": "passed"
+        },
+        {
+          "test": "convierte el objeto validado en Incident del dominio sin inventar la fecha",
+          "status": "passed"
+        },
+        {
+          "test": "payload null se convierte en una entrada sin detalles, no en datos ficticios",
+          "status": "passed"
+        },
+        {
+          "test": "404 en detalle sigue siendo null para la app",
+          "status": "passed"
+        },
+        {
+          "test": "respuesta malformada se traduce a IncidentSourceError(200)",
+          "status": "passed"
+        },
+        {
+          "test": "error 500 se traduce a IncidentSourceError(500)",
+          "status": "passed"
+        },
+        {
+          "test": "429 rate_limited se traduce a IncidentSourceError(429)",
+          "status": "passed"
+        },
+        {
+          "test": "timeout se traduce a IncidentSourceError(timeout)",
+          "status": "passed"
+        },
+        {
+          "test": "un borrador inválido se rechaza sin llamar al backend",
+          "status": "passed"
+        },
+        {
+          "test": "crear devuelve la incidencia del dominio",
+          "status": "passed"
+        },
+        {
+          "test": "CampusOps validates the published incident DTO boundary 0",
+          "status": "passed"
+        },
+        {
+          "test": "CampusOps validates the published incident DTO boundary 1",
+          "status": "passed"
+        },
+        {
+          "test": "CampusOps validates the published incident DTO boundary 2",
+          "status": "passed"
+        },
+        {
+          "test": "CampusOps validates the published incident DTO boundary 3",
+          "status": "passed"
+        },
+        {
+          "test": "CampusOps validates the published incident DTO boundary 4",
+          "status": "passed"
+        },
+        {
+          "test": "consulta la lista mediante el cliente y separa el DTO del objeto de aplicación",
+          "status": "passed"
+        },
+        {
+          "test": "conserva payload null como ausencia válida sin inventar datos",
+          "status": "passed"
+        },
+        {
+          "test": "rechaza un DTO malformado antes de devolverlo",
+          "status": "passed"
+        },
+        {
+          "test": "distingue un error de servidor",
+          "status": "passed"
+        },
+        {
+          "test": "crea mediante POST con autenticación y clave de idempotencia",
+          "status": "passed"
+        },
+        {
+          "test": "aborta y representa una respuesta lenta como timeout",
+          "status": "passed"
+        },
+        {
+          "test": "conc-client-three-401: tres consultas con 401 → una renovación y un reintento por consulta",
+          "status": "passed"
+        },
+        {
+          "test": "conc-client-no-loop: si el backend sigue respondiendo 401, cada consulta se envía dos veces y termina",
+          "status": "passed"
+        },
+        {
+          "test": "conc-client-refresh-failed: si la renovación falla no hay reintentos y la sesión queda cerrada",
+          "status": "passed"
+        },
+        {
+          "test": "auth-client-after-logout: sin sesión el cliente no envía la solicitud",
+          "status": "passed"
+        },
+        {
+          "test": "conc-client-retry-keeps-key: el reintento de una escritura conserva actor y clave de idempotencia",
+          "status": "passed"
+        },
+        {
+          "test": "CampusOps redacts personal and incident-sensitive data while preserving technical context",
+          "status": "passed"
+        },
+        {
+          "test": "coalesces concurrent 401s into one refresh and retries each request once",
+          "status": "passed"
+        },
+        {
+          "test": "logout removes persisted session state",
+          "status": "passed"
+        },
+        {
+          "test": "baseline preserves the reproduced failure and its verified correction",
+          "status": "passed"
+        },
+        {
+          "test": "feedback workflow preserves critical checks and least privilege",
+          "status": "passed"
+        },
+        {
+          "test": "threat model links assets, threats, controls and verification",
+          "status": "passed"
+        },
+        {
+          "test": "ui layer never imports infrastructure directly",
+          "status": "passed"
+        },
+        {
+          "test": "architecture exposes boundaries and no direct UI-to-infrastructure edge",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "app-offline-restart",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "status": "pass",
+      "expected": "workspace-offline: la app recupera el caché, persiste un inicio y sincroniza tras reabrir sin conexión",
+      "evidence": "passed: workspace-offline: la app recupera el caché, persiste un inicio y sincroniza tras reabrir sin conexión",
+      "observed": {
+        "status": "passed",
+        "failureMessages": []
+      }
+    },
+    {
+      "id": "app-independent-merge",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "status": "pass",
+      "expected": "workspace-merge: el repositorio usado por la app combina campos independientes conservando la cola y base",
+      "evidence": "passed: workspace-merge: el repositorio usado por la app combina campos independientes conservando la cola y base",
+      "observed": {
+        "status": "passed",
+        "failureMessages": []
+      }
+    },
+    {
+      "id": "app-session-isolation",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "status": "pass",
+      "expected": "workspace-logout: cambiar de sesión impide consultar caché y enviar la cola del autor anterior",
+      "evidence": "passed: workspace-logout: cambiar de sesión impide consultar caché y enviar la cola del autor anterior",
+      "observed": {
+        "status": "passed",
+        "failureMessages": []
+      }
+    },
+    {
+      "id": "invalid-server-receipt",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "status": "pass",
+      "expected": "sync-receipt-identity: un 2xx con otra identidad no retira la cola; el reintento confirma sin duplicar",
+      "evidence": "passed: sync-receipt-identity: un 2xx con otra identidad no retira la cola; el reintento confirma sin duplicar",
+      "observed": {
+        "status": "passed",
+        "failureMessages": []
+      }
+    },
+    {
+      "id": "session-change-during-sync",
+      "scenarioType": "boundary",
+      "command": "node tools/run-week08-tests.cjs",
+      "status": "pass",
+      "expected": "workspace-session-race: un cambio de sesión tras confirmar inicio impide enviar la nota sucesora",
+      "evidence": "passed: workspace-session-race: un cambio de sesión tras confirmar inicio impide enviar la nota sucesora",
+      "observed": {
+        "status": "passed",
+        "failureMessages": []
+      }
+    },
+    {
+      "id": "atomic-note-handoff",
+      "scenarioType": "nominal",
+      "command": "node tools/run-week08-tests.cjs",
+      "status": "pass",
+      "expected": "storage-followup: confirma inicio y persiste su nota sucesora junto con la nueva base",
+      "evidence": "passed: storage-followup: confirma inicio y persiste su nota sucesora junto con la nueva base",
+      "observed": {
+        "status": "passed",
+        "failureMessages": []
+      }
+    },
+    {
+      "id": "atomic-note-handoff-rollback",
+      "scenarioType": "failure",
+      "command": "node tools/run-week08-tests.cjs",
+      "status": "pass",
+      "expected": "storage-followup-rollback: una colisión de la nota revierte el borrado y la actualización de base",
+      "evidence": "passed: storage-followup-rollback: una colisión de la nota revierte el borrado y la actualización de base",
+      "observed": {
+        "status": "passed",
+        "failureMessages": []
+      }
+    }
+  ]
+}

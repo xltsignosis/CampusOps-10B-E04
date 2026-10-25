@@ -36,7 +36,9 @@
     },
     {
       "studentId": "3523110241",
-      "commitShas": ["fecaef3ba8cfde05e9e52793b5503975f629ceab"],
+      "commitShas": [
+        "fecaef3ba8cfde05e9e52793b5503975f629ceab"
+      ],
       "files": [
         "src/application/syncPendingOperations.ts",
         "src/course-evaluation/index.ts",
@@ -53,15 +55,31 @@
       "explanation": "La aportación consiste en desarrollar el motor de sincronización de operaciones pendientes, validar la sesión y la identidad de cada operación, manejar los conflictos y conservar la cola cuando no se obtiene una confirmación válida. También se prepara la documentación de la política de sincronización y la evidencia de las alternativas técnicas. La implementación debe revisarse para asegurar que la evaluación delegue en la lógica de aplicación y que las pruebas cubran confirmaciones, conflictos, permisos y reintentos. Los hashes de commits se agregarán después de realizar los commits correspondientes."
     },
     {
-      "studentId": "",
-      "commitShas": [],
-      "files": [],
-      "tests": [],
-      "reviews": [],
-      "prediction": "",
-      "command": "",
-      "observedResult": "",
-      "explanation": ""
+      "studentId": "3523110621",
+      "commitShas": [
+        "5af6eba47ce8062d09d59d99d96ee4c0d8153794"
+      ],
+      "files": [
+        "src/application/syncPendingOperations.test.ts",
+        "tools/run-week08-tests.cjs",
+        "reports/week-08/migration-tests.json",
+        "evidence/week-08/engineering.json"
+      ],
+      "tests": [
+        "src/application/syncPendingOperations.test.ts",
+        "src/infrastructure/storage/sqliteOfflineStore.test.ts",
+        "course-tests/public/week-06.test.ts",
+        "course-tests/public/week-08.test.ts"
+      ],
+      "reviews": [
+        "Revision del enunciado, rubrica, contrato de evidencias, ramas e historial de la semana.",
+        "Contraste del motor y el repositorio de la app con identidad estable, autorizacion por autor y politica compartida de combinacion.",
+        "Casos ejecutables sobre conservacion de notas, reasignacion que responde 403, respuesta perdida y recibos invalidos."
+      ],
+      "prediction": "Esperaba conservar identidad, base, notas y fotos tras reabrir; rollback integro ante migracion fallida; una sola aplicacion ante replay y timeout_after_commit; y conservacion e identificacion del conflicto cuando coordinacion reasigna mientras el tecnico inicia offline. Esperaba que las pruebas acumuladas de sesion y permisos siguieran pasando.",
+      "command": "node tools/run-week08-tests.cjs\nnpm run typecheck\nnpm run lint\nnpm run backend:self-test\nnpm run audit:ci\nnpm run bundle:release",
+      "observedResult": "La verificacion local con Node 22.22.0 aprobo 25 suites y 187 pruebas: 156 regresiones anteriores, 12 casos de almacenamiento, 16 de sincronizacion/integracion y 3 publicas de semana 8. Se conservaron identidad y contenido tras reabrir SQLite, se verifico rollback de migracion y de la transferencia atomica de notas, y el backend aplico una sola vez cada inicio y comentario ante reintentos. El 403 de reasignacion se informa como conflicto y conserva la cola; un cambio de sesion detiene nuevos envios. Tipos, estilo, backend, exportacion Android y evaluador local pasan. audit:ci cumple el umbral critical e informa 5 vulnerabilidades high transitivas. El alcance de las pruebas es local con SQLite de Node y HTTP, con reloj y almacenamiento seguro sustituidos por dobles.",
+      "explanation": "Evidencia de pruebas y revision de Persona 3. Los casos ejecutan saveOfflineStart, SqliteOfflineStore, syncPendingOperations, RemoteIncidentRepository e IncidentClient contra el backend local, mas el repositorio usado por la app. El ejecutor genera el indice despues de Jest e incluye estados de reinicio, falla y recuperacion; conserva el codigo de error cuando hay fallos. Se utilizo asistencia material de Codex para preparar y ejecutar las pruebas y revisar los resultados. Los comandos, estados observados y alcance estan en reports/week-08/migration-tests.json."
     }
   ]
 }
