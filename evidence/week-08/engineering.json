@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "commitSha": "5af6eba47ce8062d09d59d99d96ee4c0d8153794",
+  "scope": "Verificacion local con Node 22.22.0, SQLite real en disco y backend HTTP. La compilacion y la exportacion son comprobaciones de construccion del proyecto.",
+  "decision": "Guardar toda intencion en SQLite antes del envio y conservar autor, contenido, operationId y baseVersion durante los reintentos. La politica compartida compara base/local/remoto y agrupa estado y asignacion en work. Combina campos compatibles en el repositorio usado por la app y conserva la cola ante incompatibilidad. Solo una respuesta valida permite retirar su operacion; confirmar el inicio transfiere atomicamente su nota a un comentario pendiente con identidad propia estable.",
+  "alternatives": [
+    "Aceptar siempre el remoto y descartar la cola: reduce estados, pero pierde la intencion local y notas ante conflictos o respuestas perdidas.",
+    "Imponer siempre la intencion local sobre una base nueva: simplifica reintentos, pero puede restaurar una asignacion obsoleta y romper autorizacion e identidad.",
+    "Conservar base, intencion, identidad y autor; combinar campos compatibles y exigir revision autorizada de incompatibilidades: permite recuperacion y evita sobrescritura silenciosa."
+  ],
+  "tradeoff": "La cola persistente y las confirmaciones atomicas conservan cambios tras reinicio y permiten repetir solicitudes sin duplicar efectos. Mantener base e intencion, aislar datos por actor y separar inicio de comentario requiere mas estados y transacciones. Un 409 no se convierte en exito por existir una combinacion compatible: una resolucion que cambie solicitud o base necesita una nueva intencion. Las referencias de foto conservan pending y no acreditan subida.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "node tools/run-week08-tests.cjs",
+      "result": "pass: 25 suites y 187 pruebas aprobadas.",
+      "evidence": "reports/week-08/migration-tests.json indexa 22 comprobaciones, estados de migracion/rollback/reinicio, operaciones y respuestas reales; incluye las 156 regresiones anteriores, 12 casos de almacenamiento, 16 de sincronizacion/integracion y 3 publicas de semana 8."
+    },
+    {
+      "command": "make feedback",
+      "result": "pass: tipos, estilo, smoke, auditoria con umbral critical y exportacion Android terminan con codigo 0.",
+      "evidence": "Expo genero dist/export/metadata.json y el bundle Android del proyecto integrado. La exportacion comprueba construccion."
+    },
+    {
+      "command": "python tools/course_public_evaluator.py --week 8 --mode verify --execute-toolchain",
+      "result": "pass: tipos, estilo, auditoria, smoke y backend ejecutados con codigo 0.",
+      "evidence": "reports/week-08/verify.json conserva resultados y salidas de cada comando; el evaluador resuelve npm.cmd y salida UTF-8 en Windows sin omitir comprobaciones."
+    },
+    {
+      "command": "npm run backend:self-test",
+      "result": "pass: contratos CampusOps y autoprueba del backend.",
+      "evidence": "Roles, reasignacion, perdida de respuesta e idempotencia comprobados; el cruce de inicio local y reasignacion devuelve 403 y mantiene la operacion con estado de conflicto."
+    },
+    {
+      "command": "npm run audit:ci",
+      "result": "pass para el umbral critical; se informan 5 vulnerabilidades high transitivas.",
+      "evidence": "Se actualizaron brace-expansion y zod compatibles en el lockfile. Los avisos restantes del arbol de Expo se conservan en la salida de auditoria; no se fuerza un cambio de version mayor del stack."
+    },
+    {
+      "command": "android\\gradlew.bat -p android assembleDebug -PreactNativeArchitectures=x86_64 --no-daemon --max-workers=2",
+      "result": "pass: APK de depuracion compilado.",
+      "evidence": "BUILD SUCCESSFUL; android/app/build/outputs/apk/debug/app-debug.apk generado localmente. Esta observacion comprueba compilacion."
+    },
+    {
+      "command": "python tools/course_public_evaluator.py --week 8 --mode public --execute-toolchain",
+      "result": "pass: formatos, controles estructurales y 3 pruebas publicas de semana 8.",
+      "evidence": "reports/week-08/public-tests.json conserva la ejecucion real sobre el commit tecnico actual."
+    }
+  ]
+}

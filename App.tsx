@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
@@ -9,7 +9,10 @@ import { RemoteIncidentRepository } from './src/infrastructure/remoteIncidentRep
 import { InMemoryTelemetrySink } from './src/infrastructure/inMemoryTelemetrySink';
 import { SecureSessionStore } from './src/infrastructure/secureTokenStore';
 import { HttpSessionGateway } from './src/infrastructure/sessionGateway';
-import { CampusOpsApp } from './src/ui/CampusOpsApp';
+import { OfflineSession } from './src/ui/OfflineSession';
+import { OfflineIncidentRepository } from './src/application/offlineIncidentRepository';
+import { openOfflineStore } from './src/infrastructure/storage/openOfflineStore';
+import type { Session } from './src/domain/session';
 import { SessionGate } from './src/ui/SessionGate';
 
 export default function App() {
@@ -24,6 +27,14 @@ export default function App() {
     () => new RemoteIncidentRepository(new IncidentClient({ auth: sessionManager })),
     [sessionManager],
   );
+
+  const openOfflineSession = useCallback(async (session: Session) => {
+    const store = await openOfflineStore(session.actorId);
+    return new OfflineIncidentRepository(store, incidentRepository, session, () => {
+      const active = sessionManager.getSnapshot();
+      return active.status === 'authenticated' && active.session.actorId === session.actorId;
+    });
+  }, [incidentRepository, sessionManager]);
 
   useEffect(() => {
     let active = true;
@@ -46,11 +57,10 @@ export default function App() {
       <View style={styles.content}>
         <SessionGate controller={sessionManager}>
           {(session) => (
-            <CampusOpsApp
+            <OfflineSession
               key={session.actorId}
-              repository={incidentRepository}
+              open={openOfflineSession}
               writer={incidentRepository}
-              actions={incidentRepository}
               session={session}
               telemetry={telemetry}
             />

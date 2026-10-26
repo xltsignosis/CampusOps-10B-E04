@@ -18,6 +18,14 @@ jest.mock('expo-secure-store', () => ({
   }),
 }));
 
+jest.mock('./infrastructure/storage/openOfflineStore', () => ({
+  openOfflineStore: async (actorId: string) => {
+    const { SqliteOfflineStore } = jest.requireActual('./infrastructure/storage/sqliteOfflineStore');
+    const { openNodeSqlite } = jest.requireActual('./testing/nodeSqlite');
+    return SqliteOfflineStore.open(openNodeSqlite(':memory:'), actorId);
+  },
+}));
+
 jest.mock('./api/courseBackend', () => ({
   getBackendHealth: jest.fn().mockResolvedValue({ ok: true, service: 'dmi-controlled-backend', contractVersion: 1 }),
 }));

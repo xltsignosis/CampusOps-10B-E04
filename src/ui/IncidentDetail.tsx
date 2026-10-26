@@ -29,6 +29,7 @@ const statusBadgeStyles: Record<IncidentStatus, ViewStyle> = {
 
 export function IncidentDetail({ incident, onBack, actions = [], busy = false, onAction }: IncidentDetailProps) {
   const [diagnosis, setDiagnosis] = useState<string>('');
+  const [notes, setNotes] = useState('');
 
   return (
     <View style={styles.container}>
@@ -85,6 +86,9 @@ export function IncidentDetail({ incident, onBack, actions = [], busy = false, o
 
       {onAction && actions.length > 0 ? (
         <View style={styles.actions}>
+          {actions.includes('start') ? <TextInput testID="action-notes" style={styles.input}
+            placeholder="Nota de atención (opcional)" value={notes} onChangeText={setNotes}
+            editable={!busy} accessibilityLabel="Nota de atención" /> : null}
           {actions.includes('resolve') ? (
             <TextInput
               testID="action-diagnosis"
@@ -105,7 +109,7 @@ export function IncidentDetail({ incident, onBack, actions = [], busy = false, o
                 style={[styles.actionButton, disabled && styles.actionDisabled]}
                 disabled={disabled}
                 onPress={() =>
-                  onAction(name === 'resolve' ? { action: 'resolve', diagnosis: diagnosis.trim() } : { action: name })
+                  onAction(name === 'resolve' ? { action: 'resolve', diagnosis: diagnosis.trim() } : name === 'start' && notes.trim() ? { action: 'start', notes: notes.trim() } : { action: name })
                 }
                 accessibilityRole="button"
                 accessibilityLabel={ACTION_LABELS[name]}

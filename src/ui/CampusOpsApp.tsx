@@ -1,5 +1,6 @@
+import type { OfflineController } from '../application/offlineIncidentRepository';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   hasDetails,
   IncidentSourceError,
@@ -34,6 +35,7 @@ interface CampusOpsAppProps {
   /** Perfil con sesión iniciada: decide qué se ofrece en pantalla, no qué se autoriza. */
   session?: Session;
   telemetry?: TelemetrySink;
+  offline?: OfflineController;
 }
 
 // Mensajes genéricos: el detalle técnico sólo va, sanitizado, al registro de telemetría.
@@ -67,7 +69,7 @@ function describeFailure(error: unknown, fallback: string): string {
   return FAILURE_MESSAGES[error.kind] ?? fallback;
 }
 
-export function CampusOpsApp({ repository, writer, actions, session, telemetry }: CampusOpsAppProps) {
+export function CampusOpsApp({ repository, writer, actions, session, telemetry, offline }: CampusOpsAppProps) {
   const [incidents, setIncidents] = useState<readonly IncidentEntry[]>([]);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -98,6 +100,48 @@ export function CampusOpsApp({ repository, writer, actions, session, telemetry }
       active = false;
     };
   }, [repository, telemetry]);
+
+  useEffect(() => {
+    if (!offline) return;
+    let active = true;
+    const unsubscribe = offline.subscribe((result) => {
+      if (!active || !result.results.length) return;
+      if (result.conflicts) setNotice('Hay un conflicto de asignación o versión. Tu cambio sigue guardado para revisión.');
+      else if (result.forbidden || result.invalid) setNotice('Hay cambios guardados que requieren revisar permisos o contenido.');
+      else if (result.pending) setNotice('Cambio guardado sin confirmar. Se reintentará con la misma identidad.');
+      else setNotice('Cambios confirmados por el servidor.');
+    });
+    const refresh = () => {
+      void offline.sync().then(() => getIncidentList(repository, telemetry)).then((data) => {
+        if (active) {
+          setIncidents(data);
+          setSelectedIncident((previous) => {
+            const current = previous && data.find((entry) => entry.id === previous.id);
+            return current && hasDetails(current) ? current : previous;
+          });
+        }
+      }).catch(() => undefined);
+    };
+    // El primer listado ya recupera el caché; sincronizar al abrir y al recuperar actividad/conexión.
+    void offline.sync().catch(() => undefined);
+    const subscription = AppState.addEventListener('change', (state) => { if (state === 'active') refresh(); });
+    const interval = setInterval(refresh, 15000);
+    return () => { active = false; unsubscribe(); subscription.remove(); clearInterval(interval); };
+  }, [offline, repository, telemetry]);
+
+  const handleSync = async () => {
+    if (!offline) return;
+    setSubmitting(true);
+    try {
+      await offline.sync();
+      setIncidents(await getIncidentList(repository, telemetry));
+      if (selectedIncident) {
+        const detail = await repository.getById(selectedIncident.id);
+        setSelectedIncident(detail && hasDetails(detail) ? detail : null);
+      }
+    } catch (error) { setErrorMessage(describeFailure(error, ACTION_ERROR)); }
+    finally { setSubmitting(false); }
+  };
 
   const handleSelectIncident = async (id: string) => {
     setLoading(true);
@@ -156,7 +200,11 @@ export function CampusOpsApp({ repository, writer, actions, session, telemetry }
       pendingAction.current = null;
       setIncidents((current) => current.map((item) => (item.id === updated.id ? updated : item)));
       setSelectedIncident(hasDetails(updated) ? updated : null);
-      setNotice(`Incidencia actualizada: ${updated.id}`);
+      const sync = offline?.getSyncResult();
+      if (!sync?.results.length) setNotice(`Incidencia actualizada: ${updated.id}`);
+      else if (sync.conflicts) setNotice('Hay un conflicto de asignación o versión. Tu cambio sigue guardado para revisión.');
+      else if (sync.pending || sync.forbidden || sync.invalid) setNotice('Cambio guardado pendiente de confirmación.');
+      else setNotice(`Incidencia actualizada: ${updated.id}`);
     } catch (error) {
       setErrorMessage(describeFailure(error, ACTION_ERROR));
     } finally {
@@ -186,6 +234,9 @@ export function CampusOpsApp({ repository, writer, actions, session, telemetry }
 
   return (
     <View style={styles.container}>
+      {offline ? <Pressable testID="sync-pending" accessibilityRole="button" onPress={handleSync} disabled={submitting}>
+        <Text style={styles.noticeText}>Sincronizar cambios guardados</Text>
+      </Pressable> : null}
       {errorMessage ? (
         <Text testID="campusops-error" accessibilityRole="alert" style={styles.errorText}>
           {errorMessage}

@@ -7,7 +7,9 @@ import argparse
 import datetime as dt
 import json
 import re
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +26,8 @@ SECRET_PATTERNS = {
 
 def run(repo: Path, command: list[str], timeout: int = 300) -> tuple[bool, str]:
     try:
-        result = subprocess.run(command, cwd=repo, text=True, capture_output=True, timeout=timeout)
+        executable = shutil.which(command[0]) or command[0]
+        result = subprocess.run([executable, *command[1:]], cwd=repo, text=True, encoding='utf-8', errors='replace', capture_output=True, timeout=timeout)
     except (OSError, subprocess.TimeoutExpired) as exc:
         return False, str(exc)
     tail = ((result.stdout or "") + "\n" + (result.stderr or ""))[-3000:]
@@ -189,6 +192,8 @@ def scan_secrets(repo: Path) -> list[str]:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser()
     parser.add_argument("--week", required=True, type=int)
     parser.add_argument("--mode", required=True, choices=("verify", "public", "evidence"))

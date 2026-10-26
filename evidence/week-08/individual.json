@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "teamId": "E04",
+  "members": [
+    {
+      "studentId": "3523110248",
+      "commitShas": [
+        "bd44af8bfa8710ba4d3be3d41dd03e64c4702c6e",
+        "56d2920c5629283a432e6cf1b950405f4189b047",
+        "afd7bc4f7b5f21c378bbf753ae4bca08e8268ee9",
+        "32ee850d23c24bf83c92582c98c41550ba46bbf6"
+      ],
+      "files": [
+        "docs/data-model.md",
+        "src/domain/offlineStore.ts",
+        "src/application/saveOfflineStart.ts",
+        "src/infrastructure/storage/sqliteConnection.ts",
+        "src/infrastructure/storage/openOfflineStore.ts",
+        "src/infrastructure/storage/sqliteOfflineStore.ts",
+        "src/infrastructure/storage/migrations.ts",
+        "src/infrastructure/storage/sqliteOfflineStore.test.ts",
+        "src/testing/nodeSqlite.ts",
+        "package.json",
+        "package-lock.json",
+        "reports/week-08/storage-observations.json"
+      ],
+      "tests": [
+        "src/infrastructure/storage/sqliteOfflineStore.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "La expectativa de verificación fue que el almacén SQLite conservara la incidencia, las notas, las referencias de fotos y el mismo operationId al cerrar y reabrir; que las confirmaciones inválidas no retiraran operaciones; y que una falla inyectada después de modificar el esquema revirtiera íntegramente tablas y datos. Al reintentar la migración sin la falla se esperaba conservar la incidencia y la operación originales en el esquema 2.",
+      "command": "CAMPUSOPS_STORAGE_OBSERVATIONS=reports/week-08/storage-observations.json npm test -- --ci --runInBand src/infrastructure/storage/sqliteOfflineStore.test.ts\nnpm run typecheck\nnpm run lint",
+      "observedResult": "En la ejecución asistida por Codex del 23 de octubre de 2026 aprobaron las 10 pruebas del almacén. Se recuperó offline-start-001 con el mismo contenido después de cerrar y reabrir, y un proceso independiente leyó la operación en disco. La falla inyectada dejó el esquema y los registros exactamente como antes; la recuperación migró de versión 1 a 2 conservando la incidencia y la operación. Cuatro confirmaciones inválidas mantuvieron la cola, mientras una confirmación válida retiró la operación y conservó la referencia de foto pendiente. npm run typecheck y npm run lint terminaron con código 0. Los estados observados están en reports/week-08/storage-observations.json. No se comprobó el enlace nativo de Expo en dispositivo ni el reinicio de la app Android/iOS.",
+      "explanation": "Para la aportación de Persona 1 se prepararon, con asistencia de IA (Codex), docs/data-model.md, los tipos del modelo local, el almacén SQLite, la cola persistente y la migración transaccional. La incidencia conserva por separado la base remota y la intención local; la operación guarda autor, versión base, contenido e identidad estable; las fotos siguen siendo referencias pendientes sin afirmar una carga al servidor. La comprobación técnica se realizó ejecutando con Codex los comandos registrados contra SQLite real en disco y conservando los estados antes de migrar, tras la falla y después de recuperar. Se reutilizan los permisos existentes para preparar el inicio offline. Esta aportación no implementa el motor de sincronización, resolveSync, deduplicateOperations ni el reporte integral de Persona 3. El almacén aún no está conectado a App.tsx. La dependencia, implementación, pruebas y documentación se guardaron en commits separados con la identidad Git configurada de Persona 1; sus SHA completos están en commitShas. Este registro debe revisarse personalmente antes de entregar."
+    },
+    {
+      "studentId": "3523110241",
+      "commitShas": [
+        "fecaef3ba8cfde05e9e52793b5503975f629ceab"
+      ],
+      "files": [
+        "src/application/syncPendingOperations.ts",
+        "src/course-evaluation/index.ts",
+        "docs/sync-policy.md",
+        "evidence/week-08/engineering.json"
+      ],
+      "tests": [
+        "course-tests/public/week-08.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Se esperaba que el motor de sincronización procesara las operaciones pendientes sin duplicarlas, verificara que el actor de cada operación coincidiera con la sesión activa, conservara las operaciones ante errores o respuestas inválidas y solo las retirara después de una confirmación válida del servidor. También se esperaba detectar conflictos de versión y mantener una identidad estable para los reintentos.",
+      "command": "npx tsc --noEmit\nnpx jest course-tests/public/week-08.test.ts --runInBand",
+      "observedResult": "npx tsc --noEmit terminó sin errores. La prueba pública course-tests/public/week-08.test.ts pasó con 3 pruebas aprobadas. La documentación de política de sincronización y la evidencia de decisión técnica se prepararon para la entrega. Falta verificar las pruebas específicas del motor de sincronización y completar la integración final antes de afirmar que toda la implementación está terminada.",
+      "explanation": "La aportación consiste en desarrollar el motor de sincronización de operaciones pendientes, validar la sesión y la identidad de cada operación, manejar los conflictos y conservar la cola cuando no se obtiene una confirmación válida. También se prepara la documentación de la política de sincronización y la evidencia de las alternativas técnicas. La implementación debe revisarse para asegurar que la evaluación delegue en la lógica de aplicación y que las pruebas cubran confirmaciones, conflictos, permisos y reintentos. Los hashes de commits se agregarán después de realizar los commits correspondientes."
+    },
+    {
+      "studentId": "3523110621",
+      "commitShas": [
+        "5af6eba47ce8062d09d59d99d96ee4c0d8153794"
+      ],
+      "files": [
+        "src/application/syncPendingOperations.test.ts",
+        "tools/run-week08-tests.cjs",
+        "reports/week-08/migration-tests.json",
+        "evidence/week-08/engineering.json"
+      ],
+      "tests": [
+        "src/application/syncPendingOperations.test.ts",
+        "src/infrastructure/storage/sqliteOfflineStore.test.ts",
+        "course-tests/public/week-06.test.ts",
+        "course-tests/public/week-08.test.ts"
+      ],
+      "reviews": [
+        "Revision del enunciado, rubrica, contrato de evidencias, ramas e historial de la semana.",
+        "Contraste del motor y el repositorio de la app con identidad estable, autorizacion por autor y politica compartida de combinacion.",
+        "Casos ejecutables sobre conservacion de notas, reasignacion que responde 403, respuesta perdida y recibos invalidos."
+      ],
+      "prediction": "Esperaba conservar identidad, base, notas y fotos tras reabrir; rollback integro ante migracion fallida; una sola aplicacion ante replay y timeout_after_commit; y conservacion e identificacion del conflicto cuando coordinacion reasigna mientras el tecnico inicia offline. Esperaba que las pruebas acumuladas de sesion y permisos siguieran pasando.",
+      "command": "node tools/run-week08-tests.cjs\nnpm run typecheck\nnpm run lint\nnpm run backend:self-test\nnpm run audit:ci\nnpm run bundle:release",
+      "observedResult": "La verificacion local con Node 22.22.0 aprobo 25 suites y 187 pruebas: 156 regresiones anteriores, 12 casos de almacenamiento, 16 de sincronizacion/integracion y 3 publicas de semana 8. Se conservaron identidad y contenido tras reabrir SQLite, se verifico rollback de migracion y de la transferencia atomica de notas, y el backend aplico una sola vez cada inicio y comentario ante reintentos. El 403 de reasignacion se informa como conflicto y conserva la cola; un cambio de sesion detiene nuevos envios. Tipos, estilo, backend, exportacion Android y evaluador local pasan. audit:ci cumple el umbral critical e informa 5 vulnerabilidades high transitivas. El alcance de las pruebas es local con SQLite de Node y HTTP, con reloj y almacenamiento seguro sustituidos por dobles.",
+      "explanation": "Evidencia de pruebas y revision de Persona 3. Los casos ejecutan saveOfflineStart, SqliteOfflineStore, syncPendingOperations, RemoteIncidentRepository e IncidentClient contra el backend local, mas el repositorio usado por la app. El ejecutor genera el indice despues de Jest e incluye estados de reinicio, falla y recuperacion; conserva el codigo de error cuando hay fallos. Se utilizo asistencia material de Codex para preparar y ejecutar las pruebas y revisar los resultados. Los comandos, estados observados y alcance estan en reports/week-08/migration-tests.json."
+    }
+  ]
+}

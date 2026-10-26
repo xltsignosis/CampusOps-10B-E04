@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "mode": "public",
+  "commitSha": "5af6eba47ce8062d09d59d99d96ee4c0d8153794",
+  "evaluatedAt": "2026-10-25T21:31:58.527081+00:00",
+  "status": "pass",
+  "checks": [
+    {
+      "id": "base_files",
+      "status": "pass",
+      "detail": "missing=[]"
+    },
+    {
+      "id": "react_native_profile",
+      "status": "pass",
+      "detail": "missing packages=[]"
+    },
+    {
+      "id": "toolchain_scripts",
+      "status": "pass",
+      "detail": "missing scripts=[]"
+    },
+    {
+      "id": "workflow_integrity",
+      "status": "pass",
+      "detail": "bypass markers=[]"
+    },
+    {
+      "id": "secret_scan",
+      "status": "pass",
+      "detail": "hits=[]"
+    },
+    {
+      "id": "required_evidence",
+      "status": "pass",
+      "detail": "missing/empty=[]"
+    },
+    {
+      "id": "schema:reports/week-08/migration-tests.json",
+      "status": "pass",
+      "detail": "22 checks indexed, 18 boundary/failure; report evaluates HEAD"
+    },
+    {
+      "id": "schema:evidence/week-08/engineering.json",
+      "status": "pass",
+      "detail": "decision evidence is substantive and reproducible; report evaluates HEAD"
+    },
+    {
+      "id": "schema:evidence/week-08/individual.json",
+      "status": "pass",
+      "detail": "three individual evidence records found"
+    },
+    {
+      "id": "toolchain_1",
+      "status": "pass",
+      "detail": "npm run typecheck\n> dmi-react-native-starter@1.0.0 typecheck\n> tsc --noEmit"
+    },
+    {
+      "id": "toolchain_2",
+      "status": "pass",
+      "detail": "npm run lint\n> dmi-react-native-starter@1.0.0 lint\n> eslint ."
+    },
+    {
+      "id": "toolchain_3",
+      "status": "pass",
+      "detail": "npm run audit:ci\n> dmi-react-native-starter@1.0.0 audit:ci\n> npm audit --omit=dev --audit-level=critical\n\n# npm audit report\n\nnode-forge  *\nSeverity: high\nnode-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements - https://github.com/advisories/GHSA-86w9-cpqp-85rv\nfix available via `npm audit fix --force`\nWill install expo@54.0.38, which is a breaking change\nnode_modules/node-forge\n  @expo/cli  <=0.0.0-canary-20231123-1b19f96-4 || >=0.0.1-canary-20231125-d600e44\n  Depends on vulnerable versions of @expo/code-signing-certificates\n  Depends on vulnerable versions of node-forge\n  Depends on vulnerable versions of zod\n  node_modules/expo/node_modules/@expo/cli\n    expo  52.0.0-canary-20240625-2333e70 - 52.0.0-canary-20241018-f71b3e0 || >=55.0.0-canary-20250912-b5ce2a8\n    Depends on vulnerable versions of @expo/cli\n    node_modules/expo\n  @expo/code-signing-certificates  *\n  Depends on vulnerable versions of node-forge\n  node_modules/@expo/code-signing-certificates\n\nzod  <4.6.6\nSeverity: high\nZod can exhaust memory while validating oversized constrained collections - https://github.com/advisories/GHSA-mrhx-c7xc-m3w5\nfix available via `npm audit fix --force`\nWill install expo@54.0.38, which is a breaking change\nnode_modules/expo/node_modules/zod\n\n5 high severity vulnerabilities\n\nTo address issues that do not require attention, run:\n  npm audit fix\n\nTo address all issues (including breaking changes), run:\n  npm audit fix --force"
+    },
+    {
+      "id": "toolchain_4",
+      "status": "pass",
+      "detail": "npm test -- --ci --runInBand course-tests/public/week-08.test.ts\n> dmi-react-native-starter@1.0.0 test\n> jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/public/week-08.test.ts\n\n\nPASS course-tests/public/week-08.test.ts\n  √ CampusOps detects offline start versus remote reassignment without mutating either record (5 ms)\n  √ merges independent field changes and reports same-field conflict (1 ms)\n  √ deduplicates a replayed operation by stable identity\n\nTest Suites: 1 passed, 1 total\nTests:       3 passed, 3 total\nSnapshots:   0 total\nTime:        1.601 s\nRan all test suites matching /course-tests\\\\public\\\\week-08.test.ts/i."
+    }
+  ]
+}
