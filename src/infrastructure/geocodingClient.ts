@@ -1,205 +1,120 @@
-
 import type { IncidentLocation } from '../campusops/contracts';
-import type {
-  RequestAuthorizer,
-  RequestCredentials,
-} from '../domain/session';
-import { selectIncidentLocation } from '../course-evaluation';
+import type { Clock, RequestAuthorizer, RequestCredentials } from '../domain/session';
+import { selectIncidentLocation } from '../application/selectIncidentLocation';
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:4310';
-const DEFAULT_TIMEOUT_MS = 1500;
-const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
-const DEFAULT_ACCESS_TOKEN = 'course-valid-token';
-const DEFAULT_ACTOR_ID = 'reporter-1';
-
-export type GeocodingErrorKind =
-  | 'timeout'
-  | 'network'
-  | 'http'
-  | 'contract';
-
+export type GeocodingProvider = 'course' | 'photon';
+export type GeocodingErrorKind = 'timeout' | 'network' | 'http' | 'contract';
 export class GeocodingClientError extends Error {
-  readonly status: number | undefined;
-
-  constructor(
-    readonly kind: GeocodingErrorKind,
-    status?: number,
-  ) {
-    super(`Geocodificación no disponible: ${kind}`);
+  constructor(readonly kind: GeocodingErrorKind, readonly status?: number) {
+    super('Geocodificación no disponible: ' + kind);
     this.name = 'GeocodingClientError';
-    this.status = status;
   }
 }
-
 export type GeocodingClientOptions = Readonly<{
+  provider?: GeocodingProvider;
   baseUrl?: string;
   timeoutMs?: number;
+  cacheTtlMs?: number;
+  maxCacheEntries?: number;
+  clock?: Clock;
   scenario?: string;
   fetchImpl?: typeof fetch;
   auth?: RequestAuthorizer;
 }>;
 
-type CacheEntry = Readonly<{
-  location: IncidentLocation;
-  expiresAt: number;
-}>;
+function photonLocation(input: unknown): unknown {
+  if (!input || typeof input !== 'object') return null;
+  const features = (input as { features?: unknown }).features;
+  if (!Array.isArray(features) || !features.length) return null;
+  const feature = features[0];
+  if (!feature || typeof feature !== 'object' || feature.geometry?.type !== 'Point') return null;
+  const coordinates: unknown = feature.geometry.coordinates;
+  if (!Array.isArray(coordinates) || coordinates.length < 2) return null;
+  return { label: feature.properties?.name, latitude: coordinates[1], longitude: coordinates[0] };
+}
 
-/**
- * Adaptador HTTP y caché para el contrato GET /v1/geocoding?q=...
- * Sólo conserva resultados que selectIncidentLocation valida.
- */
+/** Course fixture or public Photon. Credentials are never shared between providers. */
 export class GeocodingClient {
+  private readonly provider: GeocodingProvider;
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
-  private readonly scenario: string | undefined;
+  private readonly cacheTtlMs: number;
+  private readonly maxCacheEntries: number;
+  private readonly clock: Clock;
   private readonly fetchImpl: typeof fetch;
-  private readonly auth: RequestAuthorizer | undefined;
   private requestSequence = 0;
-  private readonly cache = new Map<string, CacheEntry>();
+  private readonly cache = new Map<string, { location: IncidentLocation; expiresAt: number }>();
 
-  constructor(options: GeocodingClientOptions = {}) {
-    this.baseUrl = (
-      options.baseUrl ??
-      process.env.EXPO_PUBLIC_COURSE_BACKEND_URL ??
-      DEFAULT_BASE_URL
-    ).replace(/\/$/, '');
-
-    this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-    this.scenario = options.scenario;
-    this.fetchImpl =
-      options.fetchImpl ?? ((input, init) => fetch(input, init));
-    this.auth = options.auth;
-
-    if (!Number.isFinite(this.timeoutMs) || this.timeoutMs <= 0) {
-      throw new Error('timeoutMs debe ser positivo.');
+  constructor(private readonly options: GeocodingClientOptions = {}) {
+    this.provider = options.provider ?? 'course';
+    this.baseUrl = (options.baseUrl ?? (this.provider === 'photon'
+      ? 'https://photon.komoot.io' : process.env.EXPO_PUBLIC_COURSE_BACKEND_URL ?? 'http://127.0.0.1:4310')).replace(/\/$/, '');
+    this.timeoutMs = options.timeoutMs ?? 1500;
+    this.cacheTtlMs = options.cacheTtlMs ?? 300_000;
+    this.maxCacheEntries = options.maxCacheEntries ?? 50;
+    this.clock = options.clock ?? { now: () => Date.now() };
+    this.fetchImpl = options.fetchImpl ?? ((input, init) => fetch(input, init));
+    if (![this.timeoutMs, this.cacheTtlMs].every((n) => Number.isFinite(n) && n > 0 && n <= 2_147_483_647) ||
+      !Number.isInteger(this.maxCacheEntries) || this.maxCacheEntries < 1) {
+      throw new Error('Timeout, TTL y límite de caché deben ser positivos y finitos.');
     }
   }
 
-  async resolve(
-    query: string,
-    manualLabel: string,
-  ): Promise<IncidentLocation> {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-
-    if (!normalizedQuery) {
-      return selectIncidentLocation(null, manualLabel);
-    }
-
-    const cached = this.cache.get(normalizedQuery);
-
-    if (cached && cached.expiresAt > Date.now()) {
-      return cached.location;
-    }
-
-    if (cached) {
-      this.cache.delete(normalizedQuery);
-    }
-
+  async resolve(query: string, manualLabel: string): Promise<IncidentLocation> {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return selectIncidentLocation(null, manualLabel);
+    const cached = this.cache.get(normalized);
+    if (cached && cached.expiresAt > this.clock.now()) return cached.location;
+    this.cache.delete(normalized);
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    const deadline = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => { controller.abort(); reject(new GeocodingClientError('timeout')); }, this.timeoutMs);
+    });
     try {
-      const providerResult = await this.search(normalizedQuery);
-      const location = selectIncidentLocation(
-        providerResult,
-        manualLabel,
-      );
-
+      // Authorization, headers AND body are bounded, even if transport ignores abort.
+      const result = await Promise.race([this.search(normalized, controller.signal), deadline]);
+      const location = selectIncidentLocation(result, manualLabel);
       if (location.source === 'provider') {
-        this.cache.set(normalizedQuery, {
-          location,
-          expiresAt: Date.now() + DEFAULT_CACHE_TTL_MS,
-        });
-
-        // Limita el tamaño de la caché.
-        if (this.cache.size > 50) {
-          const oldestKey = this.cache.keys().next().value;
-          if (oldestKey !== undefined) {
-            this.cache.delete(oldestKey);
-          }
-        }
+        this.cache.set(normalized, { location: Object.freeze(location), expiresAt: this.clock.now() + this.cacheTtlMs });
+        if (this.cache.size > this.maxCacheEntries) this.cache.delete(this.cache.keys().next().value!);
       }
-
       return location;
     } catch {
-      // Timeout, desconexión, 429 o respuesta inválida:
-      // se conserva la etiqueta manual sin inventar coordenadas.
       return selectIncidentLocation(null, manualLabel);
-    }
-  }
-
-  clearCache(): void {
-    this.cache.clear();
-  }
-
-  private async search(query: string): Promise<unknown> {
-    this.requestSequence += 1;
-    const requestId = `geocoding-${this.requestSequence}`;
-
-    let credentials: RequestCredentials = this.auth
-      ? await this.auth.authorize(requestId)
-      : {
-          accessToken: DEFAULT_ACCESS_TOKEN,
-          actorId: DEFAULT_ACTOR_ID,
-          generation: 0,
-        };
-
-    let response = await this.send(query, credentials);
-
-    if (
-      response.status === 401 &&
-      this.auth &&
-      await this.auth.onUnauthorized(requestId, credentials.generation)
-    ) {
-      credentials = await this.auth.authorize(requestId);
-      response = await this.send(query, credentials);
-    }
-
-    if (!response.ok) {
-      throw new GeocodingClientError('http', response.status);
-    }
-
-    try {
-      return await response.json() as unknown;
-    } catch {
-      throw new GeocodingClientError('contract');
-    }
-  }
-
-  private async send(
-    query: string,
-    credentials: RequestCredentials,
-  ): Promise<Response> {
-    const controller = new AbortController();
-    const timeout = setTimeout(
-      () => controller.abort(),
-      this.timeoutMs,
-    );
-
-    const headers: Record<string, string> = {
-      Accept: 'application/json',
-      Authorization: `Bearer ${credentials.accessToken}`,
-      'X-Course-Actor': credentials.actorId,
-    };
-
-    if (this.scenario) {
-      headers['X-Course-Scenario'] = this.scenario;
-    }
-
-    const url =
-      `${this.baseUrl}/v1/geocoding?q=${encodeURIComponent(query)}`;
-
-    try {
-      return await this.fetchImpl(url, {
-        method: 'GET',
-        headers,
-        signal: controller.signal,
-      });
-    } catch {
-      if (controller.signal.aborted) {
-        throw new GeocodingClientError('timeout');
-      }
-
-      throw new GeocodingClientError('network');
     } finally {
-      clearTimeout(timeout);
+      clearTimeout(timer!);
     }
+  }
+
+  clearCache(): void { this.cache.clear(); }
+
+  private async search(query: string, signal: AbortSignal): Promise<unknown> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    const requestId = 'geocoding-' + (++this.requestSequence);
+    let credentials: RequestCredentials | undefined;
+    if (this.provider === 'course') {
+      credentials = this.options.auth ? await this.options.auth.authorize(requestId)
+        : { accessToken: 'course-valid-token', actorId: 'reporter-1', generation: 0 };
+      headers.Authorization = 'Bearer ' + credentials.accessToken;
+      headers['X-Course-Actor'] = credentials.actorId;
+      if (this.options.scenario) headers['X-Course-Scenario'] = this.options.scenario;
+    }
+    const path = this.provider === 'photon' ? '/api/?limit=1&q=' : '/v1/geocoding?q=';
+    const send = () => {
+      if (signal.aborted) throw new GeocodingClientError('timeout');
+      return this.fetchImpl(this.baseUrl + path + encodeURIComponent(query), { method: 'GET', headers, signal });
+    };
+    let response = await send();
+    if (response.status === 401 && this.provider === 'course' && this.options.auth && credentials &&
+      await this.options.auth.onUnauthorized(requestId, credentials.generation)) {
+      const refreshed = await this.options.auth.authorize(requestId);
+      if (refreshed.actorId !== credentials.actorId) throw new GeocodingClientError('http', 401);
+      headers.Authorization = 'Bearer ' + refreshed.accessToken;
+      response = await send();
+    }
+    if (!response.ok) throw new GeocodingClientError('http', response.status);
+    const body: unknown = await response.json();
+    return this.provider === 'photon' ? photonLocation(body) : body;
   }
 }

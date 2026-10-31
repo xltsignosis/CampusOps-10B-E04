@@ -27,16 +27,25 @@ try {
     '--ci', '--runInBand', '--no-watchman', '--cacheDirectory', '.jest-cache',
     '--json', '--outputFile', resultsPath, '--runTestsByPath',
     'src/application/retryPolicy.test.ts', 'src/infrastructure/incidentClient.retry.test.ts',
+    'src/infrastructure/incidentClient.resilience.test.ts', 'src/testing/week09Ui.test.tsx',
   ], {
-    env: { ...process.env, CAMPUSOPS_RETRY_OBSERVATIONS: observationsPath },
+    env: { ...process.env, CAMPUSOPS_RETRY_OBSERVATIONS: observationsPath, CAMPUSOPS_FAULT_OBSERVATIONS: temporary },
     encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
   });
   process.stdout.write((execution.stdout || '') + (execution.stderr || ''));
   if (execution.error) throw execution.error;
   const results = JSON.parse(readFileSync(resultsPath, 'utf8'));
   const observations = JSON.parse(readFileSync(observationsPath, 'utf8'));
+  const lost = JSON.parse(readFileSync(join(temporary, 'lost-response.json'), 'utf8'));
+  const ui = JSON.parse(readFileSync(join(temporary, 'ui.json'), 'utf8'));
+  Object.assign(observations, { lostResolve: lost.resolve, lostClose: lost.close, lostEvidence: lost.evidence, uiResolve: ui.resolve, uiClose: ui.close });
   const tests = results.testResults.flatMap((suite) => suite.assertionResults);
   const cases = [
+    ['lost-resolution-no-duplicates', 'http-lost-resolve:', 'lostResolve', 'failure', 'La resolución guardada antes del timeout se confirma con misma identidad sin duplicar historial ni evidencias.'],
+    ['lost-close-no-duplicates', 'http-lost-close:', 'lostClose', 'failure', 'El cierre guardado antes del timeout se confirma con misma identidad sin duplicar efectos.'],
+    ['lost-evidence-no-duplicates', 'evidence-replay:', 'lostEvidence', 'failure', 'Una evidencia sintética se agrega una sola vez pese a perder la respuesta.'],
+    ['ui-resolution-one-notice', 'ui-lost-resolve:', 'uiResolve', 'failure', 'Dos envíos HTTP producen un solo éxito de aplicación y una confirmación visible.'],
+    ['ui-close-one-notice', 'ui-lost-close:', 'uiClose', 'failure', 'El replay de cierre produce una sola confirmación visible.'],
     ['bounded-attempts', 'retry-bound:', 'bounded', 'boundary', 'Cuatro envíos y tres esperas de 250/500/1000 ms; nunca programar el quinto envío.'],
     ['configurable-limits', 'retry-config:', 'configured', 'boundary', 'Máximo de tres envíos con esperas de 100/150 ms configuradas.'],
     ['retry-after-seconds', 'retry-after-seconds:', 'header-seconds', 'nominal', 'Interpretar Retry-After: 2 como 2000 ms.'],
@@ -65,7 +74,7 @@ try {
   });
   const report = {
     schemaVersion: 1, week: 9, commitSha, generatedAt: new Date().toISOString(), command,
-    scope: 'Integrante 2: planificación y ejecución de reintentos, identidad y contenido estables, registros sanitizados. Reloj virtual para límites y HTTP local con reloj real para Retry-After.',
+    scope: 'Integrante 2 y ampliación verificable de Ariel (Persona 3): fallos HTTP tras guardar, ausencia de duplicados y avisos dentro de la app; planificación y ejecución de reintentos, identidad y contenido estables, registros sanitizados. Reloj virtual para límites y HTTP local con reloj real para Retry-After.',
     revisionNote: 'commitSha identifica el HEAD base; workingTreeAtExecution registra los cambios locales comprobados. Actualizar tras guardar el código para la entrega final del equipo.',
     workingTreeAtExecution, nodeVersion: process.version,
     status: results.success && checks.every((check) => check.status === 'pass') ? 'pass' : 'fail',

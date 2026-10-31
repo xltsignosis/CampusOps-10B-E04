@@ -1,0 +1,38 @@
+sequenceDiagram
+    actor Persona
+    participant UI as CampusOpsApp / formulario
+    participant Geo as GeocodingClient + caché
+    participant Proveedor as Photon / doble controlado
+    participant Cliente as IncidentClient + planRetry
+    participant Servidor as Backend del curso
+    Persona->>UI: Escribir edificio, zona o referencia
+    alt Enviar manualmente
+        UI->>UI: Conservar etiqueta sin coordenadas
+    else Buscar ubicación opcional
+        UI->>Geo: resolve(consulta, referencia)
+        alt Caché vigente
+            Geo-->>UI: Ubicación validada
+        else Consultar proveedor
+            Geo->>Proveedor: GET sin credenciales del curso a Photon
+            alt Respuesta válida dentro del plazo completo
+                Proveedor-->>Geo: Coordenadas + etiqueta
+                Geo->>Geo: Validar y guardar en caché
+                Geo-->>UI: Sugerencia para confirmar
+                Persona->>UI: Aceptar o continuar manualmente
+            else Timeout, 429, red o datos inválidos
+                Geo-->>UI: Referencia manual sin coordenadas
+            end
+        end
+    end
+    Persona->>UI: Resolver o cerrar
+    UI->>Cliente: POST con clave K y cuerpo B
+    Cliente->>Servidor: Envío 1 (K, B, baseVersion)
+    Servidor->>Servidor: Aplicar una vez y guardar recibo K
+    Servidor--xCliente: Respuesta perdida tras guardar
+    Cliente->>Cliente: Timeout; planRetry autoriza espera finita
+    Note over Cliente: Máximo 4 envíos; POST exige identidad estable
+    Cliente->>Servidor: Envío 2: misma K y mismos bytes B
+    Servidor-->>Cliente: Recibo previo, duplicate=true
+    Cliente-->>UI: Operación confirmada
+    UI-->>Persona: Una confirmación visible
+    Note over Servidor: Un evento; sin duplicar referencias de evidencia

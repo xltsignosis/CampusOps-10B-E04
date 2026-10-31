@@ -31,7 +31,10 @@ export default function App() {
   );
 
   const geocodingClient = useMemo(
-    () => new GeocodingClient({ auth: sessionManager }),
+    () => new GeocodingClient({
+      provider: process.env.EXPO_PUBLIC_GEOCODING_PROVIDER === 'course' ? 'course' : 'photon',
+      auth: sessionManager,
+    }),
     [sessionManager],
   );
 

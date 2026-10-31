@@ -6,7 +6,6 @@ import type {
   PermissionEvent,
   RemoteResponse,
 } from './contracts';
-import type { IncidentLocation } from '../campusops/contracts';
 import {
   redactForTelemetry as redactCampusOpsTelemetry,
 } from '../application/telemetry';
@@ -16,6 +15,8 @@ import {
 import {
   parseRemoteResource as parseCampusOpsRemoteResource,
 } from '../infrastructure/remoteResource';
+
+export { selectIncidentLocation } from '../application/selectIncidentLocation';
 
 function pending(name: string): never {
   throw new Error(`${name} must be implemented in the assigned week`);
@@ -83,56 +84,4 @@ export function reducePermissionLifecycle(
   resourceActive: boolean;
 }> {
   return pending('reducePermissionLifecycle');
-}
-
-export function selectIncidentLocation(
-  provider: unknown,
-  manualLabel: string,
-): IncidentLocation {
-  // La ubicación manual debe estar disponible como alternativa.
-  const fallback: IncidentLocation = {
-    source: 'manual',
-    label: manualLabel,
-  };
-
-  // Validar que el proveedor haya devuelto un objeto.
-  if (
-    provider === null ||
-    typeof provider !== 'object' ||
-    Array.isArray(provider)
-  ) {
-    return fallback;
-  }
-
-  const result = provider as Record<string, unknown>;
-
-  // Validar la etiqueta.
-  if (
-    typeof result.label !== 'string' ||
-    result.label.trim().length === 0
-  ) {
-    return fallback;
-  }
-
-  // Validar las coordenadas.
-  if (
-    typeof result.latitude !== 'number' ||
-    typeof result.longitude !== 'number' ||
-    !Number.isFinite(result.latitude) ||
-    !Number.isFinite(result.longitude) ||
-    result.latitude < -90 ||
-    result.latitude > 90 ||
-    result.longitude < -180 ||
-    result.longitude > 180
-  ) {
-    return fallback;
-  }
-
-  // Si todos los datos son correctos, aceptar la ubicación externa.
-  return {
-    source: 'provider',
-    label: result.label,
-    latitude: result.latitude,
-    longitude: result.longitude,
-  };
 }

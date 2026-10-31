@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -7,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import type { IncidentCategory } from '../campusops/contracts';
+import type { IncidentCategory, IncidentLocation } from '../campusops/contracts';
 import type { IncidentDraft } from '../domain/incident';
 import type { GeocodingResolver } from '../domain/geocoding';
 
@@ -39,51 +40,50 @@ export function IncidentReportForm({
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [resolving, setResolving] = useState(false);
+  const [suggestion, setSuggestion] = useState<IncidentLocation | null>(null);
+  const [accepted, setAccepted] = useState<IncidentLocation | null>(null);
+  const [locationNotice, setLocationNotice] = useState<string | null>(null);
+  const searchSequence = useRef(0);
+  useEffect(() => () => { searchSequence.current += 1; }, []);
 
-  const canSubmit =
-    !submitting &&
-    !resolving &&
-    description.trim().length > 0 &&
-    location.trim().length > 0;
-
-  const update = (apply: () => void) => {
-    apply();
-    onDraftChange();
+  const canSubmit = !submitting && description.trim().length > 0 && location.trim().length > 0;
+  const update = (apply: () => void) => { apply(); onDraftChange(); };
+  const invalidateSearch = () => {
+    searchSequence.current += 1;
+    setResolving(false);
+    setSuggestion(null);
+    setAccepted(null);
+    setLocationNotice(null);
   };
-
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
-
-    const manualLabel = location.trim();
+  const search = async () => {
+    if (!geocodingClient || resolving || !location.trim()) return;
+    const sequence = ++searchSequence.current;
+    const manual = location.trim();
     setResolving(true);
-
+    setSuggestion(null);
+    setAccepted(null);
+    onDraftChange();
+    setLocationNotice(null);
     try {
-      const resolved = geocodingClient
-        ? await geocodingClient.resolve(manualLabel, manualLabel)
-        : {
-            source: 'manual' as const,
-            label: manualLabel,
-          };
-
-      const coordinates =
-        resolved.source === 'provider' &&
-        typeof resolved.latitude === 'number' &&
-        typeof resolved.longitude === 'number'
-          ? {
-              latitude: resolved.latitude,
-              longitude: resolved.longitude,
-            }
-          : undefined;
-
-      onSubmit({
-        category,
-        description: description.trim(),
-        location: resolved.label,
-        ...(coordinates ? { coordinates } : {}),
-      });
+      const result = await geocodingClient.resolve(manual, manual);
+      if (sequence !== searchSequence.current) return;
+      if (result.source === 'provider') setSuggestion(result);
+      else setLocationNotice('Ubicación externa no disponible. Puedes enviar tu referencia manual.');
+    } catch {
+      if (sequence === searchSequence.current) setLocationNotice('Puedes continuar con tu referencia manual.');
     } finally {
-      setResolving(false);
+      if (sequence === searchSequence.current) setResolving(false);
     }
+  };
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    searchSequence.current += 1;
+    setResolving(false);
+    const coordinates = accepted?.source === 'provider' ? {
+      latitude: accepted.latitude!, longitude: accepted.longitude!,
+    } : undefined;
+    onSubmit({ category, description: description.trim(), location: accepted?.label ?? location.trim(),
+      ...(coordinates ? { coordinates } : {}) });
   };
 
   return (
@@ -121,12 +121,30 @@ export function IncidentReportForm({
       <TextInput
         testID="report-location"
         style={styles.input}
-        placeholder="Ubicación"
+        placeholder="Edificio, zona o referencia"
         value={location}
         onChangeText={(text) =>
-          update(() => setLocation(text))
+          update(() => { invalidateSearch(); setLocation(text); })
         }
       />
+
+      {geocodingClient ? <View style={{ gap: 8 }}>
+        <Pressable testID="location-search" accessibilityRole="button" disabled={resolving || submitting || !location.trim()}
+          onPress={() => { void search(); }}><Text>{resolving ? 'Buscando ubicación...' : 'Buscar ubicación (opcional)'}</Text></Pressable>
+        {suggestion ? <View>
+          <Text testID="location-suggestion">{suggestion.label}</Text>
+          <Pressable testID="location-accept" accessibilityRole="button" onPress={() => update(() => {
+            setAccepted(suggestion); setSuggestion(null); setLocationNotice('Ubicación externa seleccionada.');
+          })}><Text>Usar esta ubicación</Text></Pressable>
+        </View> : null}
+        {accepted ? <Text testID="location-selected">{accepted.label}</Text> : null}
+        {suggestion || accepted ? <Text accessibilityRole="link" onPress={() => { void Linking.openURL('https://www.openstreetmap.org/copyright'); }}>
+          Photon · © OpenStreetMap contributors
+        </Text> : null}
+        {accepted ? <Pressable testID="location-manual" accessibilityRole="button"
+          onPress={() => update(invalidateSearch)}><Text>Usar mi referencia manual</Text></Pressable> : null}
+        {locationNotice ? <Text testID="location-notice">{locationNotice}</Text> : null}
+      </View> : null}
 
       <Pressable
         testID="report-submit"
@@ -140,11 +158,7 @@ export function IncidentReportForm({
         onPress={handleSubmit}
       >
         <Text style={styles.submitText}>
-          {resolving
-            ? 'Buscando ubicación...'
-            : submitting
-              ? 'Enviando...'
-              : 'Enviar reporte'}
+          {submitting ? 'Enviando...' : 'Enviar reporte'}
         </Text>
       </Pressable>
     </View>
