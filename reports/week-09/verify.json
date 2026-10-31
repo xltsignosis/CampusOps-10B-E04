@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "mode": "verify",
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "evaluatedAt": "2026-10-31T21:22:13.761085+00:00",
+  "status": "pass",
+  "checks": [
+    {
+      "id": "base_files",
+      "status": "pass",
+      "detail": "missing=[]"
+    },
+    {
+      "id": "react_native_profile",
+      "status": "pass",
+      "detail": "missing packages=[]"
+    },
+    {
+      "id": "toolchain_scripts",
+      "status": "pass",
+      "detail": "missing scripts=[]"
+    },
+    {
+      "id": "workflow_integrity",
+      "status": "pass",
+      "detail": "bypass markers=[]"
+    },
+    {
+      "id": "secret_scan",
+      "status": "pass",
+      "detail": "hits=[]"
+    },
+    {
+      "id": "toolchain_1",
+      "status": "pass",
+      "detail": "npm run typecheck\n> dmi-react-native-starter@1.0.0 typecheck\n> tsc --noEmit"
+    },
+    {
+      "id": "toolchain_2",
+      "status": "pass",
+      "detail": "npm run lint\n> dmi-react-native-starter@1.0.0 lint\n> eslint ."
+    },
+    {
+      "id": "toolchain_3",
+      "status": "pass",
+      "detail": "npm run audit:ci\nersions of @expo/prebuild-config\n  Depends on vulnerable versions of glob\n  Depends on vulnerable versions of zod\n  node_modules/expo/node_modules/@expo/cli\n  @expo/config-plugins  8.0.9-canary-20240719-83ee47b - 8.0.9-canary-20240814-ce0f7d5 || >=8.1.0-canary-20240904-69100c1\n  Depends on vulnerable versions of glob\n  node_modules/@expo/config-plugins\n    @expo/inline-modules  >=0.0.2-canary-20260409-6fc2991\n    Depends on vulnerable versions of @expo/config-plugins\n    node_modules/@expo/inline-modules\n  @expo/fingerprint  *\n  Depends on vulnerable versions of glob\n  Depends on vulnerable versions of minimatch\n  node_modules/@expo/fingerprint\n  @expo/metro-config  >=0.19.0-canary-20240625-2333e70\n  Depends on vulnerable versions of @expo/config\n  Depends on vulnerable versions of glob\n  node_modules/@expo/metro-config\n  test-exclude  4.2.2 || >=5.0.0\n  Depends on vulnerable versions of glob\n  Depends on vulnerable versions of minimatch\n  node_modules/test-exclude\n    babel-plugin-istanbul  >=5.0.1\n    Depends on vulnerable versions of test-exclude\n    node_modules/babel-plugin-istanbul\n      @jest/transform  *\n      Depends on vulnerable versions of babel-plugin-istanbul\n      node_modules/@jest/transform\n        babel-jest  >=24.0.0-alpha.0\n        Depends on vulnerable versions of @jest/transform\n        Depends on vulnerable versions of babel-plugin-istanbul\n        node_modules/babel-jest\n          @react-native/jest-preset  *\n          Depends on vulnerable versions of babel-jest\n          node_modules/@react-native/jest-preset\n            react-native  0.85.0-nightly-20260108-1236b6be4 - 0.87.0-rc.4\n            Depends on vulnerable versions of @react-native/jest-preset\n            Depends on vulnerable versions of @react-native/virtualized-lists\n            node_modules/react-native\n              @react-native/virtualized-lists  0.85.0-nightly-20260108-1236b6be4 - 0.87.0-rc.4\n              Depends on vulnerable versions of react-native\n              node_modules/@react-native/virtualized-lists\n\nminimatch  <11.0.1\nSeverity: moderate\nminimatch has potential denial of service via globparts amplification - https://github.com/advisories/GHSA-g3hv-75wg-m249\nfix available via `npm audit fix --force`\nWill install expo@51.0.39, which is a breaking change\nnode_modules/@expo/config-plugins/node_modules/minimatch\nnode_modules/@expo/config/node_modules/minimatch\nnode_modules/@expo/fingerprint/node_modules/minimatch\nnode_modules/@expo/metro-config/node_modules/minimatch\nnode_modules/expo/node_modules/minimatch\nnode_modules/minimatch\n\nzod  <4.6.6\nSeverity: high\nZod can exhaust memory while validating oversized constrained collections - https://github.com/advisories/GHSA-mrhx-c7xc-m3w5\nfix available via `npm audit fix`\nnode_modules/expo/node_modules/zod\n\n20 vulnerabilities (1 low, 17 moderate, 2 high)\n\nTo address issues that do not require attention, run:\n  npm audit fix\n\nTo address all issues (including breaking changes), run:\n  npm audit fix --force"
+    },
+    {
+      "id": "toolchain_4",
+      "status": "pass",
+      "detail": "npm run test:smoke\n> dmi-react-native-starter@1.0.0 test:smoke\n> jest --no-watchman --cacheDirectory .jest-cache --ci --runInBand course-tests/smoke.test.tsx\n\n\nPASS course-tests/smoke.test.tsx\n  √ renders the reproducible baseline and resolves backend state (83 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.019 s\nRan all test suites matching /course-tests\\\\smoke.test.tsx/i."
+    },
+    {
+      "id": "toolchain_5",
+      "status": "pass",
+      "detail": "npm run backend:self-test\n> dmi-react-native-starter@1.0.0 backend:self-test\n> node course-backend/self-test.mjs\n\nCampusOps backend contracts: roles, reassignment conflict, lost response, idempotency, evidence and geocoding PASS.\nControlled backend self-test passed."
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "week": 9,
-  "commitSha": "2add2d93bde496dafa69e5d060451f274265027e",
-  "generatedAt": "2026-10-31T20:46:35.493Z",
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "generatedAt": "2026-10-31T21:22:23.767Z",
   "command": "npm run test:week09:retry",
-  "scope": "Integrante 2: planificación y ejecución de reintentos, identidad y contenido estables, registros sanitizados. Reloj virtual para límites y HTTP local con reloj real para Retry-After.",
+  "scope": "Integrante 2 y ampliación verificable de Ariel (Persona 3): fallos HTTP tras guardar, ausencia de duplicados y avisos dentro de la app; planificación y ejecución de reintentos, identidad y contenido estables, registros sanitizados. Reloj virtual para límites y HTTP local con reloj real para Retry-After.",
   "revisionNote": "commitSha identifica el HEAD base; workingTreeAtExecution registra los cambios locales comprobados. Actualizar tras guardar el código para la entrega final del equipo.",
-  "workingTreeAtExecution": "",
-  "nodeVersion": "v22.22.2",
+  "workingTreeAtExecution": "D reports/week-09/retry-metrics.json\n?? reports/week-09/fault-injection.json\n?? reports/week-09/provider-execution.json\n?? reports/week-09/validation.json\n?? reports/week-09/verify.json",
+  "nodeVersion": "v22.22.0",
   "status": "pass",
   "policy": {
     "firstAttempt": 1,
@@ -26,13 +26,326 @@
     "exhausted": "Propagar fallo tipado; la cola existente conserva la operación pendiente para una sincronización explícita posterior."
   },
   "summary": {
-    "suites": 2,
-    "passedSuites": 2,
-    "tests": 85,
-    "passed": 85,
+    "suites": 4,
+    "passedSuites": 4,
+    "tests": 90,
+    "passed": 90,
     "failed": 0
   },
   "checks": [
+    {
+      "id": "lost-resolution-no-duplicates",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "La resolución guardada antes del timeout se confirma con misma identidad sin duplicar historial ni evidencias.",
+      "status": "pass",
+      "evidence": "passed: http-lost-resolve: servidor guarda antes del timeout y el replay no duplica efectos",
+      "observed": {
+        "clock": "real",
+        "attemptsForLostResponse": 2,
+        "delaysMs": [
+          250
+        ],
+        "sendGapMs": 362,
+        "committedBeforeRetry": true,
+        "sameKey": true,
+        "sameBody": true,
+        "duplicateAcknowledged": true,
+        "versionBefore": 3,
+        "versionAfter": 4,
+        "historyDelta": 1,
+        "evidenceBefore": 1,
+        "evidenceAfter": 1,
+        "notesBefore": 0,
+        "notesAfter": 0,
+        "changedPayloadStatus": 409,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 102,
+            "elapsedMs": 102
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 364
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 409,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "lost-close-no-duplicates",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "El cierre guardado antes del timeout se confirma con misma identidad sin duplicar efectos.",
+      "status": "pass",
+      "evidence": "passed: http-lost-close: servidor guarda antes del timeout y el replay no duplica efectos",
+      "observed": {
+        "clock": "real",
+        "attemptsForLostResponse": 2,
+        "delaysMs": [
+          250
+        ],
+        "sendGapMs": 357,
+        "committedBeforeRetry": true,
+        "sameKey": true,
+        "sameBody": true,
+        "duplicateAcknowledged": true,
+        "versionBefore": 4,
+        "versionAfter": 5,
+        "historyDelta": 1,
+        "evidenceBefore": 1,
+        "evidenceAfter": 1,
+        "notesBefore": 0,
+        "notesAfter": 0,
+        "changedPayloadStatus": 409,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 102,
+            "elapsedMs": 102
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 358
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 409,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 1
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "lost-evidence-no-duplicates",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "Una evidencia sintética se agrega una sola vez pese a perder la respuesta.",
+      "status": "pass",
+      "evidence": "passed: evidence-replay: una referencia sintética no se duplica al perderse su respuesta",
+      "observed": {
+        "clock": "real",
+        "attempts": 2,
+        "sameKey": true,
+        "sameBody": true,
+        "evidenceCount": 1,
+        "historyCount": 1
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "ui-resolution-one-notice",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "Dos envíos HTTP producen un solo éxito de aplicación y una confirmación visible.",
+      "status": "pass",
+      "evidence": "passed: ui-lost-resolve: pantalla real y HTTP muestran una sola confirmación",
+      "observed": {
+        "appActionCalls": 1,
+        "httpAttempts": 2,
+        "noticesBeforeRetry": 0,
+        "visibleConfirmations": 1,
+        "historyDelta": 1,
+        "evidenceCount": 1,
+        "notificationScope": "in-app confirmation; no native push",
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 3,
+            "elapsedMs": 3
+          },
+          {
+            "event": "incident.list.loaded",
+            "status": "ok",
+            "durationMs": 3,
+            "count": 1
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          },
+          {
+            "event": "incident.detail.loaded",
+            "status": "ok",
+            "durationMs": 1,
+            "incidentId": "campus-inc-001",
+            "found": true
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 106,
+            "elapsedMs": 106
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 363
+          },
+          {
+            "event": "incident.action.succeeded",
+            "status": "ok",
+            "durationMs": 363,
+            "incidentId": "campus-inc-001",
+            "operation": "resolve"
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "ui-close-one-notice",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "El replay de cierre produce una sola confirmación visible.",
+      "status": "pass",
+      "evidence": "passed: ui-lost-close: pantalla real y HTTP muestran una sola confirmación",
+      "observed": {
+        "appActionCalls": 1,
+        "httpAttempts": 2,
+        "noticesBeforeRetry": 0,
+        "visibleConfirmations": 1,
+        "historyDelta": 1,
+        "evidenceCount": 1,
+        "notificationScope": "in-app confirmation; no native push",
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          },
+          {
+            "event": "incident.list.loaded",
+            "status": "ok",
+            "durationMs": 1,
+            "count": 1
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          },
+          {
+            "event": "incident.detail.loaded",
+            "status": "ok",
+            "durationMs": 2,
+            "incidentId": "campus-inc-001",
+            "found": true
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 109,
+            "elapsedMs": 109
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 372
+          },
+          {
+            "event": "incident.action.succeeded",
+            "status": "ok",
+            "durationMs": 372,
+            "incidentId": "campus-inc-001",
+            "operation": "close"
+          }
+        ]
+      },
+      "failureMessages": []
+    },
     {
       "id": "bounded-attempts",
       "scenarioType": "boundary",
@@ -715,7 +1028,7 @@
       "observed": {
         "clock": "real",
         "attempts": 2,
-        "gapMs": 1019,
+        "gapMs": 1007,
         "events": [
           {
             "event": "incident.request.attempt",
@@ -725,8 +1038,8 @@
             "outcome": 429,
             "retry": true,
             "delayMs": 1000,
-            "durationMs": 18,
-            "elapsedMs": 18
+            "durationMs": 4,
+            "elapsedMs": 4
           },
           {
             "event": "incident.request.attempt",
@@ -736,8 +1049,8 @@
             "outcome": 200,
             "retry": false,
             "delayMs": 0,
-            "durationMs": 6,
-            "elapsedMs": 1025
+            "durationMs": 1,
+            "elapsedMs": 1008
           }
         ]
       },
