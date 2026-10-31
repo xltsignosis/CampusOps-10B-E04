@@ -84,10 +84,54 @@ export function reducePermissionLifecycle(
   return pending('reducePermissionLifecycle');
 }
 
-/** Week 09: see docs/CAMPUSOPS_API.md; this is not a completed solution. */
 export function selectIncidentLocation(
-  _provider: unknown,
-  _manualLabel: string,
+  provider: unknown,
+  manualLabel: string,
 ): IncidentLocation {
-  return pending('selectIncidentLocation');
+  // La ubicación manual debe estar disponible como alternativa.
+  const fallback: IncidentLocation = {
+    source: 'manual',
+    label: manualLabel,
+  };
+
+  // Validar que el proveedor haya devuelto un objeto.
+  if (
+    provider === null ||
+    typeof provider !== 'object' ||
+    Array.isArray(provider)
+  ) {
+    return fallback;
+  }
+
+  const result = provider as Record<string, unknown>;
+
+  // Validar la etiqueta.
+  if (
+    typeof result.label !== 'string' ||
+    result.label.trim().length === 0
+  ) {
+    return fallback;
+  }
+
+  // Validar las coordenadas.
+  if (
+    typeof result.latitude !== 'number' ||
+    typeof result.longitude !== 'number' ||
+    !Number.isFinite(result.latitude) ||
+    !Number.isFinite(result.longitude) ||
+    result.latitude < -90 ||
+    result.latitude > 90 ||
+    result.longitude < -180 ||
+    result.longitude > 180
+  ) {
+    return fallback;
+  }
+
+  // Si todos los datos son correctos, aceptar la ubicación externa.
+  return {
+    source: 'provider',
+    label: result.label,
+    latitude: result.latitude,
+    longitude: result.longitude,
+  };
 }

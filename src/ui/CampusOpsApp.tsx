@@ -25,6 +25,7 @@ import {
 import { IncidentList } from './IncidentList';
 import { IncidentDetail } from './IncidentDetail';
 import { IncidentReportForm } from './IncidentReportForm';
+import type { GeocodingResolver } from '../domain/geocoding';
 
 interface CampusOpsAppProps {
   repository: IncidentSource;
@@ -36,6 +37,7 @@ interface CampusOpsAppProps {
   session?: Session;
   telemetry?: TelemetrySink;
   offline?: OfflineController;
+  geocodingClient?: GeocodingResolver | undefined;
 }
 
 // Mensajes genéricos: el detalle técnico sólo va, sanitizado, al registro de telemetría.
@@ -69,7 +71,7 @@ function describeFailure(error: unknown, fallback: string): string {
   return FAILURE_MESSAGES[error.kind] ?? fallback;
 }
 
-export function CampusOpsApp({ repository, writer, actions, session, telemetry, offline }: CampusOpsAppProps) {
+export function CampusOpsApp({ repository, writer, actions, session, telemetry, offline, geocodingClient }: CampusOpsAppProps) {
   const [incidents, setIncidents] = useState<readonly IncidentEntry[]>([]);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -262,6 +264,7 @@ export function CampusOpsApp({ repository, writer, actions, session, telemetry, 
               submitting={submitting}
               onSubmit={handleCreate}
               onDraftChange={handleDraftChange}
+              geocodingClient={geocodingClient}
             />
           ) : null}
           <IncidentList incidents={incidents} onSelectIncident={handleSelectIncident} />
