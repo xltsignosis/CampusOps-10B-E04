@@ -1,6 +1,9 @@
 import type { IncidentCategory, IncidentStatus } from '../campusops/contracts';
-import { SessionError, type RequestAuthorizer, type RequestCredentials } from '../domain/session';
+import { SessionError, type Clock, type RequestAuthorizer, type RequestCredentials } from '../domain/session';
 import { parseRemoteResource, type RemoteResource } from './remoteResource';
+import { configureRetryPolicy, parseRetryAfter, planRetry, type RetryPolicy } from '../application/retryPolicy';
+import { recordTelemetry } from '../application/telemetry';
+import type { TelemetrySink } from '../domain/telemetry';
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:4310';
 const DEFAULT_TIMEOUT_MS = 1_000;
@@ -69,7 +72,8 @@ export class IncidentClientError extends Error {
   readonly kind: IncidentClientErrorKind;
   readonly status: number | undefined;
 
-  constructor(kind: IncidentClientErrorKind, message: string, status?: number, readonly serverCode?: string) {
+  constructor(kind: IncidentClientErrorKind, message: string, status?: number, readonly serverCode?: string,
+    readonly retryAfterMs?: number) {
     super(message);
     this.name = 'IncidentClientError';
     this.kind = kind;
@@ -86,6 +90,11 @@ export type IncidentClientOptions = Readonly<{
   fetchImpl?: typeof fetch;
   /** Sesión de la app. Si se omite, se usan actorId y accessToken fijos. */
   auth?: RequestAuthorizer;
+  retryPolicy?: Partial<RetryPolicy>;
+  telemetry?: TelemetrySink;
+  /** Reloj y espera inyectables para reproducir demoras sin depender de tiempo real. */
+  clock?: Clock;
+  wait?: (delayMs: number) => Promise<void>;
 }>;
 
 type RequestOptions = Readonly<{
@@ -93,6 +102,14 @@ type RequestOptions = Readonly<{
   body?: unknown;
   idempotencyKey?: string;
 }>;
+
+type PreparedRequest = Readonly<{
+  method: 'GET' | 'POST';
+  body?: string;
+  idempotencyKey?: string;
+}>;
+
+type ReceivedResponse = Readonly<{ response: Response; data?: unknown }>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -165,6 +182,10 @@ export class IncidentClient {
   private readonly scenario: string | undefined;
   private readonly fetchImpl: typeof fetch;
   private readonly auth: RequestAuthorizer | undefined;
+  private readonly retryPolicy: RetryPolicy;
+  private readonly telemetry: TelemetrySink | undefined;
+  private readonly clock: Clock;
+  private readonly wait: (delayMs: number) => Promise<void>;
   private requestSequence = 0;
 
   constructor(options: IncidentClientOptions = {}) {
@@ -177,12 +198,16 @@ export class IncidentClient {
     // Se resuelve fetch global al llamar, no al construir, y sin depender de `this`.
     this.fetchImpl = options.fetchImpl ?? ((input, init) => fetch(input, init));
     this.auth = options.auth;
+    this.retryPolicy = configureRetryPolicy(options.retryPolicy);
+    this.telemetry = options.telemetry;
+    this.clock = options.clock ?? { now: () => Date.now() };
+    this.wait = options.wait ?? ((delayMs) => new Promise((done) => setTimeout(done, delayMs)));
 
     if (!isNonEmptyString(this.baseUrl) || !isNonEmptyString(this.actorId)) {
       throw new Error('La configuración del cliente de incidencias es inválida.');
     }
-    if (!Number.isFinite(this.timeoutMs) || this.timeoutMs <= 0) {
-      throw new Error('timeoutMs debe ser un número positivo.');
+    if (!Number.isFinite(this.timeoutMs) || this.timeoutMs <= 0 || this.timeoutMs > 2_147_483_647) {
+      throw new Error('timeoutMs debe ser un número positivo dentro del rango de los temporizadores.');
     }
   }
 
@@ -221,7 +246,7 @@ export class IncidentClient {
     ) {
       throw new Error('Los datos para crear la incidencia son inválidos.');
     }
-    if (!isNonEmptyString(idempotencyKey) || idempotencyKey.length < 8) {
+    if (!isNonEmptyString(idempotencyKey) || idempotencyKey.trim().length < 8) {
       throw new Error('La clave de idempotencia debe contener al menos 8 caracteres.');
     }
 
@@ -249,7 +274,7 @@ export class IncidentClient {
       throw new Error('La resolución necesita un diagnóstico.');
     }
     if (input.action === 'comment' && !isNonEmptyString(input.text)) throw new Error('La nota necesita contenido.');
-    if (!isNonEmptyString(idempotencyKey) || idempotencyKey.length < 8) {
+    if (!isNonEmptyString(idempotencyKey) || idempotencyKey.trim().length < 8) {
       throw new Error('La clave de idempotencia debe contener al menos 8 caracteres.');
     }
 
@@ -279,33 +304,85 @@ export class IncidentClient {
   }
 
   private async requestJson(path: string, options: RequestOptions = {}): Promise<unknown> {
+    // Capturar antes del primer await: mutar el borrador durante una espera no altera el replay.
+    const prepared: PreparedRequest = Object.freeze({
+      method: options.method ?? 'GET',
+      ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+      ...(options.idempotencyKey === undefined ? {} : { idempotencyKey: options.idempotencyKey }),
+    });
     this.requestSequence += 1;
     const requestId = `request-${this.requestSequence}`;
-
+    const startedAt = this.clock.now();
     let credentials = await this.credentialsFor(requestId);
-    let response = await this.send(path, options, credentials);
-    // Un 401 se consulta con la sesión; a lo más se reenvía una vez por solicitud.
-    if (response.status === 401 && this.auth && await this.auth.onUnauthorized(requestId, credentials.generation)) {
-      credentials = await this.credentialsFor(requestId);
-      response = await this.send(path, options, credentials);
-    }
+    const originalActor = credentials.actorId;
+    let refreshed = false;
+    for (let attempt = 1; ; attempt += 1) {
+      // Revalidar después de cada espera: un logout o cambio de actor cancela el replay.
+      if (attempt > 1) credentials = await this.credentialsFor(requestId);
+      if (credentials.actorId !== originalActor) {
+        throw new IncidentClientError('http', 'La sesión cambió durante la operación.', 401);
+      }
+      const attemptStartedAt = this.clock.now();
+      let received: ReceivedResponse | undefined;
+      let failure: IncidentClientError;
+      try {
+        received = await this.send(path, prepared, credentials);
+        if (received.response.ok) {
+          recordTelemetry(this.telemetry, {
+            event: 'incident.request.attempt', status: 'ok', method: prepared.method,
+            attempt, outcome: received.response.status, retry: false, delayMs: 0,
+            durationMs: Math.max(0, this.clock.now() - attemptStartedAt),
+            elapsedMs: Math.max(0, this.clock.now() - startedAt),
+          });
+          return received.data;
+        }
+        const status = received.response.status;
+        const retryAfterMs = parseRetryAfter(received.response.headers?.get('Retry-After'), this.clock.now());
+        failure = new IncidentClientError(status >= 500 ? 'server' : 'http',
+          `El backend respondió con HTTP ${status}.`, status, undefined, retryAfterMs);
+      } catch (error) {
+        if (!(error instanceof IncidentClientError)) throw error;
+        failure = error;
+      }
 
-    if (!response.ok) {
-      const kind: IncidentClientErrorKind = response.status >= 500 ? 'server' : 'http';
-      throw new IncidentClientError(kind, `El backend respondió con HTTP ${response.status}.`, response.status);
-    }
-
-    try {
-      return await response.json() as unknown;
-    } catch {
-      throw new IncidentClientError('contract', 'El backend devolvió JSON inválido.');
+      const plan = planRetry({
+        method: prepared.method,
+        // Sin respuesta (red/timeout) se aplica la misma política acotada de transporte.
+        status: failure.kind === 'network' || failure.kind === 'timeout' ? 'timeout' : failure.status ?? 0,
+        attempt,
+        ...(failure.retryAfterMs === undefined ? {} : { retryAfterMs: failure.retryAfterMs }),
+        ...(prepared.idempotencyKey === undefined ? {} : { idempotencyKey: prepared.idempotencyKey }),
+      }, this.retryPolicy);
+      let retry = plan.retry;
+      let delayMs = plan.delayMs;
+      // Renovar una vez; ese reenvío también consume uno de los cuatro envíos totales.
+      if (failure.status === 401 && this.auth && !refreshed &&
+        attempt < this.retryPolicy.maxAttempts && !plan.requiresStableIdempotencyKey) {
+        refreshed = true;
+        retry = await this.auth.onUnauthorized(requestId, credentials.generation);
+        delayMs = 0;
+      }
+      recordTelemetry(this.telemetry, {
+        event: 'incident.request.attempt', status: 'error', method: prepared.method,
+        attempt, outcome: failure.status ?? failure.kind, retry, delayMs,
+        durationMs: Math.max(0, this.clock.now() - attemptStartedAt),
+        elapsedMs: Math.max(0, this.clock.now() - startedAt),
+      });
+      if (!retry) throw failure;
+      if (delayMs > 0) await this.wait(delayMs);
     }
   }
 
-  private async send(path: string, options: RequestOptions, credentials: RequestCredentials): Promise<Response> {
+  private async send(path: string, options: PreparedRequest, credentials: RequestCredentials): Promise<ReceivedResponse> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
-    const method = options.method ?? 'GET';
+    let timeout: ReturnType<typeof setTimeout>;
+    const deadline = new Promise<never>((_done, fail) => {
+      timeout = setTimeout(() => {
+        controller.abort();
+        fail(new IncidentClientError('timeout', 'El backend excedió el tiempo de espera.'));
+      }, this.timeoutMs);
+    });
+    const method = options.method;
     const headers: Record<string, string> = {
       Accept: 'application/json',
       Authorization: `Bearer ${credentials.accessToken}`,
@@ -323,19 +400,30 @@ export class IncidentClient {
     }
 
     try {
-      return await this.fetchImpl(`${this.baseUrl}${path}`, {
-        method,
-        headers,
-        signal: controller.signal,
-        ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
-      });
-    } catch {
+      const receive = async (): Promise<ReceivedResponse> => {
+        const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
+          method,
+          headers,
+          signal: controller.signal,
+          ...(options.body === undefined ? {} : { body: options.body }),
+        });
+        if (!response.ok) return { response };
+        try {
+          return { response, data: await response.json() as unknown };
+        } catch {
+          if (controller.signal.aborted) throw new IncidentClientError('timeout', 'El backend excedió el tiempo de espera.');
+          throw new IncidentClientError('contract', 'El backend devolvió JSON inválido.');
+        }
+      };
+      return await Promise.race([receive(), deadline]);
+    } catch (error) {
+      if (error instanceof IncidentClientError) throw error;
       if (controller.signal.aborted) {
         throw new IncidentClientError('timeout', 'El backend excedió el tiempo de espera.');
       }
       throw new IncidentClientError('network', 'No fue posible conectar con el backend.');
     } finally {
-      clearTimeout(timeout);
+      clearTimeout(timeout!);
     }
   }
 }

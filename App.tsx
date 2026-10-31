@@ -26,8 +26,8 @@ export default function App() {
     [telemetry],
   );
   const incidentRepository = useMemo(
-    () => new RemoteIncidentRepository(new IncidentClient({ auth: sessionManager })),
-    [sessionManager],
+    () => new RemoteIncidentRepository(new IncidentClient({ auth: sessionManager, telemetry })),
+    [sessionManager, telemetry],
   );
 
   const geocodingClient = useMemo(

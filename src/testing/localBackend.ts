@@ -27,6 +27,10 @@ export const nodeHttpFetch = ((input: string | URL | Request, init?: RequestInit
           done({
             ok: status >= 200 && status < 300,
             status,
+            headers: { get: (name: string) => {
+              const value = res.headers[name.toLowerCase()];
+              return Array.isArray(value) ? value.join(', ') : value ?? null;
+            } },
             json: () => Promise.resolve().then(() => JSON.parse(raw) as unknown),
           } as unknown as Response);
         });
