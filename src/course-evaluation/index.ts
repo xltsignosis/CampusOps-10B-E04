@@ -1,4 +1,5 @@
 import { resolveSync as resolveCampusOpsSync, deduplicateOperations as deduplicateCampusOpsOperations } from '../application/syncPolicy';
+import { planRetry as planCampusOpsRetry } from '../application/retryPolicy';
 import type {
   AuthEvent,
   ParseResult,
@@ -47,7 +48,7 @@ export const resolveSync = resolveCampusOpsSync;
 export const deduplicateOperations = deduplicateCampusOpsOperations;
 
 export function planRetry(
-  _input: Readonly<{
+  input: Readonly<{
     method: 'GET' | 'POST';
     status: number | 'timeout';
     attempt: number;
@@ -59,7 +60,7 @@ export function planRetry(
   delayMs: number;
   requiresStableIdempotencyKey: boolean;
 }> {
-  return pending('planRetry');
+  return planCampusOpsRetry(input);
 }
 
 export function reduceRemoteResponses(
