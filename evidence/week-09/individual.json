@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "teamId": "E04",
+  "members": [
+    {
+      "studentId": "",
+      "commitShas": [],
+      "files": [],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    },
+    {
+      "studentId": "352311248",
+      "commitShas": [
+        "006b42a615ffa516f0b0d620291b739d4a566116",
+        "2add2d93bde496dafa69e5d060451f274265027e",
+        "1642ece1348f72e188bc9c50794a8cb63c6463ae"
+      ],
+      "files": [
+        "src/application/retryPolicy.ts",
+        "src/application/retryPolicy.test.ts",
+        "src/course-evaluation/index.ts",
+        "src/infrastructure/incidentClient.ts",
+        "src/infrastructure/incidentClient.retry.test.ts",
+        "src/application/syncPendingOperations.test.ts",
+        "src/testing/localBackend.ts",
+        "App.tsx",
+        "package.json",
+        "tools/run-week09-retry-tests.cjs",
+        "reports/week-09/retry-metrics.json"
+      ],
+      "tests": [
+        "src/application/retryPolicy.test.ts",
+        "src/infrastructure/incidentClient.retry.test.ts",
+        "course-tests/public/week-09.test.ts"
+      ],
+      "reviews": [
+        "Revisión asistida de docs/CAMPUSOPS_API.md y docs/assignments/week-09.md para conservar la firma de planRetry y el límite de cuatro envíos.",
+        "Revisión asistida del flujo de resolución y cierre en IncidentClient, OfflineIncidentRepository y syncPendingOperations para reutilizar la identidad persistida y la versión base de la operación.",
+        "Revisión asistida de los registros técnicos para excluir credenciales, actor, clave de idempotencia, diagnóstico y cuerpo de la solicitud."
+      ],
+      "prediction": "Para el alcance del integrante 2 se esperaba que los fallos transitorios generaran como máximo cuatro envíos, con esperas predeterminadas de 250, 500 y 1000 ms, y que desde el intento 4 no se programara otro. Un Retry-After válido en 429 o 503 debía actuar como espera mínima; si superaba el límite configurable, la operación debía detenerse sin adelantar el reintento. Un POST sin identidad estable debía rechazarse y cada reintento de resolución o cierre debía conservar clave, contenido y baseVersion. Los intentos y tiempos debían registrarse sin datos sensibles.",
+      "command": "npm run test:week09:retry\nnpm test -- --ci --runInBand src/application/retryPolicy.test.ts src/infrastructure/incidentClient.retry.test.ts course-tests/public/week-09.test.ts\nnpm test -- --ci --runInBand --testPathIgnorePatterns 'course-tests/public/week-(10|11|12|13).test.ts' '/course-tests/hidden/'\nnpm run typecheck\nnpm run lint\ngit diff --check",
+      "observedResult": "El 31 de octubre de 2026, con asistencia de Codex y Node.js 22.22.2, el ejecutor de métricas aprobó 2 suites y 85 pruebas y generó 16 comprobaciones en reports/week-09/retry-metrics.json. El cuarto fallo terminó sin quinto envío ni cuarta espera; los límites configurados de tres envíos produjeron demoras de 100 y 150 ms. Retry-After numérico y fecha HTTP produjeron 2000 y 3000 ms con reloj virtual; un valor de 11000 ms frente al máximo de 10000 ms detuvo el reintento. La prueba HTTP local con reloj real observó 1019 ms entre el 429 y el siguiente envío, respetando el segundo solicitado por el servidor. Las pruebas de resolución y cierre comprobaron misma clave, mismos bytes del cuerpo y misma versión base; las claves vacías o cortas se rechazaron antes del primer POST. La ejecución específica con el contrato público aprobó 89 pruebas y la regresión acumulada hasta semana 9 aprobó 28 suites y 276 pruebas. TypeScript, ESLint y git diff --check terminaron con código 0. El reporte conserva como versión comprobada 2add2d93bde496dafa69e5d060451f274265027e y se guardó en el commit de evidencia 1642ece1348f72e188bc9c50794a8cb63c6463ae.",
+      "explanation": "La aportación del integrante 2 implementa una política compartida de reintentos en la capa de aplicación y hace que el adaptador de evaluación delegue en esa misma lógica. IncidentClient aplica la política al flujo real, serializa el cuerpo antes del primer await y conserva la clave, la ruta y el contenido durante los reenvíos. El reenvío tras un 401 consume el mismo presupuesto de cuatro envíos; después de esperar se valida la sesión y se detiene la operación si hubo logout o cambio de actor. La telemetría registra solamente método, intento, resultado, demora y tiempos mediante la sanitización existente. En las pruebas anteriores de cola se configuró un solo envío HTTP para conservar la comprobación de persistencia y reintento manual, sin cambiar sus expectativas. Se utilizó asistencia material de IA (Codex) para implementar, revisar, ejecutar las pruebas, generar las métricas y redactar esta evidencia; los resultados descritos corresponden a comandos ejecutados en esta sesión. Las comprobaciones usan dobles de transporte, reloj virtual, temporizadores de Jest y el backend didáctico local. El alcance no incluye integrar ubicación ni elaborar el reporte integral de inyección de fallos, probar notificaciones, ejecutar E2E nativo o preparar la etiqueta final. Los tres commits permanecen locales y no se hizo push."
+    },
+    {
+      "studentId": "",
+      "commitShas": [],
+      "files": [],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": ""
+    }
+  ]
+}
