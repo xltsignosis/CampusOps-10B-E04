@@ -1,11 +1,11 @@
 import { resolveSync as resolveCampusOpsSync, deduplicateOperations as deduplicateCampusOpsOperations } from '../application/syncPolicy';
+import { planRetry as planCampusOpsRetry } from '../application/retryPolicy';
 import type {
   AuthEvent,
   ParseResult,
   PermissionEvent,
   RemoteResponse,
 } from './contracts';
-import type { IncidentLocation } from '../campusops/contracts';
 import {
   redactForTelemetry as redactCampusOpsTelemetry,
 } from '../application/telemetry';
@@ -15,6 +15,8 @@ import {
 import {
   parseRemoteResource as parseCampusOpsRemoteResource,
 } from '../infrastructure/remoteResource';
+
+export { selectIncidentLocation } from '../application/selectIncidentLocation';
 
 function pending(name: string): never {
   throw new Error(`${name} must be implemented in the assigned week`);
@@ -47,7 +49,7 @@ export const resolveSync = resolveCampusOpsSync;
 export const deduplicateOperations = deduplicateCampusOpsOperations;
 
 export function planRetry(
-  _input: Readonly<{
+  input: Readonly<{
     method: 'GET' | 'POST';
     status: number | 'timeout';
     attempt: number;
@@ -59,7 +61,7 @@ export function planRetry(
   delayMs: number;
   requiresStableIdempotencyKey: boolean;
 }> {
-  return pending('planRetry');
+  return planCampusOpsRetry(input);
 }
 
 export function reduceRemoteResponses(
@@ -82,12 +84,4 @@ export function reducePermissionLifecycle(
   resourceActive: boolean;
 }> {
   return pending('reducePermissionLifecycle');
-}
-
-/** Week 09: see docs/CAMPUSOPS_API.md; this is not a completed solution. */
-export function selectIncidentLocation(
-  _provider: unknown,
-  _manualLabel: string,
-): IncidentLocation {
-  return pending('selectIncidentLocation');
 }

@@ -45,11 +45,14 @@ export interface IncidentSource<T extends IncidentEntry = IncidentEntry> {
 
 export type IncidentRepository = IncidentSource<Incident>;
 
-/** Datos que la app envía para reportar una incidencia nueva. */
 export type IncidentDraft = Readonly<{
   category: IncidentCategory;
   description: string;
   location: string;
+  coordinates?: Readonly<{
+    latitude: number;
+    longitude: number;
+  }>;
 }>;
 
 /** Puerto de escritura, separado para que una fuente de sólo lectura siga siendo válida. */

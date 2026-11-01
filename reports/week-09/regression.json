@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "generatedAt": "2026-10-31T21:23:08.408Z",
+  "scope": "All existing suites through week 09. Future-week contracts remain unchanged and are outside this milestone.",
+  "status": "pass",
+  "summary": {
+    "suites": 32,
+    "passedSuites": 32,
+    "tests": 317,
+    "passed": 317,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "incidentClient.failures.test.ts",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "28 assertions; suite passed"
+    },
+    {
+      "id": "incidentClient.backend.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "9 assertions; suite passed"
+    },
+    {
+      "id": "remoteIncidentRepository.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "9 assertions; suite passed"
+    },
+    {
+      "id": "SessionGate.test.tsx",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "8 assertions; suite passed"
+    },
+    {
+      "id": "syncPendingOperations.test.ts",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "16 assertions; suite passed"
+    },
+    {
+      "id": "incidentClient.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "6 assertions; suite passed"
+    },
+    {
+      "id": "week09Ui.test.tsx",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "2 assertions; suite passed"
+    },
+    {
+      "id": "sqliteOfflineStore.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "12 assertions; suite passed"
+    },
+    {
+      "id": "incidentClient.retry.test.ts",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "22 assertions; suite passed"
+    },
+    {
+      "id": "incidentClient.resilience.test.ts",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "3 assertions; suite passed"
+    },
+    {
+      "id": "threat-controls.test.ts",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "20 assertions; suite passed"
+    },
+    {
+      "id": "smoke.test.tsx",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "1 assertions; suite passed"
+    },
+    {
+      "id": "app.session.test.tsx",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "3 assertions; suite passed"
+    },
+    {
+      "id": "geocodingClient.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "30 assertions; suite passed"
+    },
+    {
+      "id": "skeleton.test.tsx",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "3 assertions; suite passed"
+    },
+    {
+      "id": "session.backend.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "15 assertions; suite passed"
+    },
+    {
+      "id": "CampusOpsApp.test.tsx",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "7 assertions; suite passed"
+    },
+    {
+      "id": "IncidentReportForm.resilience.test.tsx",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "6 assertions; suite passed"
+    },
+    {
+      "id": "redaction-ui.test.tsx",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "1 assertions; suite passed"
+    },
+    {
+      "id": "sessionManager.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "15 assertions; suite passed"
+    },
+    {
+      "id": "incidentClient.session.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "5 assertions; suite passed"
+    },
+    {
+      "id": "retryPolicy.test.ts",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:regression",
+      "evidence": "63 assertions; suite passed"
+    },
+    {
+      "id": "week-03.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "2 assertions; suite passed"
+    },
+    {
+      "id": "index.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "13 assertions; suite passed"
+    },
+    {
+      "id": "week-01.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "1 assertions; suite passed"
+    },
+    {
+      "id": "week-09.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "4 assertions; suite passed"
+    },
+    {
+      "id": "week-08.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "3 assertions; suite passed"
+    },
+    {
+      "id": "week-05.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "5 assertions; suite passed"
+    },
+    {
+      "id": "architecture-boundaries.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "1 assertions; suite passed"
+    },
+    {
+      "id": "week-04.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "1 assertions; suite passed"
+    },
+    {
+      "id": "week-02.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "1 assertions; suite passed"
+    },
+    {
+      "id": "week-06.test.ts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:regression",
+      "evidence": "2 assertions; suite passed"
+    }
+  ]
+}

@@ -14,6 +14,8 @@ import { OfflineIncidentRepository } from './src/application/offlineIncidentRepo
 import { openOfflineStore } from './src/infrastructure/storage/openOfflineStore';
 import type { Session } from './src/domain/session';
 import { SessionGate } from './src/ui/SessionGate';
+import { GeocodingClient } from './src/infrastructure/geocodingClient';
+
 
 export default function App() {
   const [status, setStatus] = useState<'checking' | 'available' | 'offline'>('checking');
@@ -24,7 +26,15 @@ export default function App() {
     [telemetry],
   );
   const incidentRepository = useMemo(
-    () => new RemoteIncidentRepository(new IncidentClient({ auth: sessionManager })),
+    () => new RemoteIncidentRepository(new IncidentClient({ auth: sessionManager, telemetry })),
+    [sessionManager, telemetry],
+  );
+
+  const geocodingClient = useMemo(
+    () => new GeocodingClient({
+      provider: process.env.EXPO_PUBLIC_GEOCODING_PROVIDER === 'course' ? 'course' : 'photon',
+      auth: sessionManager,
+    }),
     [sessionManager],
   );
 
@@ -63,6 +73,7 @@ export default function App() {
               writer={incidentRepository}
               session={session}
               telemetry={telemetry}
+              geocodingClient={geocodingClient}
             />
           )}
         </SessionGate>

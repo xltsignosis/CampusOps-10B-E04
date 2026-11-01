@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "decision": "Reintentar solamente fallos transitorios de operaciones con identidad estable, conservando clave, ruta, versión base y bytes del contenido, con máximo cuatro envíos. Respetar Retry-After sin adelantarlo; si excede el límite configurado o el servidor rechaza contenido, permisos o versión, informar un fallo revisable. Para geocodificación se elige una búsqueda explícita y acotada con caché; ante datos no utilizables o falta de respuesta, continuar con edificio, zona o referencia manual sin coordenadas inventadas. La confirmación se muestra una vez cuando el mismo cierre o resolución queda reconocido por el servidor.",
+  "alternatives": [
+    "Reintentar todos los errores indefinidamente o con una clave nueva en cada POST. Se descarta porque puede saturar al proveedor y duplicar cambios tras una respuesta perdida.",
+    "Bloquear el registro del incidente cuando falla la ubicación externa y obligar a completar coordenadas. Se descarta porque reduce la utilidad offline y podría inducir a inventar datos.",
+    "Política acotada para operaciones idempotentes, alternativa manual para ubicación y conflicto explícito para rechazos definitivos. Se selecciona porque mantiene utilidad sin repetir efectos de forma insegura."
+  ],
+  "tradeoff": "La caché temporal y la alternativa manual reducen dependencia del proveedor, exposición de consultas y solicitudes repetidas; conservar una identidad estable permite recuperar respuestas perdidas sin duplicar historial ni evidencias. El costo son esperas de 250/500/1000 ms, un fallo visible cuando se agota el presupuesto, y revisión manual en conflictos. La caché en memoria se pierde al reiniciar y Photon público no ofrece disponibilidad garantizada. El alcance de avisos es dentro de la app; no se confunde exportar Android con instalarlo o probar push.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "make feedback NPM=npm.cmd",
+      "result": "pass; duración observada 11940 ms",
+      "evidence": "reports/week-09/validation.json#feedback"
+    },
+    {
+      "command": "make verify-week-09 NPM=npm.cmd",
+      "result": "pass; duración observada 20225 ms",
+      "evidence": "reports/week-09/validation.json#verify-week09"
+    },
+    {
+      "command": "npm run test:week09:regression",
+      "result": "pass; duración observada 44640 ms",
+      "evidence": "reports/week-09/validation.json#regression"
+    },
+    {
+      "command": "npm run test:week09:provider",
+      "result": "pass; duración observada 3675 ms",
+      "evidence": "reports/week-09/validation.json#provider-live"
+    },
+    {
+      "command": "npm run test:week09",
+      "result": "45 / 45 pruebas aprobadas; resolución y cierre guardados antes del timeout, mismo cuerpo y clave, incremento único de historial y evidencias sin cambios.",
+      "evidence": "reports/week-09/fault-injection.json; observed.lost-response.json y observed.ui.json"
+    },
+    {
+      "command": "npm run test:week09:retry",
+      "result": "90 / 90 pruebas aprobadas y 21 comprobaciones; cuarto fallo sin quinto envío, Retry-After respetado y confirmaciones únicas.",
+      "evidence": "reports/week-09/retry-metrics.json"
+    },
+    {
+      "command": "npm run test:week09:regression",
+      "result": "317 pruebas aprobadas en 32 suites hasta semana 09, sin omitir pruebas previas del alcance acumulado.",
+      "evidence": "reports/week-09/regression.json"
+    },
+    {
+      "command": "make public-test-week-09 NPM=npm.cmd",
+      "result": "14 comprobaciones aprobadas, incluidos archivos requeridos, esquemas y 4 pruebas públicas.",
+      "evidence": "reports/week-09/public-tests.json"
+    }
+  ],
+  "provenance": "Preparado por Ariel Abimael Chacon Herrera con asistencia material de Codex. La política de reintentos existente corresponde a Arturo; la integración inicial de ubicación corresponde al autor Git xltsignosis. Ariel amplió el proveedor externo, corrigió el plazo completo y preparó las pruebas, reportes y corroboración integral.",
+  "limitations": [
+    "Avisos dentro de la app; sin push nativo ni E2E en emulador/dispositivo por alcance acordado.",
+    "Exportación Android de Expo verificada; no se afirma instalación de APK.",
+    "Dependencias fijadas conservadas: audit:ci cumple umbral critical, pero reporta 20 vulnerabilidades (1 low, 17 moderate, 2 high).",
+    "Sin merge a main, push, etiqueta ni make evidence-week-09: el cierre formal de entrega queda para el equipo."
+  ]
+}

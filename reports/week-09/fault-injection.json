@@ -1,0 +1,721 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "generatedAt": "2026-10-31T21:22:18.432Z",
+  "command": "npm run test:week09",
+  "status": "pass",
+  "scope": "Deterministic fixtures, real local HTTP/socket timeouts and rendered React Native components. In-app notices only; no native push or device E2E.",
+  "summary": {
+    "suites": 5,
+    "passedSuites": 5,
+    "tests": 45,
+    "passed": 45,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "week09Ui.test.tsx:0",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "ui-lost-resolve: pantalla real y HTTP muestran una sola confirmación: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "week09Ui.test.tsx:1",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "ui-lost-close: pantalla real y HTTP muestran una sola confirmación: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "incidentClient.resilience.test.ts:0",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "http-lost-resolve: servidor guarda antes del timeout y el replay no duplica efectos: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "incidentClient.resilience.test.ts:1",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "http-lost-close: servidor guarda antes del timeout y el replay no duplica efectos: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "incidentClient.resilience.test.ts:2",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "evidence-replay: una referencia sintética no se duplica al perderse su respuesta: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:0",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos null conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:1",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos [] conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:2",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:3",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Incompleta\"} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:4",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Zona ficticia\",\"latitude\":91,\"longitude\":0} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:5",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Zona ficticia\",\"latitude\":0,\"longitude\":-181} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:6",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Zona ficticia\",\"latitude\":null,\"longitude\":0} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:7",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Zona ficticia\",\"latitude\":0,\"longitude\":null} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:8",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Zona ficticia\",\"latitude\":\"0\",\"longitude\":0} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:9",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\" \",\"latitude\":0,\"longitude\":0} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:10",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Zona ficticia\",\"latitude\":0,\"longitude\":0,\"status\":429} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:11",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-validation: datos inválidos {\"label\":\"Zona ficticia\",\"latitude\":0,\"longitude\":0,\"error\":\"failure\"} conservan la referencia sin coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:12",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-zero: acepta cero y límites inclusivos: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:13",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-cache: normalización, TTL exacto, expulsión y limpieza: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:14",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-no-cache: fallos y manual no se guardan como éxito; consulta vacía no envía: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:15",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-deadline-fetch: plazo completo aun si el transporte ignora abort: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:16",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-deadline-body: plazo completo aun si el transporte ignora abort: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:17",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-config: rechaza timeout inválido 0: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:18",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-config: rechaza timeout inválido -1: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:19",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-config: rechaza timeout inválido Infinity: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:20",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-config: rechaza timeout inválido NaN: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:21",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-config: rechaza timeout inválido 2147483648: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:22",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-photon: transforma longitud/latitud sin filtrar credenciales del curso: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:23",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-photon-invalid: respuesta {\"features\":[]} conserva manual: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:24",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-photon-invalid: respuesta {\"features\":[{\"geometry\":{\"type\":\"LineString\",\"coordinates\":[0,0]}}]} conserva manual: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:25",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-photon-invalid: respuesta {\"features\":[{\"geometry\":{\"type\":\"Point\",\"coordinates\":[999,0]},\"properties\":{\"name\":\"Inválida\"}}]} conserva manual: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:26",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-http: éxito y fallos reales del doble controlado: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:27",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-disconnect: un socket desconectado conserva la captura manual: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:28",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "location-body-http: headers llegan pero el cuerpo no termina, se recupera en tiempo real: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "geocodingClient.test.ts:29",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "location-auth: el doble del curso conserva renovación y detiene cambio de actor: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "IncidentReportForm.resilience.test.tsx:0",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "ui-manual: enviar no consulta al proveedor ni inventa coordenadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "IncidentReportForm.resilience.test.tsx:1",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "ui-fallback-manual: falla externa mantiene el formulario utilizable: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "IncidentReportForm.resilience.test.tsx:2",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "ui-fallback-reject: falla externa mantiene el formulario utilizable: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "IncidentReportForm.resilience.test.tsx:3",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "ui-confirm: una sugerencia sólo aporta coordenadas al aceptarla: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "IncidentReportForm.resilience.test.tsx:4",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "ui-revert: volver a manual elimina las coordenadas aceptadas: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "IncidentReportForm.resilience.test.tsx:5",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "ui-stale: editar descarta una búsqueda tardía y se puede enviar mientras busca: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "week-09.test.ts:0",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "CampusOps accepts valid geocoding and otherwise keeps manual incident location: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "week-09.test.ts:1",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09",
+      "evidence": "CampusOps can retry a lost resolution response only with a stable operation key: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "week-09.test.ts:2",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "retries bounded idempotent failures and honors Retry-After: passed",
+      "failureMessages": []
+    },
+    {
+      "id": "week-09.test.ts:3",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09",
+      "evidence": "does not retry a POST without stable idempotency identity: passed",
+      "failureMessages": []
+    }
+  ],
+  "observed": {
+    "location.json": {
+      "cache": {
+        "clock": "virtual",
+        "ttlMs": 10,
+        "limit": 2,
+        "requests": 6,
+        "hitAvoidedRequest": true,
+        "expiredAtExactTtl": true,
+        "eviction": true,
+        "clear": true
+      },
+      "photonContract": {
+        "coordinateOrder": "longitude,latitude mapped correctly",
+        "courseCredentialsSent": false
+      },
+      "success": {
+        "source": "provider",
+        "hasCoordinates": true,
+        "durationMs": 4,
+        "clock": "real"
+      },
+      "incomplete": {
+        "source": "manual",
+        "hasCoordinates": false,
+        "durationMs": 1,
+        "clock": "real"
+      },
+      "invalid_coordinates": {
+        "source": "manual",
+        "hasCoordinates": false,
+        "durationMs": 0,
+        "clock": "real"
+      },
+      "malformed": {
+        "source": "manual",
+        "hasCoordinates": false,
+        "durationMs": 1,
+        "clock": "real"
+      },
+      "rate_limited": {
+        "source": "manual",
+        "hasCoordinates": false,
+        "durationMs": 0,
+        "clock": "real"
+      },
+      "server_error": {
+        "source": "manual",
+        "hasCoordinates": false,
+        "durationMs": 1,
+        "clock": "real"
+      },
+      "slow": {
+        "source": "manual",
+        "hasCoordinates": false,
+        "durationMs": 95,
+        "clock": "real"
+      },
+      "disconnect": {
+        "source": "manual",
+        "hasCoordinates": false,
+        "transport": "real local socket disconnect"
+      },
+      "bodyTimeout": {
+        "clock": "real",
+        "timeoutMs": 80,
+        "elapsedMs": 86,
+        "source": "manual"
+      }
+    },
+    "lost-response.json": {
+      "resolve": {
+        "clock": "real",
+        "attemptsForLostResponse": 2,
+        "delaysMs": [
+          250
+        ],
+        "sendGapMs": 363,
+        "committedBeforeRetry": true,
+        "sameKey": true,
+        "sameBody": true,
+        "duplicateAcknowledged": true,
+        "versionBefore": 3,
+        "versionAfter": 4,
+        "historyDelta": 1,
+        "evidenceBefore": 1,
+        "evidenceAfter": 1,
+        "notesBefore": 0,
+        "notesAfter": 0,
+        "changedPayloadStatus": 409,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 104,
+            "elapsedMs": 104
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 365
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 409,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          }
+        ]
+      },
+      "close": {
+        "clock": "real",
+        "attemptsForLostResponse": 2,
+        "delaysMs": [
+          250
+        ],
+        "sendGapMs": 361,
+        "committedBeforeRetry": true,
+        "sameKey": true,
+        "sameBody": true,
+        "duplicateAcknowledged": true,
+        "versionBefore": 4,
+        "versionAfter": 5,
+        "historyDelta": 1,
+        "evidenceBefore": 1,
+        "evidenceAfter": 1,
+        "notesBefore": 0,
+        "notesAfter": 0,
+        "changedPayloadStatus": 409,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 108,
+            "elapsedMs": 108
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 362
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 409,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 0
+          }
+        ]
+      },
+      "evidence": {
+        "clock": "real",
+        "attempts": 2,
+        "sameKey": true,
+        "sameBody": true,
+        "evidenceCount": 1,
+        "historyCount": 1
+      }
+    },
+    "ui.json": {
+      "resolve": {
+        "appActionCalls": 1,
+        "httpAttempts": 2,
+        "noticesBeforeRetry": 0,
+        "visibleConfirmations": 1,
+        "historyDelta": 1,
+        "evidenceCount": 1,
+        "notificationScope": "in-app confirmation; no native push",
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 3
+          },
+          {
+            "event": "incident.list.loaded",
+            "status": "ok",
+            "durationMs": 4,
+            "count": 1
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          },
+          {
+            "event": "incident.detail.loaded",
+            "status": "ok",
+            "durationMs": 1,
+            "incidentId": "campus-inc-001",
+            "found": true
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 109,
+            "elapsedMs": 109
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 3,
+            "elapsedMs": 362
+          },
+          {
+            "event": "incident.action.succeeded",
+            "status": "ok",
+            "durationMs": 362,
+            "incidentId": "campus-inc-001",
+            "operation": "resolve"
+          }
+        ]
+      },
+      "close": {
+        "appActionCalls": 1,
+        "httpAttempts": 2,
+        "noticesBeforeRetry": 0,
+        "visibleConfirmations": 1,
+        "historyDelta": 1,
+        "evidenceCount": 1,
+        "notificationScope": "in-app confirmation; no native push",
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.list.loaded",
+            "status": "ok",
+            "durationMs": 0,
+            "count": 1
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 2
+          },
+          {
+            "event": "incident.detail.loaded",
+            "status": "ok",
+            "durationMs": 2,
+            "incidentId": "campus-inc-001",
+            "found": true
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 115,
+            "elapsedMs": 115
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 372
+          },
+          {
+            "event": "incident.action.succeeded",
+            "status": "ok",
+            "durationMs": 372,
+            "incidentId": "campus-inc-001",
+            "operation": "close"
+          }
+        ]
+      }
+    }
+  }
+}

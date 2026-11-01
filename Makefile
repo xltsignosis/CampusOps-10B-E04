@@ -6,7 +6,7 @@ endif
 NPM ?= npm
 
 .PHONY: setup verify feedback run run-backend package
-.PHONY: verify-week-08
+.PHONY: verify-week-08 verify-week-09
 
 setup:
 	$(NPM) ci
@@ -35,6 +35,11 @@ verify-week-%:
 verify-week-08:
 	$(PYTHON) tools/course_public_evaluator.py --week 8 --mode verify --execute-toolchain
 	$(NPM) run test:week08
+
+verify-week-09:
+	$(PYTHON) tools/course_public_evaluator.py --week 9 --mode verify --execute-toolchain
+	$(NPM) run test:week09
+	$(NPM) run test:week09:retry
 
 public-test-week-%:
 	$(PYTHON) tools/course_public_evaluator.py --week $* --mode public --execute-toolchain

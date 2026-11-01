@@ -1,16 +1,16 @@
-# Semana 8 — ¿Cómo se califica la actividad?
+# Semana 9 — ¿Cómo se califica la actividad?
 
-La actividad vale **8 puntos**.
+La actividad vale **8 puntos**. El quiz individual vale **2 puntos**, por separado.
 
 ## Qué se revisa
 
 | Criterio | Qué deben demostrar | Máximo |
 |---|---|---:|
-| AC-01 — Reproducción | La versión identificada por el SHA se instala y pasa `make verify-week-[number]`; se conserva el reporte. | 2.5 |
-| AC-02 — Comportamiento | La migración, la cola persistente, la sincronización y los reintentos preservan integridad; se demuestra recuperación tras reiniciar y conflicto sin pérdida silenciosa. Se comprueba con pruebas públicas y reportes. | 2.0 |
-| AC-03 — Falla | Demuestren que no se pierden ni duplican datos y que una transacción fallida no deja el estado parcialmente migrado. Conserven comandos y resultados observables. | 1.5 |
-| AC-04 — Decisión | Justifiquen la política de conflicto e idempotencia: qué se conserva, qué se combina y qué requiere resolución. Relaciónenlo con pruebas en `evidence/week-[number]/engineering.json`. | 1.5 |
-| AC-05 — Aportación individual | Cada integrante tiene una aportación verificable en `evidence/week-[number]/individual.json` y puede explicarla cuando se solicite. | 0.5 |
+| AC-01 — Reproducción | La versión identificada por el SHA se instala y pasa `make verify-week-09`; se conserva el reporte. | 2.5 |
+| AC-02 — Comportamiento | La integración mantiene caché y ubicación manual, respeta Retry-After y los límites de reintento, y conserva una clave estable para repetir operaciones con efecto. Se comprueba con pruebas públicas y reportes. | 2.0 |
+| AC-03 — Falla | Demuestren que no hay reintentos infinitos, exceso descontrolado de solicitudes ni efectos duplicados cuando se pierde una respuesta. Conserven comandos y resultados observables. | 1.5 |
+| AC-04 — Decisión | Justifiquen cuándo reintentar, cuándo continuar con una alternativa y cuándo informar que la operación falló. Relaciónenlo con pruebas en `evidence/week-09/engineering.json`. | 1.5 |
+| AC-05 — Aportación individual | Cada integrante tiene una aportación verificable en `evidence/week-09/individual.json` y puede explicarla cuando se solicite. | 0.5 |
 
 AC-01 a AC-03 se comprueban automáticamente. AC-04 y AC-05 combinan comprobación estructurada y corroboración cuando corresponda. GitHub Actions ofrece retroalimentación; la calificación final se obtiene al verificar la versión entregada.
 
@@ -19,9 +19,9 @@ AC-01 a AC-03 se comprueban automáticamente. AC-04 y AC-05 combinan comprobaci�
 La actividad **no se califica por cantidad de archivos ni por número de commits**. Se suman cinco criterios independientes y el resultado máximo es **8 puntos**:
 
 1. **AC-01 — 2.5 puntos, automático.** Se fija tu tag/SHA y se reproduce el proyecto. El nivel completo requiere instalación y checks obligatorios reproducibles; una deficiencia no crítica reproducible es parcial; sin reproducción o con el check central fallido no hay crédito.
-2. **AC-02 — 2 puntos, automático.** Se ejecutan las pruebas públicas y los casos declarados. El nivel completo requiere demostrar el comportamiento completo y sus límites; el nivel parcial significa que el flujo principal funciona pero falla un caso límite. En este hito se busca: La migración, la cola persistente, la sincronización y los reintentos preservan integridad; se demuestra recuperación tras reiniciar y conflicto sin pérdida silenciosa.
-3. **AC-03 — 1.5 puntos, automático.** Se reproduce la falla declarada y se revisa su manejo. El nivel completo requiere una corrección segura y evidencia útil; evidencia incompleta es parcial; un cierre inesperado, bucle, corrupción o exposición no obtiene crédito. Para esta semana deben demostrar: Demuestren que no se pierden ni duplican datos y que una transacción fallida no deja el estado parcialmente migrado.
-4. **AC-04 — 1.5 puntos, semiautomático.** Se valida `engineering.json` y se contrasta con el repositorio. El nivel completo conecta requisito, alternativas, decisión, trade-off, prueba y resultado; un documento genérico o contradictorio no obtiene crédito. La decisión central es: Justifiquen la política de conflicto e idempotencia: qué se conserva, qué se combina y qué requiere resolución.
+2. **AC-02 — 2 puntos, automático.** Se ejecutan las pruebas públicas y los casos declarados. El nivel completo requiere demostrar el comportamiento completo y sus límites; el nivel parcial significa que el flujo principal funciona pero falla un caso límite. En este hito se busca: La integración mantiene caché y ubicación manual, respeta Retry-After y los límites de reintento, y conserva una clave estable para repetir operaciones con efecto.
+3. **AC-03 — 1.5 puntos, automático.** Se reproduce la falla declarada y se revisa su manejo. El nivel completo requiere una corrección segura y evidencia útil; evidencia incompleta es parcial; un cierre inesperado, bucle, corrupción o exposición no obtiene crédito. Para esta semana deben demostrar: Demuestren que no hay reintentos infinitos, exceso descontrolado de solicitudes ni efectos duplicados cuando se pierde una respuesta.
+4. **AC-04 — 1.5 puntos, semiautomático.** Se valida `engineering.json` y se contrasta con el repositorio. El nivel completo conecta requisito, alternativas, decisión, trade-off, prueba y resultado; un documento genérico o contradictorio no obtiene crédito. La decisión central es: Justifiquen cuándo reintentar, cuándo continuar con una alternativa y cuándo informar que la operación falló.
 5. **AC-05 — 0.5 puntos, semiautomático.** Se revisa `individual.json` y la señal técnica de cada integrante. El nivel completo es una aportación verificable y explicable; una señal limitada pero coherente es parcial; la ausencia de evidencia no obtiene crédito. Los flags y la muestra rotativa sólo activan corroboración: no son un descuento automático.
 
 Los tres primeros criterios suman **6 puntos automáticos** y los dos últimos **2 puntos semiautomáticos**. No hay puntos manuales rutinarios. Los quality gates son límites, no descuentos adicionales; si coinciden varios, se aplica una sola vez el límite más restrictivo. La rúbrica no asigna un porcentaje inventado al nivel parcial: el resultado se determina por la evidencia observada en cada criterio.

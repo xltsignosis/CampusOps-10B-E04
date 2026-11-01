@@ -57,6 +57,8 @@ function stack(actorId: string, scenario?: string, offline = false) {
   });
   const client = new IncidentClient({
     baseUrl: backend.baseUrl, auth: manager, fetchImpl: transport,
+    // Aislar la cola durable del reintento HTTP, probado en incidentClient.retry.test.ts.
+    retryPolicy: { maxAttempts: 1 },
     timeoutMs: scenario === 'timeout_after_commit' ? 350 : 3000,
     ...(scenario ? { scenario } : {}),
   });

@@ -1,0 +1,1060 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "generatedAt": "2026-10-31T21:22:23.767Z",
+  "command": "npm run test:week09:retry",
+  "scope": "Integrante 2 y ampliación verificable de Ariel (Persona 3): fallos HTTP tras guardar, ausencia de duplicados y avisos dentro de la app; planificación y ejecución de reintentos, identidad y contenido estables, registros sanitizados. Reloj virtual para límites y HTTP local con reloj real para Retry-After.",
+  "revisionNote": "commitSha identifica el HEAD base; workingTreeAtExecution registra los cambios locales comprobados. Actualizar tras guardar el código para la entrega final del equipo.",
+  "workingTreeAtExecution": "D reports/week-09/retry-metrics.json\n?? reports/week-09/fault-injection.json\n?? reports/week-09/provider-execution.json\n?? reports/week-09/validation.json\n?? reports/week-09/verify.json",
+  "nodeVersion": "v22.22.0",
+  "status": "pass",
+  "policy": {
+    "firstAttempt": 1,
+    "maxAttempts": 4,
+    "baseDelayMs": 250,
+    "maxDelayMs": 10000,
+    "retryAfter": "Segundos enteros o fecha HTTP en 429/503; máximo entre backoff y espera del servidor. Si excede maxDelayMs no se reintenta.",
+    "retryable": [
+      "timeout",
+      "network",
+      408,
+      429,
+      "500..599"
+    ],
+    "identity": "POST exige clave estable de al menos ocho caracteres no vacíos. Se serializa el cuerpo una sola vez antes de esperar. La cola existente conserva su operationId.",
+    "exhausted": "Propagar fallo tipado; la cola existente conserva la operación pendiente para una sincronización explícita posterior."
+  },
+  "summary": {
+    "suites": 4,
+    "passedSuites": 4,
+    "tests": 90,
+    "passed": 90,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "lost-resolution-no-duplicates",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "La resolución guardada antes del timeout se confirma con misma identidad sin duplicar historial ni evidencias.",
+      "status": "pass",
+      "evidence": "passed: http-lost-resolve: servidor guarda antes del timeout y el replay no duplica efectos",
+      "observed": {
+        "clock": "real",
+        "attemptsForLostResponse": 2,
+        "delaysMs": [
+          250
+        ],
+        "sendGapMs": 362,
+        "committedBeforeRetry": true,
+        "sameKey": true,
+        "sameBody": true,
+        "duplicateAcknowledged": true,
+        "versionBefore": 3,
+        "versionAfter": 4,
+        "historyDelta": 1,
+        "evidenceBefore": 1,
+        "evidenceAfter": 1,
+        "notesBefore": 0,
+        "notesAfter": 0,
+        "changedPayloadStatus": 409,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 102,
+            "elapsedMs": 102
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 364
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 409,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "lost-close-no-duplicates",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "El cierre guardado antes del timeout se confirma con misma identidad sin duplicar efectos.",
+      "status": "pass",
+      "evidence": "passed: http-lost-close: servidor guarda antes del timeout y el replay no duplica efectos",
+      "observed": {
+        "clock": "real",
+        "attemptsForLostResponse": 2,
+        "delaysMs": [
+          250
+        ],
+        "sendGapMs": 357,
+        "committedBeforeRetry": true,
+        "sameKey": true,
+        "sameBody": true,
+        "duplicateAcknowledged": true,
+        "versionBefore": 4,
+        "versionAfter": 5,
+        "historyDelta": 1,
+        "evidenceBefore": 1,
+        "evidenceAfter": 1,
+        "notesBefore": 0,
+        "notesAfter": 0,
+        "changedPayloadStatus": 409,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 102,
+            "elapsedMs": 102
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 358
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 409,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 1
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "lost-evidence-no-duplicates",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "Una evidencia sintética se agrega una sola vez pese a perder la respuesta.",
+      "status": "pass",
+      "evidence": "passed: evidence-replay: una referencia sintética no se duplica al perderse su respuesta",
+      "observed": {
+        "clock": "real",
+        "attempts": 2,
+        "sameKey": true,
+        "sameBody": true,
+        "evidenceCount": 1,
+        "historyCount": 1
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "ui-resolution-one-notice",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "Dos envíos HTTP producen un solo éxito de aplicación y una confirmación visible.",
+      "status": "pass",
+      "evidence": "passed: ui-lost-resolve: pantalla real y HTTP muestran una sola confirmación",
+      "observed": {
+        "appActionCalls": 1,
+        "httpAttempts": 2,
+        "noticesBeforeRetry": 0,
+        "visibleConfirmations": 1,
+        "historyDelta": 1,
+        "evidenceCount": 1,
+        "notificationScope": "in-app confirmation; no native push",
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 3,
+            "elapsedMs": 3
+          },
+          {
+            "event": "incident.list.loaded",
+            "status": "ok",
+            "durationMs": 3,
+            "count": 1
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          },
+          {
+            "event": "incident.detail.loaded",
+            "status": "ok",
+            "durationMs": 1,
+            "incidentId": "campus-inc-001",
+            "found": true
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 106,
+            "elapsedMs": 106
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 363
+          },
+          {
+            "event": "incident.action.succeeded",
+            "status": "ok",
+            "durationMs": 363,
+            "incidentId": "campus-inc-001",
+            "operation": "resolve"
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "ui-close-one-notice",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "El replay de cierre produce una sola confirmación visible.",
+      "status": "pass",
+      "evidence": "passed: ui-lost-close: pantalla real y HTTP muestran una sola confirmación",
+      "observed": {
+        "appActionCalls": 1,
+        "httpAttempts": 2,
+        "noticesBeforeRetry": 0,
+        "visibleConfirmations": 1,
+        "historyDelta": 1,
+        "evidenceCount": 1,
+        "notificationScope": "in-app confirmation; no native push",
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          },
+          {
+            "event": "incident.list.loaded",
+            "status": "ok",
+            "durationMs": 1,
+            "count": 1
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1
+          },
+          {
+            "event": "incident.detail.loaded",
+            "status": "ok",
+            "durationMs": 2,
+            "incidentId": "campus-inc-001",
+            "found": true
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 109,
+            "elapsedMs": 109
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 2,
+            "elapsedMs": 372
+          },
+          {
+            "event": "incident.action.succeeded",
+            "status": "ok",
+            "durationMs": 372,
+            "incidentId": "campus-inc-001",
+            "operation": "close"
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "bounded-attempts",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "Cuatro envíos y tres esperas de 250/500/1000 ms; nunca programar el quinto envío.",
+      "status": "pass",
+      "evidence": "passed: retry-bound: el cuarto fallo termina sin quinta solicitud ni cuarta espera",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 4,
+        "delaysMs": [
+          250,
+          500,
+          1000
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 7,
+            "elapsedMs": 7
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 500,
+            "durationMs": 7,
+            "elapsedMs": 264
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 3,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 1000,
+            "durationMs": 7,
+            "elapsedMs": 771
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 4,
+            "outcome": 503,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 7,
+            "elapsedMs": 1778
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "configurable-limits",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "Máximo de tres envíos con esperas de 100/150 ms configuradas.",
+      "status": "pass",
+      "evidence": "passed: retry-config: límites menores se aplican en el transporte real",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 3,
+        "delaysMs": [
+          100,
+          150
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 100,
+            "durationMs": 7,
+            "elapsedMs": 7
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 150,
+            "durationMs": 7,
+            "elapsedMs": 114
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 3,
+            "outcome": 503,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 7,
+            "elapsedMs": 271
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "retry-after-seconds",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:retry",
+      "expected": "Interpretar Retry-After: 2 como 2000 ms.",
+      "status": "pass",
+      "evidence": "passed: retry-after-seconds: respeta encabezado en el cliente HTTP",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          2000
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 429,
+            "retry": true,
+            "delayMs": 2000,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 2000
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "retry-after-date",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:retry",
+      "expected": "Interpretar fecha HTTP con reloj controlado: espera de 3000 ms.",
+      "status": "pass",
+      "evidence": "passed: retry-after-date: respeta encabezado en el cliente HTTP",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          3000
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 429,
+            "retry": true,
+            "delayMs": 3000,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 3000
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "retry-after-invalid",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "Encabezado inválido usa backoff finito de 250 ms.",
+      "status": "pass",
+      "evidence": "passed: retry-after-invalid: respeta encabezado en el cliente HTTP",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          250
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 429,
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 250
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "retry-after-past",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "Fecha pasada no elimina el backoff progresivo de 250 ms.",
+      "status": "pass",
+      "evidence": "passed: retry-after-past: respeta encabezado en el cliente HTTP",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          250
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 429,
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 250
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "retry-after-exceeds-limit",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "Detenerse sin recortar una espera de servidor de 11000 ms que excede el máximo de 10000 ms.",
+      "status": "pass",
+      "evidence": "passed: retry-after-too-long: se informa el fallo sin adelantar el envío",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 1,
+        "delaysMs": [],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 503,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 0
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "post-needs-identity",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "POST con clave vacía, corta o de espacios se rechaza antes del primer envío.",
+      "status": "pass",
+      "evidence": "passed: retry-post-identity: sin clave válida no se envía ningún POST",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 0,
+        "delaysMs": [],
+        "events": []
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "immutable-payload",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "Conservar los mismos bytes y clave aunque se mute el borrador durante la operación.",
+      "status": "pass",
+      "evidence": "passed: retry-post-snapshot: misma clave y bytes aunque el borrador cambie durante el envío",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          250
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 201,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 250
+          }
+        ],
+        "sameBody": true,
+        "sameKey": true
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "resolution-identity",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:retry",
+      "expected": "Reintentar resolución con misma ruta, clave, contenido y baseVersion.",
+      "status": "pass",
+      "evidence": "passed: retry-action-resolve: conserva clave, contenido y versión base",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          250
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "network",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 250
+          }
+        ],
+        "sameBody": true,
+        "sameKey": true,
+        "sameBaseVersion": true
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "close-identity",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:retry",
+      "expected": "Reintentar cierre con misma ruta, clave, contenido y baseVersion.",
+      "status": "pass",
+      "evidence": "passed: retry-action-close: conserva clave, contenido y versión base",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          250
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": "network",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 250
+          }
+        ],
+        "sameBody": true,
+        "sameKey": true,
+        "sameBaseVersion": true
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "network-bound",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "Desconexión termina en el cuarto envío y omite el error original de los registros.",
+      "status": "pass",
+      "evidence": "passed: retry-network: la desconexión se acota y no registra el mensaje original",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 4,
+        "delaysMs": [
+          250,
+          500,
+          1000
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": "network",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": "network",
+            "retry": true,
+            "delayMs": 500,
+            "durationMs": 0,
+            "elapsedMs": 250
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 3,
+            "outcome": "network",
+            "retry": true,
+            "delayMs": 1000,
+            "durationMs": 0,
+            "elapsedMs": 750
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 4,
+            "outcome": "network",
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 1750
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "shared-auth-budget",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "El reenvío tras renovar sesión consume el mismo límite de cuatro envíos.",
+      "status": "pass",
+      "evidence": "passed: retry-auth-budget: el reenvío por 401 consume el mismo máximo de cuatro envíos",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 4,
+        "delaysMs": [
+          500,
+          1000
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 401,
+            "retry": true,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 500,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 3,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 1000,
+            "durationMs": 0,
+            "elapsedMs": 500
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 4,
+            "outcome": 503,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 1500
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "sanitized-telemetry",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:retry",
+      "expected": "Registrar sólo metadatos técnicos sin clave de operación, actor, credenciales ni diagnóstico.",
+      "status": "pass",
+      "evidence": "passed: retry-sanitized: sólo metadatos técnicos; falla del registro no impide confirmar",
+      "observed": {
+        "clock": "virtual",
+        "attempts": 2,
+        "delaysMs": [
+          250
+        ],
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "POST",
+            "attempt": 1,
+            "outcome": 503,
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 0,
+            "elapsedMs": 0
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "POST",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 0,
+            "elapsedMs": 250
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "timeout-and-timers",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:retry",
+      "expected": "Limitar también el tiempo de lectura del cuerpo; no enviar antes de la espera ni dejar temporizadores pendientes.",
+      "status": "pass",
+      "evidence": "passed: retry-timers: timeout y esperas reales usan temporizadores; también se limita un cuerpo que no llega",
+      "observed": {
+        "clock": "jest-fake-timers",
+        "attempts": 4,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 250,
+            "durationMs": 100,
+            "elapsedMs": 100
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 500,
+            "durationMs": 100,
+            "elapsedMs": 450
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 3,
+            "outcome": "timeout",
+            "retry": true,
+            "delayMs": 1000,
+            "durationMs": 100,
+            "elapsedMs": 1050
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 4,
+            "outcome": "timeout",
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 100,
+            "elapsedMs": 2150
+          }
+        ]
+      },
+      "failureMessages": []
+    },
+    {
+      "id": "http-retry-after",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:retry",
+      "expected": "Con el backend local real, esperar al menos 1000 ms entre el 429 y el siguiente envío.",
+      "status": "pass",
+      "evidence": "passed: política contra el backend HTTP local con tiempo real retry-http-header: se espera Retry-After real antes del segundo envío",
+      "observed": {
+        "clock": "real",
+        "attempts": 2,
+        "gapMs": 1007,
+        "events": [
+          {
+            "event": "incident.request.attempt",
+            "status": "error",
+            "method": "GET",
+            "attempt": 1,
+            "outcome": 429,
+            "retry": true,
+            "delayMs": 1000,
+            "durationMs": 4,
+            "elapsedMs": 4
+          },
+          {
+            "event": "incident.request.attempt",
+            "status": "ok",
+            "method": "GET",
+            "attempt": 2,
+            "outcome": 200,
+            "retry": false,
+            "delayMs": 0,
+            "durationMs": 1,
+            "elapsedMs": 1008
+          }
+        ]
+      },
+      "failureMessages": []
+    }
+  ]
+}

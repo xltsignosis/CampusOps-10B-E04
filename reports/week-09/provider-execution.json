@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "generatedAt": "2026-10-31T21:23:12.081Z",
+  "provider": "Photon / Komoot public demo",
+  "endpoint": "https://photon.komoot.io/api/",
+  "policy": "https://github.com/komoot/photon#demo-server",
+  "attribution": "© OpenStreetMap contributors, ODbL",
+  "data": "Synthetic incident E04; public city reference plus invented unmatchable building; no personal data or raw coordinates stored.",
+  "checks": [
+    {
+      "id": "public-reference",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:week09:provider",
+      "evidence": "Live Photon request with synthetic incident; source=provider",
+      "observed": {
+        "httpStatus": 200,
+        "featureCount": 1,
+        "source": "provider",
+        "hasCoordinates": true,
+        "durationMs": 785,
+        "requests": 1,
+        "clock": "real"
+      }
+    },
+    {
+      "id": "live-cache",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:provider",
+      "evidence": "Second identical query uses adapter cache without an HTTP request."
+    },
+    {
+      "id": "fictional-no-match",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm run test:week09:provider",
+      "evidence": "Live Photon request with synthetic incident; source=manual",
+      "observed": {
+        "httpStatus": 200,
+        "featureCount": 0,
+        "source": "manual",
+        "hasCoordinates": false,
+        "durationMs": 218,
+        "requests": 1,
+        "clock": "real"
+      }
+    },
+    {
+      "id": "no-course-credentials",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:week09:provider",
+      "evidence": "Only Accept header sent to the external provider."
+    }
+  ],
+  "requests": 2,
+  "status": "pass"
+}

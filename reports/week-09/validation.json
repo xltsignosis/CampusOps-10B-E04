@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "720e64f6228cd446f194f45914dd8d5e9ac23169",
+  "generatedAt": "2026-10-31T21:25:27.872Z",
+  "status": "pass",
+  "scope": "Observed final-code checks before the evidence-only commit; tag and native device checks excluded by user.",
+  "environment": {
+    "node": "v22.22.0",
+    "platform": "win32",
+    "python": "3.14.4",
+    "make": "GNU Make 4.4.1 portable",
+    "makeSource": "https://github.com/mbuilov/gnumake-windows",
+    "makeBinarySha256": "368df1dcb3d768cda767809c21e4084c3398c9c9817f5819a8851e95782b44a5"
+  },
+  "checks": [
+    {
+      "id": "feedback",
+      "command": "make feedback NPM=npm.cmd",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "evidence": "exit=0; plification - https://github.com/advisories/GHSA-g3hv-75wg-m249\nfix available via `npm audit fix --force`\nWill install expo@51.0.39, which is a breaking change\nnode_modules/@expo/config-plugins/node_modules/minimatch\nnode_modules/@expo/config/node_modules/minimatch\nnode_modules/@expo/fingerprint/node_modules/minimatch\nnode_modules/@expo/metro-config/node_modules/minimatch\nnode_modules/expo/node_modules/minimatch\nnode_modules/minimatch\n\nzod  <4.6.6\nSeverity: high\nZod can exhaust memory while validating oversized constrained collections - https://github.com/advisories/GHSA-mrhx-c7xc-m3w5\nfix available via `npm audit fix`\nnode_modules/expo/node_modules/zod\n\n20 vulnerabilities (1 low, 17 moderate, 2 high)\n\nTo address issues that do not require attention, run:\n  npm audit fix\n\nTo address all issues (including breaking changes), run:\n  npm audit fix --force\nnpm.cmd run bundle:release\r\n\n> dmi-react-native-starter@1.0.0 bundle:release\n> expo export --platform android --output-dir dist/export\n\nStarting Metro Bundler\n\nAndroid Bundled 2580ms index.ts (647 modules)\n\n› android bundles (1):\n_expo/static/js/android/index-d967c3160f75e5117f4cba5efaa62d34.hbc (1.7MB)\n\n› Files (1):\nmetadata.json (150B)\n\nExported: dist/export\nPASS course-tests/smoke.test.tsx\n  √ renders the reproducible baseline and resolves backend state (82 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.014 s\nRan all test suites matching /course-tests\\\\smoke.test.tsx/i.\n",
+      "durationMs": 11940
+    },
+    {
+      "id": "verify-week09",
+      "command": "make verify-week-09 NPM=npm.cmd",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "evidence": "exit=0; astructure/geocodingClient.test.ts\nPASS src/ui/IncidentReportForm.resilience.test.tsx\nPASS course-tests/public/week-09.test.ts\n\nTest Suites: 5 passed, 5 total\nTests:       45 passed, 45 total\nSnapshots:   0 total\nTime:        3.83 s, estimated 4 s\nRan all test suites within paths \"src/infrastructure/geocodingClient.test.ts\", \"src/infrastructure/incidentClient.resilience.test.ts\", \"src/ui/IncidentReportForm.resilience.test.tsx\", \"src/testing/week09Ui.test.tsx\", \"course-tests/public/week-09.test.ts\".\nTest results written to: ..\\..\\AppData\\Local\\Temp\\campusops-week09-p9wedv\\jest.json\n{\"suites\":5,\"passedSuites\":5,\"tests\":45,\"passed\":45,\"failed\":0}\nnpm.cmd run test:week09:retry\r\n\n> dmi-react-native-starter@1.0.0 test:week09:retry\n> node tools/run-week09-retry-tests.cjs\n\nPASS src/testing/week09Ui.test.tsx\nPASS src/infrastructure/incidentClient.retry.test.ts\nPASS src/infrastructure/incidentClient.resilience.test.ts\nPASS src/application/retryPolicy.test.ts\n\nTest Suites: 4 passed, 4 total\nTests:       90 passed, 90 total\nSnapshots:   0 total\nTime:        4.465 s, estimated 5 s\nRan all test suites within paths \"src/application/retryPolicy.test.ts\", \"src/infrastructure/incidentClient.retry.test.ts\", \"src/infrastructure/incidentClient.resilience.test.ts\", \"src/testing/week09Ui.test.tsx\".\nTest results written to: ..\\..\\AppData\\Local\\Temp\\campusops-retry-j3fdsR\\jest.json\n\nMétricas generadas: reports/week-09/retry-metrics.json\n{\"suites\":4,\"passedSuites\":4,\"tests\":90,\"passed\":90,\"failed\":0}\n",
+      "durationMs": 20225
+    },
+    {
+      "id": "regression",
+      "command": "npm run test:week09:regression",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "evidence": "exit=0; was created)\nPASS src/application/syncPendingOperations.test.ts\nPASS src/infrastructure/incidentClient.test.ts\nPASS src/testing/week09Ui.test.tsx\nPASS src/infrastructure/storage/sqliteOfflineStore.test.ts\nPASS src/infrastructure/incidentClient.retry.test.ts\nPASS src/infrastructure/incidentClient.resilience.test.ts\nPASS course-tests/security/threat-controls.test.ts\nPASS course-tests/smoke.test.tsx\nPASS src/app.session.test.tsx\nPASS src/infrastructure/geocodingClient.test.ts\nPASS course-tests/skeleton.test.tsx\nPASS src/infrastructure/session.backend.test.ts\nPASS src/ui/CampusOpsApp.test.tsx\nPASS src/ui/IncidentReportForm.resilience.test.tsx\nPASS course-tests/security/redaction-ui.test.tsx\nPASS src/application/session/sessionManager.test.ts\nPASS src/infrastructure/incidentClient.session.test.ts\nPASS src/application/retryPolicy.test.ts\nPASS course-tests/public/week-03.test.ts\nPASS src/course-evaluation/index.test.ts\nPASS course-tests/public/week-01.test.ts\nPASS course-tests/public/week-09.test.ts\nPASS course-tests/public/week-08.test.ts\nPASS course-tests/public/week-05.test.ts\nPASS course-tests/architecture-boundaries.test.ts\nPASS course-tests/public/week-04.test.ts\nPASS course-tests/public/week-02.test.ts\nPASS course-tests/public/week-06.test.ts\n\nTest Suites: 32 passed, 32 total\nTests:       317 passed, 317 total\nSnapshots:   0 total\nTime:        43.859 s, estimated 50 s\nRan all test suites.\nTest results written to: ..\\..\\AppData\\Local\\Temp\\campusops-regression-AiT7yH\\jest.json\n",
+      "durationMs": 44640
+    },
+    {
+      "id": "provider-live",
+      "command": "npm run test:week09:provider",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "evidence": "exit=0;  plus invented unmatchable building; no personal data or raw coordinates stored.\",\n  \"checks\": [\n    {\n      \"id\": \"public-reference\",\n      \"status\": \"pass\",\n      \"scenarioType\": \"nominal\",\n      \"command\": \"npm run test:week09:provider\",\n      \"evidence\": \"Live Photon request with synthetic incident; source=provider\",\n      \"observed\": {\n        \"httpStatus\": 200,\n        \"featureCount\": 1,\n        \"source\": \"provider\",\n        \"hasCoordinates\": true,\n        \"durationMs\": 785,\n        \"requests\": 1,\n        \"clock\": \"real\"\n      }\n    },\n    {\n      \"id\": \"live-cache\",\n      \"status\": \"pass\",\n      \"scenarioType\": \"boundary\",\n      \"command\": \"npm run test:week09:provider\",\n      \"evidence\": \"Second identical query uses adapter cache without an HTTP request.\"\n    },\n    {\n      \"id\": \"fictional-no-match\",\n      \"status\": \"pass\",\n      \"scenarioType\": \"failure\",\n      \"command\": \"npm run test:week09:provider\",\n      \"evidence\": \"Live Photon request with synthetic incident; source=manual\",\n      \"observed\": {\n        \"httpStatus\": 200,\n        \"featureCount\": 0,\n        \"source\": \"manual\",\n        \"hasCoordinates\": false,\n        \"durationMs\": 218,\n        \"requests\": 1,\n        \"clock\": \"real\"\n      }\n    },\n    {\n      \"id\": \"no-course-credentials\",\n      \"status\": \"pass\",\n      \"scenarioType\": \"boundary\",\n      \"command\": \"npm run test:week09:provider\",\n      \"evidence\": \"Only Accept header sent to the external provider.\"\n    }\n  ],\n  \"requests\": 2,\n  \"status\": \"pass\"\n}\n",
+      "durationMs": 3675
+    },
+    {
+      "id": "public-week09",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "make public-test-week-09 NPM=npm.cmd",
+      "evidence": "reports/week-09/public-tests.json: 14 checks passed, including 4 public tests, required files and evidence schemas."
+    }
+  ],
+  "dependencyAudit": {
+    "threshold": "critical",
+    "summary": "20 vulnerabilities (1 low, 17 moderate, 2 high)"
+  }
+}
